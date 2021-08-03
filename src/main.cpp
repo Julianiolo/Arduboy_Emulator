@@ -32,7 +32,7 @@ int main(void) {
 
 void setup() {
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
-    InitWindow(1200, 800, "TexRip");
+    InitWindow(1200, 800, "ABemu");
 
     SetWindowResizeDrawCallback(draw);
     SetTargetFPS(60);
@@ -46,7 +46,6 @@ void setup() {
     io.ConfigWindowsResizeFromEdges = true;
     io.WantSaveIniSettings = false;
     io.ConfigWindowsMoveFromTitleBarOnly = true;
-
     
     ArduEmu::init();
 
@@ -54,11 +53,7 @@ void setup() {
     abb.ab.execFlags = A32u4::ATmega32u4::ExecFlags_Debug;
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowAll;
     //abb.ab.mcu.debugger.halt();
-    //ababb..load("C:\\Users\\Julian\\source\\repos\\ArduboyTests\\ArduboyTest1\\ArduboyTest1\\ArduboyTest1\\ArduboyTest1.ino.hex");
-    //abb.ab.load("C:/Users/Julian/Desktop/Dateien/Arduino/Arduboy_supersimple/arduino_build_472331/Arduboy_supersimple.ino.hex");
-    //abb.ab.load("C:/Users/Julian/Desktop/Dateien/Arduino/Arduboy_supersimple2/arduino_build_737976/HelloWorld.ino.hex");
-    abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/Processing 3 sketche/arduboyHexToImg/data/CastleBoy.hex"); // Chrashes
-    //abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/Processing 3 sketche/arduboyHexToImg/data/UnicornDash.hex");
+    abb.ab.load("../../../ressources/games/CircuitDude.hex");
     abb.ab.mcu.powerOn();
 }
 void draw() {
@@ -86,3 +81,9 @@ void destroy() {
     ArduEmu::destroy();
     CloseWindow();
 }
+
+//ababb..load("C:\\Users\\Julian\\source\\repos\\ArduboyTests\\ArduboyTest1\\ArduboyTest1\\ArduboyTest1\\ArduboyTest1.ino.hex");
+//abb.ab.load("C:/Users/Julian/Desktop/Dateien/Arduino/Arduboy_supersimple/arduino_build_472331/Arduboy_supersimple.ino.hex");
+//abb.ab.load("C:/Users/Julian/Desktop/Dateien/Arduino/Arduboy_supersimple2/arduino_build_737976/HelloWorld.ino.hex");
+//abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/Processing 3 sketche/arduboyHexToImg/data/CastleBoy.hex"); // Chrashes
+//abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/Processing 3 sketche/arduboyHexToImg/data/UnicornDash.hex");

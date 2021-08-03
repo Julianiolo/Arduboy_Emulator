@@ -1,9 +1,9 @@
-[submodule "dependencies\\Arduboy_Emulator_HL"]
-	path = dependencies\\Arduboy_Emulator_HL
+[submodule "dependencies/Arduboy_Emulator_HL"]
+	path = dependencies/Arduboy_Emulator_HL
 	url = https://github.com/Julianiolo/Arduboy_Emulator_HL.git
-[submodule "dependencies\\raylib"]
-	path = dependencies\\raylib
+[submodule "dependencies/raylib"]
+	path = dependencies/raylib
 	url = https://github.com/Julianiolo/raylib.git
-[submodule "dependencies\\imgui"]
-	path = dependencies\\imgui
+[submodule "dependencies/imgui"]
+	path = dependencies/imgui
 	url = https://github.com/ocornut/imgui.git
