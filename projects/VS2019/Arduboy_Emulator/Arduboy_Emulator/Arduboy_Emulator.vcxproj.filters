@@ -22,6 +22,9 @@
     <Filter Include="Source Files\backends">
       <UniqueIdentifier>{541c7a0c-1794-4388-95e9-95b1dbd972b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Extensions">
+      <UniqueIdentifier>{62cbe482-fb41-4339-80ae-036965ab574b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp">
@@ -39,6 +42,9 @@
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp">
+      <Filter>Source Files\Extensions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h">
@@ -55,6 +61,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\ArdEmu.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h">
+      <Filter>Source Files\Extensions</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

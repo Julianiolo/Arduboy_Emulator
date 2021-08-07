@@ -162,6 +162,7 @@
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\DisplayBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp" />
     <ClCompile Include="..\..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp" />
   </ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="..\..\..\..\src\ArdEmu.h" />
     <ClInclude Include="..\..\..\..\src\backends\ArduboyBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\DisplayBackend.h" />
+    <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h" />
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h" />
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h" />
   </ItemGroup>
