@@ -9,11 +9,11 @@ CSTD:=-std=c++17
 RELEASE_OPTIM?= -O2
 
 SRC_DIR:=src/
-BUILD_DIR:=build/make/
+BUILD_DIR:=build/make/$(BUILD_MODE)/
 OBJ_DIR:=$(BUILD_DIR)objs/
 DEPENDENCIES_DIR:=dependencies/
 
-OUT_NAME:=ABemu
+OUT_NAME:=ABemu.exe
 OUT_DIR:=$(BUILD_DIR)ABemu/
 
 # you dont need to worry about this stuff:
@@ -61,6 +61,8 @@ DEP_LIBS_FLAGS:=$(addprefix -l:,$(DEP_LIBS))
 
 DEP_LIBS_BUILD_DIR:=$(current_dir)$(BUILD_DIR)dependencies/
 
+DEP_LIBS_DEPS:=dependencies/Makefile $(shell $(BASH_PREFX)"find dependencies/ -name '*h' -o -name '*.c' -o -name '*.cpp'")
+
 ifeq ($(detected_OS),Windows)
 	EXTRA_FLAGS:=-lopengl32 -lgdi32 -lwinmm -static -static-libgcc -static-libstdc++
 	
@@ -77,8 +79,7 @@ endif
 
 all: $(OUT_PATH)
 
-$(OUT_PATH): deps $(OBJ_FILES)
-	# BUILDING MAIN
+$(OUT_PATH): $(DEP_LIBS_BUILD_DIR)depFile.dep $(OBJ_FILES)
 	$(BASH_PREFX)"mkdir -p $(OUT_DIR)"
 	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(DEP_LIBS_DIR_FLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(CDEPFLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
 	$(BASH_PREFX)"mkdir -p $(OUT_DIR)assets"
@@ -89,7 +90,8 @@ $(OBJ_DIR)%.o:%.cpp
 
 -include $(DEP_FILES)
 
-deps:
+# dependencies
+$(DEP_LIBS_BUILD_DIR)depFile.dep:$(DEP_LIBS_DEPS)
 	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) BUILD_MODE=$(BUILD_MODE) CC=$(CC) CFLAGS="$(CFLAGS)" CSTD=$(CSTD) BUILD_DIR=$(DEP_LIBS_BUILD_DIR)
 
 clean:

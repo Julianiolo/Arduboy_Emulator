@@ -53,7 +53,8 @@ void setup() {
     abb.ab.execFlags = A32u4::ATmega32u4::ExecFlags_Debug;
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowAll;
     //abb.ab.mcu.debugger.halt();
-    abb.ab.load("../../../ressources/games/CircuitDude.hex");
+    abb.ab.load("../../../../ressources/games/CastleBoy.hex");
+    abb.debuggerBackend.loadSrcFile("../../../../../../Arduboy/CastleBoy-master/arduino_build_128300/srcMix.asm");
     abb.ab.mcu.powerOn();
 }
 void draw() {

@@ -4,10 +4,11 @@
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
 
-ABB::ArduboyBackend::ArduboyBackend(const char* n) : displayBackend(&ab.display) {
-	name = n;
-	debWinName = name + " - Debugger";
+
+ABB::ArduboyBackend::ArduboyBackend(const char* n) 
+: name(n), displayBackend(&ab.display), debuggerBackend(&ab, (name + " - Debugger").c_str()), logBackend((name + " - Log").c_str()) {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
+	ab.setLogCallBSimple(LogBackend::log);
 }
 
 void ABB::ArduboyBackend::update() {
@@ -45,29 +46,8 @@ void ABB::ArduboyBackend::draw() {
 		RLImGuiImageSize(&displayBackend.getTex(),size.x,size.y);
 	}
 	ImGui::End();
-
 	
-	if (ImGui::Begin(debWinName.c_str())) {
-		bool isHalted = ab.mcu.debugger.isHalted();
-		if (!isHalted)
-			ImGui::PushDisabled();
+	debuggerBackend.draw();
 
-		if (ImGui::Button("Step")) {
-			ab.mcu.debugger.step();
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Continue")) {
-			ab.mcu.debugger.continue_();
-		}
-
-		if (!isHalted)
-			ImGui::PopDisabled();
-
-		if (ImGui::Button("Reset")) {
-			ab.reset();
-		}
-
-
-	}
-	ImGui::End();
+	logBackend.draw();
 }

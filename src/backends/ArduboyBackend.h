@@ -6,15 +6,21 @@
 #include <string>
 
 #include "DisplayBackend.h"
+#include "DebuggerBackend.h"
+#include "LogBackend.h"
 
 namespace ABB {
 	class ArduboyBackend {
 	public:
 		Arduboy ab;
-	private:
-		DisplayBackend displayBackend;
+
 		std::string name;
-		std::string debWinName;
+
+		DisplayBackend displayBackend;
+		DebuggerBackend debuggerBackend;
+		LogBackend logBackend;
+	private:
+		
 
 		void update();
 	public:

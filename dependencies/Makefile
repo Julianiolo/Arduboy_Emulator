@@ -77,6 +77,7 @@ ABHL_DEPS:=$(shell $(BASH_PREFX)"find $(ABHL_SRC_DIR) -name *.*") $(shell $(BASH
 .PHONY:all clean
 
 all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH)
+	$(BASH_PREFX)"touch $(BUILD_DIR)depFile.dep";
 
 # raylib:
 $(RAYLIB_OUTPATH):$(RAYLIB_DEPS)
