@@ -37,7 +37,7 @@ void ABB::DebuggerBackend::drawControls(){
 
 	if(ImGui::Button("Jump to PC")) {
 		if(!srcMix.isFileEmpty()) {
-			size_t line = srcMix.getLineIndFromPC(ab->mcu.cpu.getPC());
+			size_t line = srcMix.getLineIndFromAddr(ab->mcu.cpu.getPCAddr());
 			srcMix.scrollToLine(line);
 		}
 	}
@@ -49,7 +49,7 @@ void ABB::DebuggerBackend::drawControls(){
 void ABB::DebuggerBackend::draw() {
 	if (ImGui::Begin(winName.c_str())) {
 		drawControls();
-		srcMix.drawFile(winName, ab->mcu.cpu.getPC());
+		srcMix.drawFile(winName, ab->mcu.cpu.getPCAddr());
 	}
 	ImGui::End();
 }

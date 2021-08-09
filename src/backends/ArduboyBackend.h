@@ -8,6 +8,7 @@
 #include "DisplayBackend.h"
 #include "DebuggerBackend.h"
 #include "LogBackend.h"
+#include "mcuInfoBackend.h"
 
 namespace ABB {
 	class ArduboyBackend {
@@ -19,6 +20,7 @@ namespace ABB {
 		DisplayBackend displayBackend;
 		DebuggerBackend debuggerBackend;
 		LogBackend logBackend;
+		McuInfoBackend mcuInfoBackend;
 	private:
 		
 

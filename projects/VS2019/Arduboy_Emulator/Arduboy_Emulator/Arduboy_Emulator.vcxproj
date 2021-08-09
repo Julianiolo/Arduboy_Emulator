@@ -161,18 +161,28 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\backends\DebuggerBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\DisplayBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\backends\LogBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\backends\mcuInfoBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp" />
     <ClCompile Include="..\..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp" />
+    <ClCompile Include="..\..\..\..\src\utils\asmViewer.cpp" />
+    <ClCompile Include="..\..\..\..\src\utils\symbolTable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\ArdEmu.h" />
     <ClInclude Include="..\..\..\..\src\backends\ArduboyBackend.h" />
+    <ClInclude Include="..\..\..\..\src\backends\DebuggerBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\DisplayBackend.h" />
+    <ClInclude Include="..\..\..\..\src\backends\LogBackend.h" />
+    <ClInclude Include="..\..\..\..\src\backends\mcuInfoBackend.h" />
     <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h" />
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h" />
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h" />
+    <ClInclude Include="..\..\..\..\src\utils\asmViewer.h" />
+    <ClInclude Include="..\..\..\..\src\utils\symbolTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

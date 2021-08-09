@@ -6,7 +6,9 @@
 
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n) 
-: name(n), displayBackend(&ab.display), debuggerBackend(&ab, (name + " - Debugger").c_str()), logBackend((name + " - Log").c_str()) {
+: name(n), displayBackend(&ab.display), debuggerBackend(&ab, (name + " - Debugger").c_str()), logBackend((name + " - Log").c_str()),
+	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str())
+{
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	ab.setLogCallBSimple(LogBackend::log);
 }
@@ -50,4 +52,6 @@ void ABB::ArduboyBackend::draw() {
 	debuggerBackend.draw();
 
 	logBackend.draw();
+
+	mcuInfoBackend.draw();
 }

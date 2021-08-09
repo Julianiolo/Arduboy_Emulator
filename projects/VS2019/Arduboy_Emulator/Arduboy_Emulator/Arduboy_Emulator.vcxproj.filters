@@ -25,6 +25,9 @@
     <Filter Include="Source Files\Extensions">
       <UniqueIdentifier>{62cbe482-fb41-4339-80ae-036965ab574b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\utils">
+      <UniqueIdentifier>{40fb52c6-c594-4ccd-bad2-659ff645f3e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp">
@@ -45,6 +48,21 @@
     <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp">
       <Filter>Source Files\Extensions</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\backends\LogBackend.cpp">
+      <Filter>Source Files\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\backends\DebuggerBackend.cpp">
+      <Filter>Source Files\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\utils\asmViewer.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\backends\mcuInfoBackend.cpp">
+      <Filter>Source Files\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\utils\symbolTable.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h">
@@ -64,6 +82,21 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h">
       <Filter>Source Files\Extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\backends\LogBackend.h">
+      <Filter>Source Files\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\backends\DebuggerBackend.h">
+      <Filter>Source Files\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\asmViewer.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\backends\mcuInfoBackend.h">
+      <Filter>Source Files\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\symbolTable.h">
+      <Filter>Source Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
