@@ -4,10 +4,11 @@
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
 
+#include <iostream>
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n) 
-: name(n), displayBackend(&ab.display), debuggerBackend(&ab, (name + " - Debugger").c_str()), logBackend((name + " - Log").c_str()),
-	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str())
+: name(n), displayBackend(&ab.display), debuggerBackend(&ab, (name + " - Debugger").c_str(), &symbolTable), logBackend((name + " - Log").c_str()),
+	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &symbolTable)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	ab.setLogCallBSimple(LogBackend::log);
@@ -29,6 +30,8 @@ void ABB::ArduboyBackend::update() {
 
 void ABB::ArduboyBackend::draw() {
 	update();
+
+	ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
 
 	if (ImGui::Begin(name.c_str())) {
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();

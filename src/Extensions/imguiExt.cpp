@@ -74,3 +74,22 @@ void ImGuiExt::AddLineToScrollBar(ImGuiWindow* window, ImGuiAxis axis, float pos
         );
     }
 }
+
+ImGuiLastItemData& ImGuiExt::GetItem() {
+    ImGuiContext& g = *GImGui;
+    return g.LastItemData;
+}
+
+size_t ImGuiExt::SelectSwitch(const char** labels, size_t num, size_t selected, const ImVec2& size) {
+    ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5,0.5 });
+    for(size_t cnt = 0; cnt < num; cnt++){
+        if (cnt) {
+            ImGui::SameLine();
+        }
+            
+        if (ImGui::Selectable(labels[cnt], selected == cnt, ImGuiSelectableFlags_DontClosePopups, {size.x / num, size.y}))
+            selected = cnt;
+    }
+    ImGui::PopStyleVar();
+    return selected;
+}

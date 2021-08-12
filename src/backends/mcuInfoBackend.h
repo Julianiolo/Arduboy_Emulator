@@ -6,6 +6,8 @@
 #include "../utils/hexViewer.h"
 #include <string>
 
+#include "../utils/symbolTable.h"
+
 namespace ABB {
 	class McuInfoBackend {
 		Arduboy* ab;
@@ -13,15 +15,14 @@ namespace ABB {
 		std::string winName;
 		bool winOpen = true;
 
-		McuInfoBackend(Arduboy* ab, const char* winName);
+		McuInfoBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable);
 
 		void draw();
 	private:
-		utils::HexViewer dataspaceHex;
-		bool dataSpaceSplitHexView = true;
+		utils::HexViewer dataspaceDataHex;
+		utils::HexViewer dataspaceEEPROMHex;
+		bool dataSpaceSplitHexView = false;
 		utils::HexViewer flashHex;
-
-		void drawHexEditor(const uint8_t* data, size_t dataLen, bool showAscii, size_t dataOff = 0);
 	};
 }
 

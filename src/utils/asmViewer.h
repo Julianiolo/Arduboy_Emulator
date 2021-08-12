@@ -2,9 +2,11 @@
 #define _ASM_VIEWER
 
 #include <vector>
+#include <map>
 #include <string>
 
 #include "imgui.h"
+#include "symbolTable.h"
 
 namespace ABB{
     namespace utils{
@@ -13,6 +15,9 @@ namespace ABB{
             std::string fileStr = "";
             std::vector<size_t> fileStrLines;
             std::vector<uint16_t> fileStrAddrs;
+            std::map<uint16_t, size_t> fileStrLabels;
+
+            
 
             float scrollSet = -1;
             void processSrcFile();
@@ -22,13 +27,17 @@ namespace ABB{
             void addAddrToList(const char* start, const char* end, size_t lineInd);
             
         public:
+
+            const SymbolTable* symbolTable = nullptr;
             struct SyntaxColors{
                 ImVec4 PCAddr;
                 ImVec4 rawInstBytes;
                 ImVec4 instName;
                 ImVec4 instParams;
                 ImVec4 asmComment;
+                ImVec4 asmCommentSymbolBrackets;
                 ImVec4 asmCommentSymbol;
+                ImVec4 asmCommentSymbolOffset;
 
                 ImVec4 syntaxLabelAddr;
                 ImVec4 syntaxLabelText;
@@ -48,9 +57,13 @@ namespace ABB{
             void loadSrcFile(const char* path);
             size_t getLineIndFromAddr(uint16_t Addr);
             void drawFile(const std::string& winName, uint16_t PCAddr);
-            void scrollToLine(size_t line);
+            void scrollToLine(size_t line, bool select = false);
             bool isFileEmpty();
+
+            void setSymbolTable(const SymbolTable* table);
         private:
+            void drawSymbolComment(const char* lineStart, const char* lineEnd, const size_t symbolStartOff, const size_t symbolEndOff, bool* hasAlreadyClicked);
+
             void decorateScrollBar(uint16_t PCAddr);
         };
     }

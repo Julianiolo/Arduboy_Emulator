@@ -6,20 +6,90 @@
 #include "../backends/LogBackend.h"
 #include "utils/stringExtras.h"
 #include "../Extensions/imguiExt.h"
+#include "../utils/stringUtils.h"
 
 #include "imgui_internal.h"
 
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
-	{1,0.5f,0,1}, {1,1,0,1}, {0.2,0.2,0.7f,1}, {0.2,0.4f,0.7f,1}, {0.4,0.6,0.4,1}, {0.5,0.5,0.7,1},
+	{1,0.5f,0,1}, {1,1,0,1}, {0.2,0.2,0.7f,1}, {0.2,0.4f,0.7f,1}, {0.4,0.6,0.4,1}, {0.3,0.4,0.7,1}, {0.5,0.5,0.7,1}, {0.4,0.4,0.6,1},
 	{1,0.7,1,1}, {1,0,1,1},
 	{0,1,1,1}, {.5,1,.5,1},
 	{0.6,0.6,0.7,1}
 };
 
+void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char* lineEnd, const size_t symbolStartOff, const size_t symbolEndOff, bool* hasAlreadyClicked) {
+	const size_t symbolNameStartOff = symbolStartOff+1;
+	const size_t plusPos = findCharInLine(lineStart + symbolStartOff, lineEnd, '+');
+	const size_t symbolNameEndOff = (plusPos!=(size_t)-1) ? (symbolStartOff + plusPos) : (symbolEndOff-1);
+	const bool hasOffset = symbolNameEndOff != symbolEndOff - 1;
+	
+	//ImGuiExt::TextColored(syntaxColors.asmCommentSymbol, lineStart+symbolStartOff, lineStart+symbolEndOff); // simple display
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	ImGuiIO& io = ImGui::GetIO();
+
+	ImGui::BeginGroup();
+	ImGuiExt::TextColored(syntaxColors.asmCommentSymbolBrackets, lineStart+symbolStartOff, lineStart+symbolNameStartOff); // <
+	ImGui::SameLine();
+	ImGuiExt::TextColored(syntaxColors.asmCommentSymbol, lineStart+symbolNameStartOff, lineStart+symbolNameEndOff);       //  Symbol
+	ImRect symbolNameRect;
+	if(io.KeyCtrl && ImGui::IsWindowHovered())
+		symbolNameRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	ImGui::SameLine();
+	ImRect symbolOffsetRect;
+	if (hasOffset) {
+		if(io.KeyCtrl && io.KeyShift && ImGui::IsWindowHovered())
+			symbolOffsetRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+		ImGuiExt::TextColored(syntaxColors.asmCommentSymbolOffset, lineStart+symbolNameEndOff, lineStart+symbolEndOff-1); //        +0123
+		ImGui::SameLine();
+	}
+	ImGuiExt::TextColored(syntaxColors.asmCommentSymbolBrackets, lineStart+symbolEndOff-1, lineStart+symbolEndOff);       //             >
+	ImGui::EndGroup();
+
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(std::string(lineStart+symbolStartOff, lineStart+symbolEndOff).c_str());
+		
+		if (io.KeyCtrl) {
+			drawList->AddLine(
+				{ symbolNameRect.Min.x, symbolNameRect.Max.y},
+				symbolNameRect.Max ,
+				ImColor(syntaxColors.asmCommentSymbol)
+			);
+			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		}
+
+		if (io.KeyCtrl && io.KeyShift)
+			drawList->AddLine(
+				{ symbolOffsetRect.Min.x, symbolOffsetRect.Max.y},
+				symbolOffsetRect.Max ,
+				ImColor(syntaxColors.asmCommentSymbolOffset)
+			);
+	}
+	if (!*hasAlreadyClicked && ImGui::GetIO().KeyCtrl && ImGui::IsItemClicked()) {
+		*hasAlreadyClicked = true;
+		if (symbolTable) {
+			std::string symbolName = std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff);
+			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
+			if (symbol) {
+				if (fileStrLabels.find(symbol->value) != fileStrLabels.end()) {
+					selectedLine = fileStrLabels.at(symbol->value);
+					scrollToLine(selectedLine);
+				}
+				else {
+					LogBackend::log(("[AsmViewer] Symbol \"" + symbolName + "\" could not be found in the file").c_str(), A32u4::ATmega32u4::LogLevel_Error);
+				}
+			}
+			else {
+				LogBackend::log(("[AsmViewer] Symbol \"" + symbolName + "\" could not be found").c_str(), A32u4::ATmega32u4::LogLevel_Error);
+			}
+		}
+	}
+}
+
 void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr) {
 	if(fileStr.size() == 0)
 		return;
-	
+
 	if(ImGui::BeginChild((winName+" srcWin").c_str(), {0,0},true)){
 
 		if (showScollBarHints)
@@ -45,21 +115,19 @@ void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr
 
 				ImGui::BeginGroup();
 
+				if (line_no == selectedLine) {
+					ImGui::TextUnformatted(""); // fix this weirdness
+					ImGui::SameLine();
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+					drawList->AddRectFilled(
+						{ contentStartPosX,                ImGui::GetItemRectMin().y },
+						{ contentStartPosX + contentWidth, ImGui::GetItemRectMax().y },
+						IM_COL32(50,50,255,255)
+					);
+				}
+
                 if(fileStrAddrs[line_no] != Addrs_notAnAddr){
 					if (fileStrAddrs[line_no] != Addrs_symbolLabel) {
-						if (line_no == selectedLine) {
-							ImGui::TextUnformatted(""); // fix this weirdness
-							ImGui::SameLine();
-							ImDrawList* drawList = ImGui::GetWindowDrawList();
-							drawList->AddRectFilled(
-								{ contentStartPosX,                ImGui::GetItemRectMin().y },
-								{ contentStartPosX + contentWidth, ImGui::GetItemRectMax().y },
-								IM_COL32(50,50,255,255)
-							);
-						}
-
-						
-
 						constexpr size_t addrEnd = 8;
 						constexpr size_t addrEndExt = 10;
 
@@ -86,32 +154,33 @@ void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr
 							if(commentCharPos == (size_t)-1){
 								// parameters
 								ImGuiExt::TextColored(syntaxColors.instParams, lineStart+paramStart, lineEnd);
-							}else{
+							}
+							else{
 								// parameters
 								ImGuiExt::TextColored(syntaxColors.instParams, lineStart+paramStart, lineStart+paramStart+commentCharPos);
 								ImGui::SameLine();
 
 								const size_t symbolPos = findCharInLine(lineStart + paramStart + commentCharPos, lineEnd, '<');
-								if (symbolPos == (size_t)-1) {
+								const size_t symbolEndPos = findCharInLine(lineStart + paramStart + commentCharPos, lineEnd, '>');
+								if (symbolPos == (size_t)-1 || symbolEndPos == (size_t)-1) {
 									// comment
 									ImGuiExt::TextColored(syntaxColors.asmComment, lineStart+paramStart+commentCharPos, lineEnd);
 								}
 								else {
-									const size_t symbolEndPos = findCharInLine(lineStart + paramStart + commentCharPos, lineEnd, '>') + 1;
+									//symbol
+									
+									// draw rest of comment before symbol
 									ImGuiExt::TextColored(syntaxColors.asmComment, lineStart+paramStart+commentCharPos, lineStart+paramStart+commentCharPos+symbolPos);
 									ImGui::SameLine();
-									size_t symbolStartOff = paramStart + commentCharPos + symbolPos;
-									size_t symbolEndOff = paramStart+commentCharPos+symbolEndPos;
-									ImGuiExt::TextColored(syntaxColors.asmCommentSymbol, lineStart+symbolStartOff, lineStart+symbolEndOff);
-									if (ImGui::IsItemHovered())
-										ImGui::SetTooltip(std::string(lineStart+symbolStartOff, lineStart+symbolEndOff).c_str());
-									if (!hasAlreadyClicked && ImGui::IsItemClicked()) {
-										hasAlreadyClicked = true;
-										selectedLine = line_no-1;
-									}
 
+									
+									size_t symbolStartOff = paramStart + commentCharPos + symbolPos;
+									size_t symbolEndOff = paramStart+commentCharPos+symbolEndPos+1;
+									drawSymbolComment(lineStart, lineEnd, symbolStartOff, symbolEndOff, &hasAlreadyClicked);
+									
+									// draw rest of comment
 									ImGui::SameLine();
-									ImGuiExt::TextColored(syntaxColors.asmComment, lineStart+paramStart+commentCharPos+symbolEndPos, lineEnd);
+									ImGuiExt::TextColored(syntaxColors.asmComment, lineStart+symbolEndOff, lineEnd);
 								}
 								
 							}
@@ -176,6 +245,7 @@ void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr
 			IM_COL32(255,0,0,255)
 		);
 	}
+
 	ImGui::EndChild();
 }
 
@@ -244,6 +314,11 @@ void ABB::utils::AsmViewer::addAddrToList(const char* start, const char* end, si
 		fileStrAddrs.resize(lineInd + 100);
 	}
 	fileStrAddrs[lineInd-1] = Addr;
+
+	if (Addr == Addrs_symbolLabel) {
+		uint16_t symbAddr = StringUtils::hexToUInt(start, start + 8);
+		fileStrLabels[symbAddr] = lineInd-1;
+	}
 }
 uint16_t ABB::utils::AsmViewer::generateAddrFromLine(const char* start, const char* end) {
 	if (start + 8 > end || *start != ' ' || start[8] != ':') {
@@ -321,13 +396,21 @@ size_t ABB::utils::AsmViewer::getLineIndFromAddr(uint16_t Addr){
 	return from;
 }
 
-void ABB::utils::AsmViewer::scrollToLine(size_t line) {
-    if(!isFileEmpty())
-        scrollSet = (float)line/(float)fileStrLines.size();
+void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
+	if (isFileEmpty())
+		return;
+
+	scrollSet = (float)line/(float)fileStrLines.size();
+	if (select)
+		selectedLine = line;
 }
 
 bool ABB::utils::AsmViewer::isFileEmpty() {
     return fileStr.size() == 0;
+}
+
+void ABB::utils::AsmViewer::setSymbolTable(const SymbolTable* table) {
+	symbolTable = table;
 }
 
 /*

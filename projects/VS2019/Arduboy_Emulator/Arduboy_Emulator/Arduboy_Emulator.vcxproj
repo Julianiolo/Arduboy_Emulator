@@ -169,6 +169,8 @@
     <ClCompile Include="..\..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\asmViewer.cpp" />
+    <ClCompile Include="..\..\..\..\src\utils\hexViewer.cpp" />
+    <ClCompile Include="..\..\..\..\src\utils\stringUtils.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\symbolTable.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +184,8 @@
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h" />
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h" />
     <ClInclude Include="..\..\..\..\src\utils\asmViewer.h" />
+    <ClInclude Include="..\..\..\..\src\utils\hexViewer.h" />
+    <ClInclude Include="..\..\..\..\src\utils\stringUtils.h" />
     <ClInclude Include="..\..\..\..\src\utils\symbolTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

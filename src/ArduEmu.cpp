@@ -23,3 +23,7 @@ ABB::ArduboyBackend& ArduEmu::addEmulator(const char* n) {
 	instances.push_back(ptr);
 	return *ptr;
 }
+
+ABB::ArduboyBackend& ArduEmu::getInstance(size_t ind) {
+	return *instances.at(ind);
+}

@@ -14,6 +14,7 @@ public:
 	static void draw();
 
 	static ABB::ArduboyBackend& addEmulator(const char* n);
+	static ABB::ArduboyBackend& getInstance(size_t ind);
 };
 
 #endif

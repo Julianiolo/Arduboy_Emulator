@@ -56,6 +56,7 @@ void setup() {
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
     abb.ab.load("../../../../ressources/games/CastleBoy/CastleBoy.ino.hex");
     abb.debuggerBackend.srcMix.loadSrcFile("../../../../ressources/games/CastleBoy/srcMix.asm");
+    abb.symbolTable.loadFromDump("../../../../ressources/games/CastleBoy/symbs.asm");
     abb.ab.mcu.powerOn();
 }
 void draw() {
@@ -73,6 +74,8 @@ void draw() {
     EndRLImGui();
 
     lastMousePos = GetMousePosition();
+
+    DrawFPS(0,0);
 
     EndDrawing();
 

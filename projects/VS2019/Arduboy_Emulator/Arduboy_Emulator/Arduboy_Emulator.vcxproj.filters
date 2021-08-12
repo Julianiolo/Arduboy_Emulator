@@ -63,6 +63,12 @@
     <ClCompile Include="..\..\..\..\src\utils\symbolTable.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\utils\hexViewer.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\utils\stringUtils.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h">
@@ -96,6 +102,12 @@
       <Filter>Source Files\backends</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\utils\symbolTable.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\hexViewer.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\stringUtils.h">
       <Filter>Source Files\utils</Filter>
     </ClInclude>
   </ItemGroup>

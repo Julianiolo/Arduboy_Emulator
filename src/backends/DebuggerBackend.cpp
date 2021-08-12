@@ -4,9 +4,10 @@
 #include "imgui_internal.h"
 #include "../Extensions/imguiExt.h"
 
+#include "../utils/stringUtils.h"
 
-ABB::DebuggerBackend::DebuggerBackend(Arduboy* ab, const char* winName) : ab(ab), winName(winName){
-
+ABB::DebuggerBackend::DebuggerBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable) : ab(ab), symbolTable(symbolTable), winName(winName){
+	srcMix.setSymbolTable(symbolTable);
 }
 
 void ABB::DebuggerBackend::drawControls(){
@@ -46,11 +47,87 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::PopDisabled();
 }
 
+void ABB::DebuggerBackend::drawDebugStack() {
+	if (ImGui::BeginChild("DebugStack", { 600,80 }, true)) {
+		int32_t stackSize = ab->mcu.debugger.getAddressStackPointer();
+		if (ImGui::BeginTable("DebugStackTable", 2)) {
+			for (int32_t i = stackSize-1; i >= 0; i--) {
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				
+				{
+					uint16_t Addr = ab->mcu.debugger.getAddresAt(i)*2;
+					const utils::SymbolTable::Symbol* symbol = symbolTable->drawAddrWithSymbol(Addr);
+
+					if (symbol && ImGui::IsItemHovered()) {
+						ImGui::BeginTooltip();
+						symbol->draw();
+						ImGui::EndTooltip();
+					}
+					if (ImGui::IsItemClicked()) {
+						size_t line = srcMix.getLineIndFromAddr(Addr);
+						if(line != (size_t)-1)
+							srcMix.scrollToLine(line, true);
+					}
+				}
+					
+
+				ImGui::TableNextColumn();
+					
+					
+				ImGui::TextUnformatted(" : from");
+				ImGui::SameLine();
+					
+				{
+					uint16_t fromAddr = ab->mcu.debugger.getFromAddresAt(i) * 2;
+					const utils::SymbolTable::Symbol* fromSymbol = symbolTable->drawAddrWithSymbol(fromAddr);
+
+					if (fromSymbol && ImGui::IsItemHovered()) {
+						ImGui::BeginTooltip();
+						fromSymbol->draw();
+						ImGui::EndTooltip();
+					}
+					if (ImGui::IsItemClicked()) {
+						size_t line = srcMix.getLineIndFromAddr(fromAddr);
+						if(line != (size_t)-1)
+							srcMix.scrollToLine(line, true);
+					}
+				}
+					
+			}
+			ImGui::EndTable();
+		}
+		
+	}
+	ImGui::EndChild();
+}
+
 void ABB::DebuggerBackend::draw() {
 	if (ImGui::Begin(winName.c_str())) {
 		drawControls();
+		if (ImGui::TreeNode("Debug Stack")) {
+			drawDebugStack();
+			ImGui::TreePop();
+		}
+		
 		srcMix.drawFile(winName, ab->mcu.cpu.getPCAddr());
 	}
 	ImGui::End();
 }
 
+/*
+
+StringUtils::uIntToHex(Addr, 4, texBuf);
+
+ImGui::BeginGroup();
+ImGui::TextUnformatted(texBuf, texBuf+4);
+
+const utils::SymbolTable::Symbol* symbol = symbolTable->getSymbolByValue(Addr);
+if (symbol) {
+ImGui::SameLine();
+ImGui::TextColored(symbol->col, symbol->demangled.c_str());
+}
+
+ImGui::EndGroup();
+
+*/
