@@ -2,6 +2,7 @@
 #define _ARDUBOY_DISPLAY_BACKEND
 
 #include "raylib.h"
+#include "imgui.h"
 #include "Arduboy.h"
 
 namespace ABB {
@@ -18,12 +19,17 @@ namespace ABB {
 			uint8_t b;
 		};
 
+		Texture& getTex();
+		Rectangle getTexSrcRect();
+		bool getPixelOfImage(uint8_t x, uint8_t y);
 	public:
+
 		DisplayBackend(AB::Display* display);
 		~DisplayBackend();
 
 		void update();
-		Texture& getTex();
+		
+		void draw(const ImVec2& size);
 	};
 }
 

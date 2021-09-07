@@ -30,27 +30,27 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -104,6 +104,10 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\build\VS2019\ATmega32u4_Emulator\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator_HL\lib\$(Platform)\$(Configuration)\;$(SolutionDir)\build\libs\raylib\bin\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Dear ImGui\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Dear ImGui.lib;Arduboy_Emulator_HL.lib;ATmega32u4_Emulator.lib;raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent />
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -123,6 +127,10 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\build\VS2019\ATmega32u4_Emulator\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator_HL\lib\$(Platform)\$(Configuration)\;$(SolutionDir)\build\libs\raylib\bin\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Dear ImGui\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Dear ImGui.lib;Arduboy_Emulator_HL.lib;ATmega32u4_Emulator.lib;raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent />
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -138,6 +146,10 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\build\VS2019\ATmega32u4_Emulator\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator_HL\lib\$(Platform)\$(Configuration)\;$(SolutionDir)\build\libs\raylib\bin\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Dear ImGui\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Dear ImGui.lib;Arduboy_Emulator_HL.lib;ATmega32u4_Emulator.lib;raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent />
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -157,6 +169,10 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\build\VS2019\ATmega32u4_Emulator\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator_HL\lib\$(Platform)\$(Configuration)\;$(SolutionDir)\build\libs\raylib\bin\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\..\build\VS2019\Dear ImGui\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Dear ImGui.lib;Arduboy_Emulator_HL.lib;ATmega32u4_Emulator.lib;raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent />
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp" />
@@ -165,12 +181,13 @@
     <ClCompile Include="..\..\..\..\src\backends\DisplayBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\LogBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\mcuInfoBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\bintools\bintools.cpp" />
     <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp" />
     <ClCompile Include="..\..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\asmViewer.cpp" />
+    <ClCompile Include="..\..\..\..\src\utils\byteVisualiser.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\hexViewer.cpp" />
-    <ClCompile Include="..\..\..\..\src\utils\stringUtils.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\symbolTable.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,12 +197,14 @@
     <ClInclude Include="..\..\..\..\src\backends\DisplayBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\LogBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\mcuInfoBackend.h" />
+    <ClInclude Include="..\..\..\..\src\bintools\bintools.h" />
     <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h" />
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h" />
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h" />
     <ClInclude Include="..\..\..\..\src\utils\asmViewer.h" />
+    <ClInclude Include="..\..\..\..\src\utils\byteVisualiser.h" />
     <ClInclude Include="..\..\..\..\src\utils\hexViewer.h" />
-    <ClInclude Include="..\..\..\..\src\utils\stringUtils.h" />
+    <ClInclude Include="..\..\..\..\src\utils\mathUtils.h" />
     <ClInclude Include="..\..\..\..\src\utils\symbolTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

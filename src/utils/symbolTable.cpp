@@ -2,8 +2,16 @@
 
 #include <algorithm>
 
-#include "stringUtils.h"
-#include "imgui.h"
+#include <cstring>
+#include <cmath>
+#include "utils/StringUtils.h"
+#include "../Extensions/imguiExt.h"
+
+#include "../bintools/bintools.h"
+
+#include "../backends/LogBackend.h"
+
+#include "byteVisualiser.h"
 
 ABB::utils::SymbolTable::Symbol::Section::Section() {
 
@@ -12,21 +20,102 @@ ABB::utils::SymbolTable::Symbol::Section::Section(const std::string& name) : nam
 
 }
 
+std::vector<ABB::utils::SymbolTable::Symbol> ABB::utils::SymbolTable::deviceSpecSymbolStorage;
+
+void ABB::utils::SymbolTable::init() {
+
+}
+
 bool ABB::utils::SymbolTable::Symbol::operator<(const Symbol& rhs) const {
 	return this->value < rhs.value;
 }
-void ABB::utils::SymbolTable::Symbol::draw() const {
+void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) const {
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
+
 	if (hasDemangledName) {
 		ImGui::TextColored(col, demangled.c_str());
 		ImGui::SameLine();
 		ImGui::TextUnformatted(": ");
-		ImGui::SameLine();
+		if(demangled.size() < 40) // only put name in same line if it isnt already super long
+			ImGui::SameLine();
 	}
 	ImGui::TextColored(col, name.c_str());
 
-	ImGui::Text("Value: %4x", value);
-	ImGui::Text("Size: %d", size);
-	ImGui::Text("Section: %s", section->name.c_str());
+	ImGui::PopStyleVar();
+
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImGui::GetStyle().ItemSpacing.y);
+
+	if (addr > value && addr < addrEnd()) {
+		ImGui::Text("<+%04x>", addr - value);
+	}
+
+	ImGui::Separator();
+
+	const ImGuiTableFlags tFlags = ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_BordersV | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoHostExtendX;
+	if (ImGui::BeginTable("symbolTableElemTable", 2, tFlags)) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+			ImGui::TextUnformatted("Value:");
+			ImGui::TableNextColumn();
+			ImGui::Text("%x", value);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+			ImGui::TextUnformatted("Size:");
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", size);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+			ImGui::TextUnformatted("Section:");
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(section->name.c_str());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+			ImGui::TextUnformatted("Flags:");
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(flagStr.c_str());
+
+		ImGui::EndTable();
+	}
+	
+	if (data) {
+		ImGui::SameLine();
+		
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
+
+		const float byteHeight = ImGui::CalcTextSize(" ").y*2;
+		const size_t maxLineLen = 128;
+
+		ImVec2 winSize = {
+			(byteHeight / 8) * (size >= maxLineLen ? maxLineLen : size % maxLineLen),
+			byteHeight * std::ceil((float)size / maxLineLen)
+		};
+		if (winSize.y > 500)
+			winSize.y = 500;
+
+		ImGui::BeginChild("Symbol Byte Tex Child", winSize, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0,0});
+		for (size_t i = 0; i < size; i++) {
+			if(i%maxLineLen != 0)
+				ImGui::SameLine();
+			ByteVisualiser::DrawByte(*(data+value+i), byteHeight/8, byteHeight);
+		}
+		ImGui::PopStyleVar();
+		ImGui::EndChild();
+
+		ImGui::PopStyleVar();
+	}
+	
+	
+}
+size_t ABB::utils::SymbolTable::Symbol::addrEnd() const {
+	return value + size;
 }
 
 ABB::utils::SymbolTable::Symbol::Flags ABB::utils::SymbolTable::generateSymbolFlags(const char* str) {
@@ -149,10 +238,6 @@ ABB::utils::SymbolTable::Symbol::Section* ABB::utils::SymbolTable::generateSymbo
 	
 	return &sections[sectStr];
 }
-std::string ABB::utils::SymbolTable::demangleName(const char* name) {
-	return std::string(name);
-}
-
 
 void ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
 	if (end - start < (8 + 1 + 7 + 1 + 0 + 1 + 8 + 1))
@@ -160,17 +245,18 @@ void ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
 
 	Symbol symbol;
 	size_t ptr = 0;
-	symbol.value = StringUtils::hexToUInt(start, start + 8) & 0xFFFF;
+	symbol.value = StringUtils::hexStrToUIntLen(start, 8) & 0xFFFF;
 	ptr += 8 + 1;
 
 	symbol.flags = generateSymbolFlags(start + ptr);
+	symbol.flagStr = std::string(start + ptr, 7);
 	ptr += 7 + 1;
 
 	size_t sectStrLen;
 	symbol.section = generateSymbolSection(start + ptr, end, &sectStrLen);
 	ptr += sectStrLen + 1;
 
-	symbol.size = StringUtils::hexToUInt(start + ptr, start + ptr + 8);
+	symbol.size = StringUtils::hexStrToUIntLen(start + ptr, 8);
 	ptr += 8 + 1;
 
 	symbol.isHidden = false;
@@ -182,25 +268,37 @@ void ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
 		}
 	}
 	symbol.name = std::string(start + ptr, end);
-	symbol.demangled = demangleName(symbol.name.c_str());
 	symbol.hasDemangledName = symbol.name != symbol.demangled;
 
-	symbol.col = {(rand()%255)/(float)255,(rand()%255)/(float)255,(rand()%255)/(float)255,1};
+	ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8, 1, 1};
+	ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
+	symbol.col.w = col.w;
 
 	symbolStorage.push_back(symbol);
 }
 
-void ABB::utils::SymbolTable::loadFromDump(const char* path) {
-	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open Source File: ") + path).c_str());
+bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
+	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open symbol table dump File: ") + path).c_str());
 	if (fileStr.size() == 0) // loading didnt work
-		return;
+		return false;
 
+	return loadFromDumpString(fileStr.c_str(), fileStr.size());
+}
+bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 	constexpr char startStr[] = "SYMBOL TABLE:";
-	const size_t strOff = fileStr.find(startStr) + sizeof(startStr);
+	const char* startStrOff = std::strstr(str, startStr);
+	if (startStrOff == nullptr) {
+		LogBackend::log(LogBackend::LogLevel_Warning, "could not read symbol table dump since it doesnt contain \"SYMBOL TABLE:\"");
+		return false;
+	}
 
-	const char* str = fileStr.c_str();
+	const size_t strOff = (startStrOff-str) + sizeof(startStr);
+
+	if (size == (size_t)-1)
+		size = std::strlen(str);
+
 	size_t lastLineStart = strOff;
-	for (size_t i = strOff; i < fileStr.size(); i++) {
+	for (size_t i = strOff; i < size; i++) {
 		if (str[i] == '\n') {
 			parseLine(str + lastLineStart, str + i);
 			lastLineStart = i + 1;
@@ -224,6 +322,30 @@ void ABB::utils::SymbolTable::loadFromDump(const char* path) {
 				symbolsRom.push_back(&s);
 		}
 	}
+
+	if (BinTools::canDemangle()) {
+		const char** strs = new const char*[symbolStorage.size()];
+		for (size_t i = 0; i < symbolStorage.size();i++) {
+			strs[i] = symbolStorage[i].name.c_str();
+		}
+		std::vector<std::string> demList = BinTools::demangleList(strs, symbolStorage.size());
+		if (demList.size() == symbolStorage.size()) {
+			for (size_t i = 0; i < symbolStorage.size();i++) {
+				symbolStorage[i].demangled = demList[i];
+			}
+		}
+		else {
+			for (size_t i = 0; i < symbolStorage.size();i++) {
+				symbolStorage[i].demangled = symbolStorage[i].name;
+			}
+			LogBackend::log(LogBackend::LogLevel_Warning, "an error occured while trying to generate demangled list");
+		}
+		
+		delete strs;
+	}
+	
+
+	return true;
 }
 
 const ABB::utils::SymbolTable::Symbol::Section* ABB::utils::SymbolTable::getSection(const std::string& name) const {
@@ -273,6 +395,9 @@ const std::vector<ABB::utils::SymbolTable::Symbol>& ABB::utils::SymbolTable::get
 ABB::utils::SymbolTable::SymbolListPtr ABB::utils::SymbolTable::getSymbolsRam() const {
 	return (SymbolTable::SymbolListPtr)&symbolsRam;
 }
+ABB::utils::SymbolTable::SymbolListPtr ABB::utils::SymbolTable::getSymbolsRamExp() const {
+	return (SymbolTable::SymbolListPtr)&symbolsRamExp;
+}
 ABB::utils::SymbolTable::SymbolListPtr ABB::utils::SymbolTable::getSymbolsRom() const {
 	return (SymbolTable::SymbolListPtr)&symbolsRom;
 }
@@ -281,7 +406,7 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 	constexpr size_t AddrDigits = 4;
 	char texBuf[AddrDigits];
 
-	StringUtils::uIntToHex(Addr, AddrDigits, texBuf);
+	StringUtils::uIntToHexBuf(Addr, AddrDigits, texBuf);
 
 	ImGui::BeginGroup();
 	ImGui::TextUnformatted(texBuf, texBuf+AddrDigits);
@@ -295,4 +420,106 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 	ImGui::EndGroup();
 
 	return symbol;
+}
+
+void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
+	if (list->size() == 0)
+		return;
+
+	if (size.x == 0)
+		size.x = ImGui::GetContentRegionAvail().x;
+	if (size.y == 0)
+		size.y = 50;
+
+	float listByteLen = totalSize;
+
+	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 5);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
+	
+	
+	ImGui::BeginChild((size_t)list, size, true, ImGuiWindowFlags_HorizontalScrollbar);
+
+	ImGui::BeginGroup();
+
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
+
+	size_t lastSymbEnd = 0;
+	for (size_t i = 0; i < list->size(); i++) {
+		const Symbol* symbol = list->operator[](i);
+		if (symbol->size == 0)
+			continue;
+
+		if (symbol->value > lastSymbEnd) {
+			//ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (((float)(symbol->value - lastSymbEnd) / listByteLen)) * size.x * (*scale));
+			if (i != 0)
+				ImGui::SameLine();
+			size_t fillAmt = symbol->value - lastSymbEnd;
+			ImGuiExt::Rect(symbol->value * i, {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
+			if (ImGui::IsItemHovered()) {
+				ImGui::PopStyleVar();
+				ImGui::PopStyleVar();
+
+				ImGui::SetTooltip("Space Without Symbol: %d bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
+			}
+		}
+			
+		if (i != 0)
+			ImGui::SameLine();
+		float width = ((float)symbol->size / listByteLen) * size.x * (*scale);
+		ImGuiExt::Rect(symbol->value * i, symbol->col, {width, size.y});
+
+		if (ImGui::IsItemHovered()) {
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar();
+
+			ImGui::BeginTooltip();
+			symbol->draw(-1, data);
+			ImGui::EndTooltip();
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
+		}
+
+		lastSymbEnd = symbol->addrEnd();
+	}
+
+	if (lastSymbEnd < listByteLen) {
+		size_t fillAmt = listByteLen - lastSymbEnd;
+		ImGui::SameLine();
+		ImGuiExt::Rect(listByteLen * lastSymbEnd, {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
+		if (ImGui::IsItemHovered()) {
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar();
+
+			ImGui::SetTooltip("Space Without Symbol: %d bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
+		}
+	}
+	
+
+	ImGui::PopStyleVar();
+
+	ImGui::EndGroup();
+
+	if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+		ImGui::OpenPopup("settings");
+
+	ImGui::PopStyleVar();
+	if (ImGui::BeginPopup("settings")) {
+		ImGui::SliderFloat("Scale", scale, 0.1, 10);
+		if (ImGui::Button("Reset"))
+			*scale = 1;
+		ImGui::EndPopup();
+	}
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
+
+	ImGui::EndChild();
+	
+	ImGui::PopStyleVar();
+	ImGui::PopStyleVar();
 }

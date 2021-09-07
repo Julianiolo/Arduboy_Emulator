@@ -93,3 +93,56 @@ size_t ImGuiExt::SelectSwitch(const char** labels, size_t num, size_t selected, 
     ImGui::PopStyleVar();
     return selected;
 }
+
+void ImGuiExt::ImageRect(const Texture2D& tex, float destWidth, float destHeight, const Rectangle& srcRect) { // basically just copy-paste from rlImgui but with floats for dest dimensions
+    ImVec2 uv0;
+    ImVec2 uv1;
+
+    if (srcRect.width < 0) {
+        uv0.x = -((float)srcRect.x / tex.width);
+        uv1.x = (uv0.x - (float)(fabs(srcRect.width) / tex.width));
+    }
+    else {
+        uv0.x = (float)srcRect.x / tex.width;
+        uv1.x = uv0.x + (float)(srcRect.width / tex.width);
+    }
+
+    if (srcRect.height < 0) {
+        uv0.y = -((float)srcRect.y / tex.height);
+        uv1.y = (uv0.y - (float)(fabs(srcRect.height) / tex.height));
+    }
+    else {
+        uv0.y = (float)srcRect.y / tex.height;
+        uv1.y = uv0.y + (float)(srcRect.height / tex.height);
+    }
+
+    ImGui::Image((ImTextureID*)&tex, ImVec2(float(destWidth), float(destHeight)),uv0,uv1);
+}
+
+void ImGuiExt::Rect(const char* desc_id, const ImVec4& col, ImVec2 size) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+    Rect(window->GetID(desc_id), col, size);
+}
+
+void ImGuiExt::Rect(ImGuiID id, const ImVec4& col, ImVec2 size) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImGuiContext& g = *GImGui;
+    float default_size = ImGui::GetFrameHeight();
+    if (size.x == 0.0f)
+        size.x = default_size;
+    if (size.y == 0.0f)
+        size.y = default_size;
+    const ImRect bb(window->DC.CursorPos, ImVec2{ window->DC.CursorPos.x + size.x, window->DC.CursorPos.y + size.y });
+    ImGui::ItemSize(bb, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+    if (!ImGui::ItemAdd(bb, id))
+        return;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::RenderNavHighlight(bb, id);
+    ImGui::RenderFrame(bb.Min, bb.Max, ImColor(col), true, style.FrameRounding);
+}

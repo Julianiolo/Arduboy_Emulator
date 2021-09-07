@@ -54,9 +54,24 @@ void setup() {
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
-    abb.ab.load("../../../../ressources/games/CastleBoy/CastleBoy.ino.hex");
-    abb.debuggerBackend.srcMix.loadSrcFile("../../../../ressources/games/CastleBoy/srcMix.asm");
-    abb.symbolTable.loadFromDump("../../../../ressources/games/CastleBoy/symbs.asm");
+    
+#if 1
+    abb.ab.load("../../../../../../resources/games/CastleBoy/CastleBoy.ino.hex");
+    abb.debuggerBackend.srcMix.loadSrcFile("../../../../../../resources/games/CastleBoy/srcMix.asm");
+    abb.symbolTable.loadFromDumpFile("../../../../../../resources/games/CastleBoy/symbs.asm");
+#else
+    abb.ab.load("../../../../../../resources/games/CastleBoySimple/CastleBoySimple.ino.hex");
+    abb.debuggerBackend.srcMix.loadSrcFile("../../../../../../resources/games/CastleBoySimple/srcMix.asm");
+    abb.symbolTable.loadFromDumpFile("../../../../../../resources/games/CastleBoySimple/symbs.asm");
+#endif
+
+    /*
+    
+    cycs: 13600001
+    PC: 0x1639 => Addr: 2c72
+    
+    */
+
     abb.ab.mcu.powerOn();
 }
 void draw() {

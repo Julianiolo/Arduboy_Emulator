@@ -1,15 +1,18 @@
 #include "ArdEmu.h"
 
+#include "utils/byteVisualiser.h"
+
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 
 void ArduEmu::init() {
-
+	ABB::utils::ByteVisualiser::init();
 }
 
 void ArduEmu::destroy() {
 	for (auto& i : instances) {
 		delete i;
 	}
+	ABB::utils::ByteVisualiser::destroy();
 }
 
 void ArduEmu::draw() {

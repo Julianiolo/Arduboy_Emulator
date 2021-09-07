@@ -52,6 +52,7 @@ namespace ABB {
 
 				size_t value;
 				Flags flags;
+				std::string flagStr;
 				std::string name;
 				std::string demangled;
 				bool hasDemangledName;
@@ -63,34 +64,42 @@ namespace ABB {
 				ImVec4 col;
 
 				bool operator<(const Symbol& rhs) const;
-				void draw() const;
+				void draw(size_t addr = -1, const uint8_t* data = nullptr) const;
+				size_t addrEnd() const;
 			};
 
 			typedef std::vector<const Symbol*>* SymbolListPtr;
 		private:
+			static std::vector<Symbol> deviceSpecSymbolStorage;
+
 			std::vector<Symbol> symbolStorage;
 			std::map<std::string, const Symbol*> symbsNameMap;
 			std::map<std::string, Symbol::Section> sections;
 
 			std::vector<const Symbol*> symbolsRam;
+			std::vector<const Symbol*> symbolsRamExp;
 			std::vector<const Symbol*> symbolsRom;
 
 			Symbol::Flags generateSymbolFlags(const char* str);
 			Symbol::Section* generateSymbolSection(const char* str, const char* strEnd, size_t* sectStrLen = nullptr);
 			void parseLine(const char* start, const char* end);
-			std::string demangleName(const char* name);
 		public:
-			void loadFromDump(const char* path);
+			static void init();
+
+			bool loadFromDumpFile(const char* path);
+			bool loadFromDumpString(const char* str, size_t size = -1);
 
 			const Symbol::Section* getSection(const std::string& name) const;
 			const Symbol* getSymbolByName(const std::string& name) const;
 			const Symbol* getSymbolByValue(const size_t value) const;
 
 			const std::vector<Symbol>& getSymbols() const;
-			SymbolTable::SymbolListPtr getSymbolsRam() const;
-			SymbolTable::SymbolListPtr getSymbolsRom() const;
+			SymbolListPtr getSymbolsRam() const;
+			SymbolListPtr getSymbolsRamExp() const;
+			SymbolListPtr getSymbolsRom() const;
 
 			const Symbol* drawAddrWithSymbol(size_t Addr) const;
+			static void drawSymbolListSizeDiagramm(SymbolListPtr list, size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});
 		};
 	}
 }

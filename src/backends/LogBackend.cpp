@@ -39,7 +39,7 @@ ABB::LogBackend* ABB::LogBackend::activeLB = nullptr;
 void ABB::LogBackend::activate() {
     activeLB = this;
 }
-void ABB::LogBackend::log(const char* msg, A32u4::ATmega32u4::LogLevel logLevel) {
+void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg) {
     if(activeLB != nullptr) {
         activeLB->logs.push_back({logLevel,msg});
     }

@@ -6,11 +6,28 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "symbolTable.h"
+#include "raylib.h"
 
 namespace ABB {
 	namespace utils {
 		class HexViewer {
+		public:
+			struct Settings {
+				bool showTex = true;
+
+				bool showAscii = true;
+				bool showSymbols = true;
+				bool invertTextColOverSymbols = true;
+				bool upperCaseHex = false;
+
+				bool showDiagram = true;
+				float diagramScale = 1;
+			} settings;
+
 		private:
+			const uint8_t* const data;
+			const size_t dataLen;
+
 			bool isSelecting = false;
 			size_t selectStart = 0;
 			size_t selectEnd = 0;
@@ -31,12 +48,24 @@ namespace ABB {
 			bool newHighlights = true;
 
 			bool isHovered = false;
+			size_t hoveredAddr = -1;
+
+			static constexpr size_t AddrDigits = 4;
 
 			SymbolTable::SymbolListPtr symbolList = nullptr;
 
+			float vertSpacing = 0;
+			size_t popupAddr = -1;
+			const SymbolTable::Symbol* popupSymbol = nullptr;
+
 			ImRect getNextByteRect(const ImVec2& charSize) const;
+			size_t getBytesPerRow(float widthAvail, const ImVec2& charSize);
+			bool newSymbol(size_t addr, size_t* symbolPtr, size_t nextSymbolAddrEnd);
+
+			void drawSettings();
+			void drawSymbolHoverInfo(const SymbolTable::Symbol* symbol, size_t addr);
 		public:
-			
+			HexViewer(const uint8_t* data, size_t dataLen);
 
 			struct SyntaxColors{
 				ImVec4 Addr;
@@ -45,15 +74,11 @@ namespace ABB {
 			};
 			static SyntaxColors syntaxColors;
 
-			bool showAscii = true;
-			bool showSymbols = true;
-			bool upperCaseHex = false;
-
 			bool isSelected(size_t addr) const;
 
 			void addHighlight(size_t addr, const ImVec4& col);
 
-			void draw(const uint8_t* data, size_t dataLen, size_t dataOff = 0);
+			void draw(size_t dataAmt = -1, size_t dataOff = 0);
 			void sameFrame();
 
 			void setSymbolList(SymbolTable::SymbolListPtr list);

@@ -12,6 +12,8 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	ab.setLogCallBSimple(LogBackend::log);
+
+	ab.execFlags |= A32u4::ATmega32u4::ExecFlags_Debug | A32u4::ATmega32u4::ExecFlags_Analyse;
 }
 
 void ABB::ArduboyBackend::update() {
@@ -29,9 +31,10 @@ void ABB::ArduboyBackend::update() {
 }
 
 void ABB::ArduboyBackend::draw() {
-	update();
+	ab.activateLog();
+	logBackend.activate();
 
-	ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
+	update();
 
 	if (ImGui::Begin(name.c_str())) {
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
@@ -48,7 +51,7 @@ void ABB::ArduboyBackend::draw() {
 		}
 		ImVec2 cursor = ImGui::GetCursorPos();
 		ImGui::SetCursorPos({ cursor.x + pos.x, cursor.y + pos.y });
-		RLImGuiImageSize(&displayBackend.getTex(),size.x,size.y);
+		displayBackend.draw(size);
 	}
 	ImGui::End();
 	

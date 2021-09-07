@@ -6,8 +6,8 @@
 #include <algorithm>
 
 #include "../Extensions/imguiExt.h"
-#include "utils/stringExtras.h"
-#include "stringUtils.h"
+#include "utils/StringUtils.h"
+#include "byteVisualiser.h"
 
 ABB::utils::HexViewer::Highlight::Highlight() {
 
@@ -19,7 +19,11 @@ bool ABB::utils::HexViewer::Highlight::operator<(const Highlight& rhs) const {
 	return this->Addr < rhs.Addr;
 }
 
-ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { {1,1,0,1}, {0.6,0.6,0.8,1}, {0.5,0.6,0.5,1} };
+ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { {1,1,0,1}, {0.7,0.7,0.9,1}, {0.5,0.6,0.5,1} };
+
+ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen) : data(data), dataLen(dataLen) {
+
+}
 
 bool ABB::utils::HexViewer::isSelected(size_t addr) const {
 	return addr >= selectStart && addr < selectEnd;
@@ -36,7 +40,6 @@ void ABB::utils::HexViewer::addHighlight(size_t addr, const ImVec4& col) {
 	}
 	highlights[highlightCntr++] = Highlight(addr, col);
 }
-
 void ABB::utils::HexViewer::setSymbolList(SymbolTable::SymbolListPtr list) {
 	symbolList = list;
 }
@@ -52,56 +55,155 @@ ImRect ABB::utils::HexViewer::getNextByteRect(const ImVec2& charSize) const {
 		{ cursorScreenPos.x + charSize.x * 3, cursorScreenPos.y + charSize.y }
 	);
 }
+bool ABB::utils::HexViewer::newSymbol(size_t addr, size_t* symbolPtr, size_t nextSymbolAddrEnd) {
+	if (addr >= nextSymbolAddrEnd) {
+		if (*symbolPtr == 0 && *symbolPtr + 1 < symbolList->size() && addr > symbolList->operator[](*symbolPtr+1)->addrEnd()) {
+			size_t from = *symbolPtr;
+			size_t to = symbolList->size() - 1;
 
-void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, size_t dataOff) {
+			while (from != to) {
+				const size_t mid = from + ((to - from) / 2);
+				auto symbol = symbolList->operator[](mid);
+				if (symbol->addrEnd() <= addr) {
+					from = mid;
+				}
+				else if (symbol->value > addr) {
+					to = mid;
+				}
+				else {
+					size_t ind = mid;
+					while (symbol->size == 0) { 
+						auto newSymbol = symbolList->operator[](--ind); // go back to seach for symbols with size > 0
+						if (newSymbol->value > addr)
+							break;
+						symbol = newSymbol;
+					}
+						
+					if (symbol->size == 0) {                                // if symbol size is still 0
+						ind = mid;                                          // jump back to startingpoint
+						while (symbol->size == 0) {
+							auto newSymbol = symbolList->operator[](++ind); // step forward to search for symbol with size > 0
+							if (newSymbol->addrEnd() <= addr)
+								break;
+							symbol = newSymbol;
+						}
+					}
+
+					*symbolPtr = ind;
+				}
+			}
+		}
+		else {
+			const SymbolTable::Symbol* nextSymbol;
+			do {
+				(*symbolPtr)++;
+
+				if (*symbolPtr >= symbolList->size())
+					break;
+				nextSymbol = symbolList->operator[](*symbolPtr);
+
+			} while (nextSymbol->addrEnd() < addr || nextSymbol->size == 0);
+		}
+		return true;
+	}
+	return false;
+}
+size_t ABB::utils::HexViewer::getBytesPerRow(float widthAvail, const ImVec2& charSize) {
+	constexpr int32_t addrWidth = AddrDigits + 1;
+	int32_t numCharsFit = (int32_t)(widthAvail / charSize.x) - addrWidth;
+
+	size_t bytesPerRow;
+	if (!settings.showTex) {
+		if (!settings.showAscii)
+			bytesPerRow = numCharsFit / 3;
+		else if(settings.showAscii && !settings.showTex)
+			bytesPerRow = (numCharsFit - 2) / 4;
+	}
+	else {
+		const float lineHeight = charSize.y + vertSpacing;
+		const float texPixWidth = lineHeight / 8;
+		const float texPixWidthRel = texPixWidth / charSize.x;
+
+		if(!settings.showAscii)
+			bytesPerRow = (numCharsFit-1)     /  (3 + texPixWidthRel);
+		else 
+			bytesPerRow = (numCharsFit-1 - 2) /  (4 + texPixWidthRel);
+	}
+
+	if (bytesPerRow <= 0)
+		bytesPerRow = 1;
+
+	return bytesPerRow;
+}
+
+void ABB::utils::HexViewer::drawSymbolHoverInfo(const SymbolTable::Symbol* symbol, size_t addr) {
+	float hSpacing = ImGui::GetStyle().ItemSpacing.y;
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, hSpacing));
+
+	char buf[AddrDigits];
+	StringUtils::uIntToHexBufCase(addr, AddrDigits, buf, settings.upperCaseHex);
+	ImGuiExt::TextColored(syntaxColors.Addr, buf, buf+AddrDigits);
+	ImGui::SameLine();
+	ImGui::TextUnformatted(": ");
+	ImGui::SameLine();
+	ImGui::TextColored(syntaxColors.bytes, "%02x", data[addr]);
+
+	ImGui::PopStyleVar();
+
+	if (symbol)
+		symbol->draw(addr, data);
+}
+
+void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
+	if (dataAmt == (size_t)-1)
+		dataAmt = dataLen;
+
+	if (!ImGui::IsPopupOpen("symbolHoverInfoPopup"))
+		popupAddr = -1;
+
 	if (newFrame) {
-		char nameBuf[9];
-		nameBuf[8] = 0;
-		StringUtils::uIntToHex((size_t)data, 8, nameBuf);
-		ImGuiID id = ImGui::GetID(nameBuf);
+		std::string settingsPopupName = "hexViewerSettings" + std::to_string((size_t)data);
 
-		if (ImGui::Button("Options")) {
-			ImGui::OpenPopup(id);
+		if (ImGui::Button(" Options ", {0, 25}))
+			ImGui::OpenPopup(settingsPopupName.c_str());
+
+		if (settings.showDiagram && symbolList) {
+			float buttonHeight = ImGui::GetItemRectSize().y;
+			ImGui::SameLine();
+			SymbolTable::drawSymbolListSizeDiagramm(symbolList, dataLen, &settings.diagramScale, data, ImVec2{0, buttonHeight});
 		}
 
-		if (ImGui::BeginPopup(nameBuf)) {
-			ImGui::Checkbox("Show Ascii", &showAscii);
-			ImGui::Checkbox("Show Symbols", &showSymbols);
-
-			ImGui::Spacing();
-
-			ImGui::TextUnformatted("Hex:");
-			ImGui::Indent();
-				const char* labels[] = { "LowerCase", "UpperCase" };
-				upperCaseHex = ImGuiExt::SelectSwitch(labels, 2, upperCaseHex);
-			ImGui::Unindent();
-
+		if (ImGui::BeginPopup(settingsPopupName.c_str())) {
+			drawSettings();
 			ImGui::EndPopup();
 		}
 
-		if (highlights.size() > highlightCntr + 20) {
+		if (highlights.size() > highlightCntr + 20)
 			highlights.resize(highlightCntr);
-		}
 		std::sort(highlights.begin(), highlights.begin() + highlightCntr);
 	}
 	size_t highlightPtr = 0;
 	size_t nextHighlightAddr = highlightCntr > 0 ? highlights[highlightPtr].Addr : -1;
 
-	size_t nextSymbolAddr = -1;
-	size_t nextSymbolAddrEnd = -1;
+	size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
 	size_t symbolPtr = 0;
-	if (showSymbols && symbolList) {
+	if (settings.showSymbols && symbolList) {
 		if (symbolList->size() > 0) {
-			const SymbolTable::Symbol* symbol = symbolList->operator[](symbolPtr);
+			const SymbolTable::Symbol* symbol;
+			while (true) {
+				symbol = symbolList->operator[](symbolPtr);
+				if (symbol->size > 0 || symbolPtr >= symbolList->size())
+					break;
+				symbolPtr++;
+			}
 			nextSymbolAddr = symbol->value;
 			nextSymbolAddrEnd = symbol->value + symbol->size;
 		}
 	}
 
-	if (!ImGui::IsMouseDown(0))
+	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
 		isSelecting = false;
-
-	if (ImGui::IsMouseClicked(1)) {
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
 		isSelecting = false;
 		selectStart = 0;
 		selectEnd = 0;
@@ -110,42 +212,24 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, size_t dat
 	const ImVec2 sizeAvail = ImGui::GetContentRegionAvail();
 	const ImVec2 charSize = ImGui::CalcTextSize(" ");
 
-	constexpr size_t AddrDigits = 4;
-	int32_t bytesPerRow;
-	size_t charsPerLine;
-	{
-		const int32_t numCharsFit = sizeAvail.x / charSize.x;
-		const int32_t addrCharWidth = AddrDigits + 1;
+	int32_t bytesPerRow = getBytesPerRow(sizeAvail.x, charSize);
+	const size_t numOfRows = (size_t)std::ceil((float)dataAmt / (float)bytesPerRow);
 
-		if (!showAscii)
-			bytesPerRow = (numCharsFit - addrCharWidth) / 3;
-		else
-			bytesPerRow = (numCharsFit - addrCharWidth - 2) / 4;
-
-		if (bytesPerRow <= 0)
-			bytesPerRow = 1;
-
-		if (!showAscii)
-			charsPerLine = bytesPerRow * 3;
-		else
-			charsPerLine = bytesPerRow * 3 + bytesPerRow + 2;
-	}
-
-	const size_t numOfRows = (size_t)std::ceil((float)dataLen / (float)bytesPerRow);
+	size_t currHoveredAddr = -1;
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
-
 	const ImVec4 defTexCol = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, vertSpacing));
+
 	ImGuiListClipper clipper;
 	clipper.Begin(numOfRows);
-	while (clipper.Step()) {
-		
+	clipper.ItemsHeight = charSize.y;
 
+	while (clipper.Step()) {
 		for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
 			size_t lineAddr = line_no * bytesPerRow + dataOff;
 			char addrBuf[AddrDigits];
-			StringUtils::uIntToHexCase(lineAddr, AddrDigits, addrBuf, upperCaseHex);
+			StringUtils::uIntToHexBufCase(lineAddr, AddrDigits, addrBuf, settings.upperCaseHex);
 			ImGuiExt::TextColored(syntaxColors.Addr, addrBuf, addrBuf+4);
 			ImGui::SameLine();
 			ImGui::TextUnformatted(":");
@@ -153,7 +237,7 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, size_t dat
 			size_t numOfItemsInRow = bytesPerRow;
 			bool fillUp = false;
 			if (line_no == numOfRows - 1) { // if is last line
-				numOfItemsInRow = dataLen % bytesPerRow;
+				numOfItemsInRow = dataAmt % bytesPerRow;
 				if (numOfItemsInRow == 0)
 					numOfItemsInRow = bytesPerRow;
 				else
@@ -167,43 +251,43 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, size_t dat
 				const uint8_t byte = *(data + addrOff);
 				ImGui::SameLine();
 
-				if (isSelected(addrOff)) {
-					ImRect nextItemRect = getNextByteRect(charSize);
-					drawList->AddRectFilled(
-						nextItemRect.Min, nextItemRect.Max,
-						IM_COL32(50, 50, 255, 100)
-					);
-				}
-
 				const SymbolTable::Symbol* symbol = nullptr;
-				if (showSymbols) {
-					if (addrOff >= nextSymbolAddrEnd) {
-						symbolPtr++;
+				if (settings.showSymbols && symbolList) {
+					if (newSymbol(addrOff, &symbolPtr, nextSymbolAddrEnd)) {
 						if (symbolPtr < symbolList->size()) {
-							const SymbolTable::Symbol* nextSymbol = symbolList->operator[](symbolPtr);
-							nextSymbolAddr = nextSymbol->value;
-							nextSymbolAddrEnd = nextSymbol->value + nextSymbol->size;
+							auto newSymbol = symbolList->operator[](symbolPtr);
+							nextSymbolAddr = newSymbol->value;
+							nextSymbolAddrEnd = newSymbol->addrEnd();
 						}
-						else {
-							nextSymbolAddr = -1;
-							nextSymbolAddrEnd = -1;
-						}
+						else
+							nextSymbolAddr = nextSymbolAddrEnd = -1;
 					}
-
-
 					if (addrOff >= nextSymbolAddr && addrOff < nextSymbolAddrEnd) {
 						symbol = symbolList->operator[](symbolPtr);
 						ImRect nextItemRect = getNextByteRect(charSize);
-						if (addrOff + 1 != nextSymbolAddrEnd) // make rect wider to include the ' ' if not last
-							nextItemRect.Max.x += charSize.x;
 
-						drawList->AddRectFilled(
-							nextItemRect.Min, nextItemRect.Max,
-							ImColor(symbol->col)
-						);
+						if(i != 0) // check if not first item in row
+							if (addrOff == nextSymbolAddr)
+								nextItemRect.Min.x -= charSize.x / 2;
+
+						if (i != numOfItemsInRow - 1) { // check if not last item in row
+							nextItemRect.Max.x += charSize.x; // make rect wider to include the ' '
+							if (addrOff + 1 == nextSymbolAddrEnd)
+								nextItemRect.Max.x -= charSize.x / 2;
+						}
+
+						//if (nextSymbolAddrEnd > (lineAddr + bytesPerRow))
+							nextItemRect.Max.y += vertSpacing;
+						
+						drawList->AddRectFilled( nextItemRect.Min, nextItemRect.Max, ImColor(symbol->col) );
 					}
 				}
 
+				if (isSelected(addrOff)) {
+					ImRect nextItemRect = getNextByteRect(charSize);
+					drawList->AddRectFilled( nextItemRect.Min, nextItemRect.Max,IM_COL32(50, 50, 255, 100) );
+				}
+				
 				ImRect nextItemRect;
 				if (nextHighlightAddr == addrOff) {
 					nextItemRect = getNextByteRect(charSize);
@@ -213,14 +297,20 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, size_t dat
 				//ImGui::TextUnformatted((" " + byteStr).c_str());
 				char byteStr[3];
 				byteStr[0] = ' ';
-				StringUtils::uIntToHexCase(byte, 2, byteStr + 1, upperCaseHex);
-				ImGui::TextUnformatted(byteStr, byteStr + 3);
+				StringUtils::uIntToHexBufCase(byte, 2, byteStr + 1, settings.upperCaseHex);
+				if (!symbol)
+					ImGui::TextUnformatted(byteStr, byteStr + 3);
+				else {
+					if (settings.invertTextColOverSymbols)
+						ImGuiExt::TextColored({ 1 - symbol->col.x, 1 - symbol->col.y, 1 - symbol->col.z, 1 }, byteStr, byteStr + 3);
+					else {
+						ImGuiExt::TextColored({0, 0, 0, 1}, byteStr, byteStr + 3);
+					}
+				}
+					
 
 				if (nextHighlightAddr == addrOff) {
-					drawList->AddRect(
-						nextItemRect.Min, nextItemRect.Max,
-						ImColor(highlights[highlightPtr].col)
-					);
+					drawList->AddRect( nextItemRect.Min, nextItemRect.Max, ImColor(highlights[highlightPtr].col) );
 
 					highlightPtr++;
 					nextHighlightAddr = highlightPtr < highlightCntr ? highlights[highlightPtr].Addr : -1;
@@ -236,27 +326,27 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, size_t dat
 						selectEnd = addrOff + 1;
 					}
 					else {
-						ImGui::BeginTooltip();
-						ImGui::TextColored(syntaxColors.Addr, stringExtras::intToHex(lineAddr + i, AddrDigits).c_str());
-						ImGui::SameLine();
-						ImGui::TextColored(defTexCol, ": ");
-						ImGui::SameLine();
-						ImGuiExt::TextColored(syntaxColors.bytes, byteStr + 1, byteStr + 3);
+						currHoveredAddr = hoveredAddr = addrOff;
 
 						if (symbol) {
-							ImGui::TextColored(defTexCol, "Part of Symbol: ");
-							ImGui::TextColored(symbol->col, symbol->demangled.c_str());
-							ImGui::SameLine();
-							ImGui::TextColored(defTexCol, " <+");
-							ImGui::SameLine();
-							char buf[4];
-							StringUtils::uIntToHex(addrOff - symbol->value, 4, buf);
-							ImGuiExt::TextColored(defTexCol, buf, buf + 4);
-							ImGui::SameLine();
-							ImGui::TextColored(defTexCol, ">");
-						}
+							if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+								ImGui::OpenPopup("symbolHoverInfoPopup");
+								
+								popupSymbol = symbol;
+								popupAddr = addrOff;
+							}
+							else {
+								ImGui::BeginTooltip();
+								ImGui::PopStyleVar();
+								ImGuiExt::PopTextColor();
 
-						ImGui::EndTooltip();
+								drawSymbolHoverInfo(symbol,addrOff);
+
+								ImGuiExt::PushTextColor(syntaxColors.bytes);
+								ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, vertSpacing));
+								ImGui::EndTooltip();
+							}
+						}
 					}
 				}
 			}
@@ -270,37 +360,103 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, size_t dat
 
 			// ascii
 			ImGuiExt::PushTextColor(syntaxColors.ascii);
-			if (showAscii) {
+			if (settings.showAscii) {
 				ImGui::SameLine();
 				ImGui::TextUnformatted("  ");
 				for (size_t i = 0; i < numOfItemsInRow; i++) {
-					char c = *(data + (lineAddr + i));
+					const size_t addrOff = lineAddr + i;
+					
+					char c = *(data + addrOff);
 					if (!isprint((unsigned char)c))
 						c = '.';
+
 					ImGui::SameLine();
+					if (addrOff == hoveredAddr)
+						drawList->AddRectFilled(
+							ImGui::GetCursorScreenPos(),
+							{ ImGui::GetCursorScreenPos().x + charSize.x, ImGui::GetCursorScreenPos().y + charSize.y },
+							ImColor(ImVec4{0.1,0.1,0.5,1})
+						);
 					ImGui::TextUnformatted(&c, &c + 1);
+					if (ImGui::IsItemHovered())
+						currHoveredAddr = addrOff;
 				}
+			}
+			if (fillUp) {
+				ImGui::SameLine();
+				ImGui::TextUnformatted(std::string(bytesPerRow - numOfItemsInRow, ' ').c_str());
 			}
 			ImGuiExt::PopTextColor();
 			
-
+			if (settings.showTex) {
+				ImGui::SameLine();
+				ImGui::TextUnformatted(" ");
+				for (size_t i = 0; i < numOfItemsInRow; i++) {
+					const size_t addrOff = lineAddr + i;
+					uint8_t byte = *(data + addrOff);
+					ImGui::SameLine();
+					ByteVisualiser::DrawByte(byte,charSize.y / 8, charSize.y);
+				}
+			}
 		}
-
-		
 	}
 	clipper.End();
 	ImGui::PopStyleVar();
+
+	if (popupAddr != (size_t)-1 && ImGui::BeginPopup("symbolHoverInfoPopup")) {
+		drawSymbolHoverInfo(popupSymbol,popupAddr);
+		ImGui::EndPopup();
+	}
 
 	// add missing item spacing
 	float itemSpacingAmtV = ImGui::GetStyle().ItemSpacing.y;
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + itemSpacingAmtV);
 
+	hoveredAddr = currHoveredAddr;
+
 	newFrame = true;
 	newHighlights = true;
 }
 
+void ABB::utils::HexViewer::drawSettings() {
+	ImGui::Checkbox("Show Space Diagram", &settings.showDiagram);
+	ImGui::Checkbox("Show Ascii", &settings.showAscii);
+	ImGui::Checkbox("Show Symbols", &settings.showSymbols);
+		if (!settings.showSymbols) ImGui::PushDisabled();
+		ImGui::Indent();
+		ImGui::Checkbox("Invert Text Color", &settings.invertTextColOverSymbols);
+		ImGui::Unindent();
+		if (!settings.showSymbols) ImGui::PopDisabled();
+
+	ImGui::Checkbox("Show Texture", &settings.showTex);
+
+	ImGui::Spacing();
+
+	ImGui::TextUnformatted("Hex:");
+	ImGui::Indent();
+	const char* labels[] = { "LowerCase", "UpperCase" };
+	settings.upperCaseHex = ImGuiExt::SelectSwitch(labels, 2, settings.upperCaseHex);
+	ImGui::Unindent();
+}
 
 /*
+
+//size_t charsPerLine = bytesPerRow * 3;
+//if(showAscii) charsPerLine += bytesPerRow + 2; // width of ascii part
+
+
+ImGui::TextColored(defTexCol, "Part of Symbol: ");
+ImGui::TextColored(symbol->col, symbol->demangled.c_str());
+ImGui::SameLine();
+ImGui::TextColored(defTexCol, " <+");
+ImGui::SameLine();
+char buf[4];
+StringUtils::uIntToHexBuf(addrOff - symbol->value, 4, buf);
+ImGuiExt::TextColored(defTexCol, buf, buf + 4);
+ImGui::SameLine();
+ImGui::TextColored(defTexCol, ">");
+
+
 
 ImGui::BeginGroup();
 

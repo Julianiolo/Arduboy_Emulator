@@ -4,27 +4,43 @@
 #include "imgui_internal.h"
 #include "../Extensions/imguiExt.h"
 
-#include "../utils/stringUtils.h"
+#include "utils/StringUtils.h"
 
 ABB::DebuggerBackend::DebuggerBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable) : ab(ab), symbolTable(symbolTable), winName(winName){
 	srcMix.setSymbolTable(symbolTable);
+	srcMix.setMcu(&ab->mcu);
+	srcMix.setBreakpointArr(ab->mcu.debugger.getBreakpoints());
 }
 
 void ABB::DebuggerBackend::drawControls(){
+	if (stepFrame) {
+		stepFrame = false;
+		ab->mcu.debugger.halt();
+	}
+
 	bool isHalted = ab->mcu.debugger.isHalted();
-	if (!isHalted)
-		ImGui::PushDisabled();
 
-	if (ImGui::Button("Step")) {
-		ab->mcu.debugger.step();
-	}
+	if (!isHalted) ImGui::PushDisabled();
+		if (ImGui::Button("Step")) {
+			ab->mcu.debugger.step();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Step Frame")) {
+			stepFrame = true;
+			ab->mcu.debugger.continue_();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Continue")) {
+			ab->mcu.debugger.continue_();
+		}
+	if (!isHalted) ImGui::PopDisabled();
+
 	ImGui::SameLine();
-	if (ImGui::Button("Continue")) {
-		ab->mcu.debugger.continue_();
-	}
-
-	if (!isHalted)
-		ImGui::PopDisabled();
+	if (isHalted) ImGui::PushDisabled();
+		if (ImGui::Button("Force Stop")) {
+			ab->mcu.debugger.halt();
+		}
+	if (isHalted) ImGui::PopDisabled();
 
 	ImGui::SameLine();
 	if (ImGui::Button("Reset")) {
@@ -45,6 +61,9 @@ void ABB::DebuggerBackend::drawControls(){
 
 	if (!isHalted)
 		ImGui::PopDisabled();
+
+	ImGui::SameLine();
+	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %d", ab->mcu.cpu.getPC(), ab->mcu.cpu.getPCAddr(), ab->mcu.cpu.getTotalCycles());
 }
 
 void ABB::DebuggerBackend::drawDebugStack() {

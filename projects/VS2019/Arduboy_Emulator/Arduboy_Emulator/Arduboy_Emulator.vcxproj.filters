@@ -28,6 +28,9 @@
     <Filter Include="Source Files\utils">
       <UniqueIdentifier>{40fb52c6-c594-4ccd-bad2-659ff645f3e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\bintools">
+      <UniqueIdentifier>{3a96327a-63ce-4cdc-9f9a-6f2541c7893a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp">
@@ -66,7 +69,10 @@
     <ClCompile Include="..\..\..\..\src\utils\hexViewer.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\src\utils\stringUtils.cpp">
+    <ClCompile Include="..\..\..\..\src\bintools\bintools.cpp">
+      <Filter>Source Files\bintools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\utils\byteVisualiser.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,7 +113,13 @@
     <ClInclude Include="..\..\..\..\src\utils\hexViewer.h">
       <Filter>Source Files\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\src\utils\stringUtils.h">
+    <ClInclude Include="..\..\..\..\src\bintools\bintools.h">
+      <Filter>Source Files\bintools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\byteVisualiser.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\mathUtils.h">
       <Filter>Source Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
