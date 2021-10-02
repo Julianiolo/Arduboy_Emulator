@@ -136,7 +136,7 @@ size_t ABB::utils::HexViewer::getBytesPerRow(float widthAvail, const ImVec2& cha
 	return bytesPerRow;
 }
 
-void ABB::utils::HexViewer::drawSymbolHoverInfo(const SymbolTable::Symbol* symbol, size_t addr) {
+void ABB::utils::HexViewer::drawHoverInfo(size_t addr, const SymbolTable::Symbol* symbol) {
 	float hSpacing = ImGui::GetStyle().ItemSpacing.y;
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, hSpacing));
 
@@ -328,24 +328,22 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 					else {
 						currHoveredAddr = hoveredAddr = addrOff;
 
-						if (symbol) {
-							if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-								ImGui::OpenPopup("symbolHoverInfoPopup");
-								
-								popupSymbol = symbol;
-								popupAddr = addrOff;
-							}
-							else {
-								ImGui::BeginTooltip();
-								ImGui::PopStyleVar();
-								ImGuiExt::PopTextColor();
+						if (symbol && ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+							ImGui::OpenPopup("symbolHoverInfoPopup");
+							
+							popupSymbol = symbol;
+							popupAddr = addrOff;
+						}
+						else {
+							ImGui::BeginTooltip();
+							ImGui::PopStyleVar();
+							ImGuiExt::PopTextColor();
 
-								drawSymbolHoverInfo(symbol,addrOff);
+							drawHoverInfo(addrOff, symbol);
 
-								ImGuiExt::PushTextColor(syntaxColors.bytes);
-								ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, vertSpacing));
-								ImGui::EndTooltip();
-							}
+							ImGuiExt::PushTextColor(syntaxColors.bytes);
+							ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, vertSpacing));
+							ImGui::EndTooltip();
 						}
 					}
 				}
@@ -404,7 +402,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 	ImGui::PopStyleVar();
 
 	if (popupAddr != (size_t)-1 && ImGui::BeginPopup("symbolHoverInfoPopup")) {
-		drawSymbolHoverInfo(popupSymbol,popupAddr);
+		drawHoverInfo(popupAddr, popupSymbol);
 		ImGui::EndPopup();
 	}
 

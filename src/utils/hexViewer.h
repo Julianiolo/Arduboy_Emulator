@@ -63,7 +63,7 @@ namespace ABB {
 			bool newSymbol(size_t addr, size_t* symbolPtr, size_t nextSymbolAddrEnd);
 
 			void drawSettings();
-			void drawSymbolHoverInfo(const SymbolTable::Symbol* symbol, size_t addr);
+			void drawHoverInfo(size_t addr, const SymbolTable::Symbol* symbol);
 		public:
 			HexViewer(const uint8_t* data, size_t dataLen);
 

@@ -8,7 +8,7 @@
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n) 
 : name(n), displayBackend(&ab.display), debuggerBackend(&ab, (name + " - Debugger").c_str(), &symbolTable), logBackend((name + " - Log").c_str()),
-	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &symbolTable)
+	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &symbolTable), analyticsBackend(&ab, name.c_str(), &symbolTable)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	ab.setLogCallBSimple(LogBackend::log);
@@ -25,9 +25,14 @@ void ABB::ArduboyBackend::update() {
 	ab.buttonState |= IsKeyDown(KEY_A) << Arduboy::Button_A_Bit;
 	ab.buttonState |= IsKeyDown(KEY_B) << Arduboy::Button_B_Bit;
 
+	uint64_t lastCycs = ab.mcu.cpu.getTotalCycles();
 	ab.newFrame();
+	uint64_t stopAmt = 42500000;
+	//if(ab.mcu.cpu.getTotalCycles() > stopAmt && lastCycs <= stopAmt)
+	//	ab.mcu.debugger.halt();
 
 	displayBackend.update();
+	analyticsBackend.update();
 }
 
 void ABB::ArduboyBackend::draw() {
@@ -60,4 +65,6 @@ void ABB::ArduboyBackend::draw() {
 	logBackend.draw();
 
 	mcuInfoBackend.draw();
+
+	analyticsBackend.draw();
 }

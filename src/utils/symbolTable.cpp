@@ -321,6 +321,11 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 			if (s.section == textSection || s.section == dataSection)
 				symbolsRom.push_back(&s);
 		}
+
+		for(auto& s : symbolsRam){
+			if(s->addrEnd() > maxRamAddrEnd)
+				maxRamAddrEnd = s->addrEnd();
+		}
 	}
 
 	if (BinTools::canDemangle()) {
@@ -400,6 +405,10 @@ ABB::utils::SymbolTable::SymbolListPtr ABB::utils::SymbolTable::getSymbolsRamExp
 }
 ABB::utils::SymbolTable::SymbolListPtr ABB::utils::SymbolTable::getSymbolsRom() const {
 	return (SymbolTable::SymbolListPtr)&symbolsRom;
+}
+
+size_t ABB::utils::SymbolTable::getMaxRamAddrEnd() const {
+	return maxRamAddrEnd;
 }
 
 const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymbol(size_t Addr) const {

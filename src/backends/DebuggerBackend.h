@@ -15,6 +15,7 @@ namespace ABB{
         Arduboy* ab;
         void drawControls();
         void drawDebugStack();
+        void drawRegisters();
         
         const utils::SymbolTable* symbolTable;
     public:

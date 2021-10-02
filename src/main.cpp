@@ -7,6 +7,12 @@
 
 #include "ArdEmu.h"
 
+#ifdef _MSC_VER
+#define ROOTDIR "../../../../../../"
+#else
+#define ROOTDIR "../../../../"
+#endif
+
 void setup();
 void draw();
 void destroy();
@@ -54,15 +60,15 @@ void setup() {
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
-    
 #if 1
-    abb.ab.load("../../../../../../resources/games/CastleBoy/CastleBoy.ino.hex");
-    abb.debuggerBackend.srcMix.loadSrcFile("../../../../../../resources/games/CastleBoy/srcMix.asm");
-    abb.symbolTable.loadFromDumpFile("../../../../../../resources/games/CastleBoy/symbs.asm");
+    abb.ab.load(ROOTDIR"resources/games/MicroCity.hex");
+    //abb.ab.load(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
+    abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
+    abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 #else
-    abb.ab.load("../../../../../../resources/games/CastleBoySimple/CastleBoySimple.ino.hex");
-    abb.debuggerBackend.srcMix.loadSrcFile("../../../../../../resources/games/CastleBoySimple/srcMix.asm");
-    abb.symbolTable.loadFromDumpFile("../../../../../../resources/games/CastleBoySimple/symbs.asm");
+    abb.ab.load(ROOTDIR"resources/games/CastleBoySimple/CastleBoySimple.ino.hex");
+    abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoySimple/srcMix.asm");
+    abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoySimple/symbs.asm");
 #endif
 
     /*

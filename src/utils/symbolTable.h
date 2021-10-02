@@ -80,6 +80,8 @@ namespace ABB {
 			std::vector<const Symbol*> symbolsRamExp;
 			std::vector<const Symbol*> symbolsRom;
 
+			size_t maxRamAddrEnd = 0;
+
 			Symbol::Flags generateSymbolFlags(const char* str);
 			Symbol::Section* generateSymbolSection(const char* str, const char* strEnd, size_t* sectStrLen = nullptr);
 			void parseLine(const char* start, const char* end);
@@ -97,6 +99,8 @@ namespace ABB {
 			SymbolListPtr getSymbolsRam() const;
 			SymbolListPtr getSymbolsRamExp() const;
 			SymbolListPtr getSymbolsRom() const;
+
+			size_t getMaxRamAddrEnd() const;
 
 			const Symbol* drawAddrWithSymbol(size_t Addr) const;
 			static void drawSymbolListSizeDiagramm(SymbolListPtr list, size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});

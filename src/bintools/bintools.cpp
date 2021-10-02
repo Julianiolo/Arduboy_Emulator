@@ -1,5 +1,9 @@
 #include "bintools.h"
 
+#if defined(_MSC_VER) || true
+#define EXTERNAL_
+#endif
+
 #ifdef _MSC_VER
 #if 0
 #include <windows.h>
@@ -121,18 +125,36 @@ class IOChildProcess {
 	}
 };
 #endif
+
+#include <stdexcept>
+
+#include "raylib.h"
+
+
+#endif
+
+bool BinTools::canDemangle() {
+#ifdef EXTERNAL_
+	return true;
+#else
+	return false;
+#endif
+}
+
+#ifdef EXTERNAL_
+
 #include <cstdio>
 #include <iostream>
 #include <array>
-#include <stdexcept>
 #include <memory>
 #include "../backends/LogBackend.h"
-#include "raylib.h"
 
+#ifdef _MSC_VER
 #define popen _popen
 #define pclose _pclose
+#endif
 
-const char* binutilsDir = "resources\\binutils\\";
+const char* binutilsDir = "assets/software/";
 
 static std::string exec(const char* cmd) {
 	std::string out = "";
@@ -148,19 +170,22 @@ static std::string exec(const char* cmd) {
 
 	return out;
 }
-
 #endif
 
-bool BinTools::canDemangle() {
-#ifdef _MSC_VER
-	return true;
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+const char* get_cwd_(){
+#ifdef _WIN32_
+	return GetWorkingDirectory();
 #else
-	return false;
+	return ".";
 #endif
 }
 
 std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
-#ifdef _MSC_VER
+#ifdef EXTERNAL_
 	std::string list = "";
 	std::string placeHolder = "0__________apoisfbapisubfaoisfboadfubsodfbsodfiubasoidzaubsopfabusfpaoisn";
 	for (size_t i = 0; i < num; i++) {
@@ -171,7 +196,16 @@ std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
 			list += placeHolder;
 	}
 
-	std::string cmd = std::string("\"") + GetWorkingDirectory() + "\\" + std::string(binutilsDir) + "avr-c++filt.exe\"" + list;
+	std::string progPath = std::string("\"") + get_cwd_() + "/" + std::string(binutilsDir) + "avr-c++filt.exe\"";
+
+#ifdef _WIN32
+	for(size_t i = 0; i<progPath.size(); i++)
+		if(progPath[i] == '/')
+			progPath[i] = '\\';
+#endif
+
+	std::string cmd = progPath + list;
+
 	std::cout << cmd << std::endl;
 	std::string ret = exec(cmd.c_str());
 	std::cout << ret << std::endl;

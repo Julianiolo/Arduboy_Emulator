@@ -9,6 +9,7 @@
 #include "DebuggerBackend.h"
 #include "LogBackend.h"
 #include "mcuInfoBackend.h"
+#include "AnalyticsBackend.h"
 #include "../utils/symbolTable.h"
 
 namespace ABB {
@@ -22,6 +23,7 @@ namespace ABB {
 		DebuggerBackend debuggerBackend;
 		LogBackend logBackend;
 		McuInfoBackend mcuInfoBackend;
+		AnalyticsBackend analyticsBackend;
 		utils::SymbolTable symbolTable;
 	private:
 		

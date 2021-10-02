@@ -8,10 +8,11 @@ CFLAGS:=-Wall -Wno-narrowing
 CSTD:=-std=c++17
 RELEASE_OPTIM?= -O2
 
-SRC_DIR:=src/
-BUILD_DIR:=build/make/$(BUILD_MODE)/
+ROOT_DIR:=./
+SRC_DIR:=$(ROOT_DIR)src/
+BUILD_DIR:=$(ROOT_DIR)build/make/$(BUILD_MODE)/
 OBJ_DIR:=$(BUILD_DIR)objs/
-DEPENDENCIES_DIR:=dependencies/
+DEPENDENCIES_DIR:=$(ROOT_DIR)dependencies/
 
 OUT_NAME:=ABemu.exe
 OUT_DIR:=$(BUILD_DIR)ABemu/
@@ -30,7 +31,7 @@ current_dir :=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 BUILD_MODE_CFLAGS:=
 ifeq ($(BUILD_MODE),DEBUG)
-	BUILD_MODE_CFLAGS += -g
+	BUILD_MODE_CFLAGS +=-g
 else
 	BUILD_MODE_CFLAGS +=$(RELEASE_OPTIM)
 endif
@@ -83,6 +84,8 @@ $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)depFile.dep $(OBJ_FILES)
 	$(BASH_PREFX)"mkdir -p $(OUT_DIR)"
 	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(DEP_LIBS_DIR_FLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(CDEPFLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
 	$(BASH_PREFX)"mkdir -p $(OUT_DIR)assets"
+	$(BASH_PREFX)"mkdir -p $(OUT_DIR)assets/software"
+	$(BASH_PREFX)"cp $(ROOT_DIR)resources/software/avr-c++filt.exe  $(OUT_DIR)assets/software/"
 
 $(OBJ_DIR)%.o:%.cpp
 	$(BASH_PREFX)"mkdir -p $(dir $@)"

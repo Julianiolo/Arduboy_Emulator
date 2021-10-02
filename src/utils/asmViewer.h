@@ -19,7 +19,7 @@ namespace ABB{
             std::vector<uint16_t> fileStrAddrs;
             std::map<uint16_t, size_t> fileStrLabels;
 
-            const A32u4::ATmega32u4* mcu = nullptr;
+            A32u4::ATmega32u4* mcu = nullptr;
             A32u4::Debugger::Breakpoint* breakpoints = nullptr;
 
             float scrollSet = -1;
@@ -63,7 +63,7 @@ namespace ABB{
             bool isFileEmpty();
 
             void setSymbolTable(const SymbolTable* table);
-            void setMcu(const A32u4::ATmega32u4* mcuPtr);
+            void setMcu(A32u4::ATmega32u4* mcuPtr);
             void setBreakpointArr(A32u4::Debugger::Breakpoint* breakpointsPtr);
         private:
             void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked);
@@ -71,8 +71,12 @@ namespace ABB{
             void drawInstParams(const char* start, const char* end);
             void drawSymbolComment(const char* lineStart, const char* lineEnd, const size_t symbolStartOff, const size_t symbolEndOff, bool* hasAlreadyClicked);
             void drawData(const char* lineStart, const char* lineEnd);
+            void drawSymbolLabel(const char* lineStart, const char* lineEnd);
 
             void decorateScrollBar(uint16_t PCAddr);
+
+            void pushFileStyle();
+            void popFileStyle();
         };
     }
 }

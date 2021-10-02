@@ -121,11 +121,33 @@ void ABB::DebuggerBackend::drawDebugStack() {
 	ImGui::EndChild();
 }
 
+void ABB::DebuggerBackend::drawRegisters(){
+	uint8_t sreg_val = ab->mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
+	constexpr const char* bitNames[] = {"I","T","H","S","V","N","Z","C"};
+	ImGui::TextUnformatted("SREG");
+	ImGui::BeginTable("SREG_TABLE",8, ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_SizingFixedFit);
+	ImGui::TableNextRow();
+	for(int i = 0; i<8;i++){
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted(bitNames[i]);
+	}
+	ImGui::TableNextRow();
+	for(int i = 7; i>=0;i--){
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted((sreg_val & (1<<i)) ? "1" : "0");
+	}
+	ImGui::EndTable();
+}
+
 void ABB::DebuggerBackend::draw() {
 	if (ImGui::Begin(winName.c_str())) {
 		drawControls();
 		if (ImGui::TreeNode("Debug Stack")) {
 			drawDebugStack();
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("Registers")) {
+			drawRegisters();
 			ImGui::TreePop();
 		}
 		
