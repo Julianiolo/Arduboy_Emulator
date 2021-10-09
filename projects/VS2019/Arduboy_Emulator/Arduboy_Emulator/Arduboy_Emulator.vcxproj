@@ -176,6 +176,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp" />
+    <ClCompile Include="..\..\..\..\src\backends\AnalyticsBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\DebuggerBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\DisplayBackend.cpp" />
@@ -192,6 +193,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\ArdEmu.h" />
+    <ClInclude Include="..\..\..\..\src\backends\AnalyticsBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\ArduboyBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\DebuggerBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\DisplayBackend.h" />
@@ -205,6 +207,7 @@
     <ClInclude Include="..\..\..\..\src\utils\byteVisualiser.h" />
     <ClInclude Include="..\..\..\..\src\utils\hexViewer.h" />
     <ClInclude Include="..\..\..\..\src\utils\mathUtils.h" />
+    <ClInclude Include="..\..\..\..\src\utils\ringBuffer.h" />
     <ClInclude Include="..\..\..\..\src\utils\symbolTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

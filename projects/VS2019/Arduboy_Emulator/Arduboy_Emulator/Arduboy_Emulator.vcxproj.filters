@@ -75,6 +75,9 @@
     <ClCompile Include="..\..\..\..\src\utils\byteVisualiser.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\backends\AnalyticsBackend.cpp">
+      <Filter>Source Files\backends</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h">
@@ -121,6 +124,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\utils\mathUtils.h">
       <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\ringBuffer.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\backends\AnalyticsBackend.h">
+      <Filter>Source Files\backends</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

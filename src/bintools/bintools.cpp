@@ -128,8 +128,6 @@ class IOChildProcess {
 
 #include <stdexcept>
 
-#include "raylib.h"
-
 
 #endif
 
@@ -154,7 +152,7 @@ bool BinTools::canDemangle() {
 #define pclose _pclose
 #endif
 
-const char* binutilsDir = "assets/software/";
+const char* binutilsDir = "resources/binutils/";
 
 static std::string exec(const char* cmd) {
 	std::string out = "";
@@ -177,7 +175,7 @@ static std::string exec(const char* cmd) {
 #endif
 
 const char* get_cwd_(){
-#ifdef _WIN32_
+#ifdef _MSC_VER_
 	return GetWorkingDirectory();
 #else
 	return ".";

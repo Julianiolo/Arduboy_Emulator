@@ -63,7 +63,7 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::PopDisabled();
 
 	ImGui::SameLine();
-	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %d", ab->mcu.cpu.getPC(), ab->mcu.cpu.getPCAddr(), ab->mcu.cpu.getTotalCycles());
+	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s", ab->mcu.cpu.getPC(), ab->mcu.cpu.getPCAddr(), std::to_string(ab->mcu.cpu.getTotalCycles()).c_str());
 }
 
 void ABB::DebuggerBackend::drawDebugStack() {
