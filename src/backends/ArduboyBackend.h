@@ -34,6 +34,7 @@ namespace ABB {
 		ArduboyBackend(const char* n);
 
 		void draw();
+		void resetMachine();
 	};
 }
 

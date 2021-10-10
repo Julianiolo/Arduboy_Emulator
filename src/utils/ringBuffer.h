@@ -39,6 +39,15 @@ public:
     size_t sizeMax(){
         return data.size();
     }
+
+    void clear() {
+        len = 0;
+        ptr = 0;
+    }
+
+    T& last() {
+        return get(size() - 1);
+    }
 };
 
 #endif

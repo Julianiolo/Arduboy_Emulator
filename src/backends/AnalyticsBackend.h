@@ -17,6 +17,7 @@ namespace ABB{
 
         void update();
         void draw();
+        void reset();
         static float getStackSizeBuf(void* data, int ind);
     };
 }

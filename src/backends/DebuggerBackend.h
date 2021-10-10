@@ -1,7 +1,6 @@
 #ifndef _ABB_DEBUGGER_BACKEND
 #define _ABB_DEBUGGER_BACKEND
 
-#include "Arduboy.h"
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -10,9 +9,11 @@
 #include "../utils/symbolTable.h"
 
 namespace ABB{
+    class ArduboyBackend;
+
     class DebuggerBackend{
     private:
-        Arduboy* ab;
+        ArduboyBackend* abb;
         void drawControls();
         void drawDebugStack();
         void drawRegisters();
@@ -23,7 +24,7 @@ namespace ABB{
         utils::AsmViewer srcMix;
         bool stepFrame = false;
 
-        DebuggerBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable);
+        DebuggerBackend(ArduboyBackend* abb, const char* winName, const utils::SymbolTable* symbolTable);
 
         void draw();
         

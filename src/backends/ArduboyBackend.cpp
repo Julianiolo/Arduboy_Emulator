@@ -7,7 +7,7 @@
 #include <iostream>
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n) 
-: name(n), displayBackend(&ab.display), debuggerBackend(&ab, (name + " - Debugger").c_str(), &symbolTable), logBackend((name + " - Log").c_str()),
+: name(n), displayBackend(&ab.display), debuggerBackend(this, (name + " - Debugger").c_str(), &symbolTable), logBackend((name + " - Log").c_str()),
 	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &symbolTable), analyticsBackend(&ab, name.c_str(), &symbolTable)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
@@ -67,4 +67,9 @@ void ABB::ArduboyBackend::draw() {
 	mcuInfoBackend.draw();
 
 	analyticsBackend.draw();
+}
+
+void ABB::ArduboyBackend::resetMachine() {
+	ab.reset();
+	analyticsBackend.reset();
 }

@@ -18,7 +18,15 @@ void ABB::AnalyticsBackend::update(){
 
 void ABB::AnalyticsBackend::draw(){
     if(ImGui::Begin(name.c_str())){
-        ImGui::Text("%f%% of Stack used (%d/%d)", (StackSizeBuf.get(0)/(float)symbolTable->getMaxRamAddrEnd())*100, StackSizeBuf.get(0),A32u4::DataSpace::Consts::data_size-1 - symbolTable->getMaxRamAddrEnd());
+        uint16_t used = StackSizeBuf.last();
+        uint16_t max = A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd();
+        ImGui::Text("%.2f%% of Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
+        uint64_t usedSum = 0;
+        for (size_t i = 0; i < StackSizeBuf.size(); i++) {
+            usedSum += StackSizeBuf.get(i);
+        }
+        float avg = (float)usedSum / StackSizeBuf.size();
+        ImGui::Text("Average: %.2f%% of Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
         ImGui::PlotHistogram("Stack Size",
             &getStackSizeBuf, &StackSizeBuf, StackSizeBuf.size(), 
             0, NULL, 0, A32u4::DataSpace::Consts::data_size-1 - symbolTable->getMaxRamAddrEnd(), {0,70}
@@ -33,4 +41,8 @@ float ABB::AnalyticsBackend::getStackSizeBuf(void* data, int ind){
         return 0;
     }
     return stackSizeBufPtr->get(ind);
+}
+
+void ABB::AnalyticsBackend::reset() {
+    StackSizeBuf.clear();
 }

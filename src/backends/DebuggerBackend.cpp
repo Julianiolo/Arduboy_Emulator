@@ -6,45 +6,47 @@
 
 #include "utils/StringUtils.h"
 
-ABB::DebuggerBackend::DebuggerBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable) : ab(ab), symbolTable(symbolTable), winName(winName){
+#include "ArduboyBackend.h"
+
+ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, const utils::SymbolTable* symbolTable) : abb(abb), symbolTable(symbolTable), winName(winName){
 	srcMix.setSymbolTable(symbolTable);
-	srcMix.setMcu(&ab->mcu);
-	srcMix.setBreakpointArr(ab->mcu.debugger.getBreakpoints());
+	srcMix.setMcu(&abb->ab.mcu);
+	srcMix.setBreakpointArr(abb->ab.mcu.debugger.getBreakpoints());
 }
 
 void ABB::DebuggerBackend::drawControls(){
 	if (stepFrame) {
 		stepFrame = false;
-		ab->mcu.debugger.halt();
+		abb->ab.mcu.debugger.halt();
 	}
 
-	bool isHalted = ab->mcu.debugger.isHalted();
+	bool isHalted = abb->ab.mcu.debugger.isHalted();
 
 	if (!isHalted) ImGui::PushDisabled();
 		if (ImGui::Button("Step")) {
-			ab->mcu.debugger.step();
+			abb->ab.mcu.debugger.step();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Step Frame")) {
 			stepFrame = true;
-			ab->mcu.debugger.continue_();
+			abb->ab.mcu.debugger.continue_();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Continue")) {
-			ab->mcu.debugger.continue_();
+			abb->ab.mcu.debugger.continue_();
 		}
 	if (!isHalted) ImGui::PopDisabled();
 
 	ImGui::SameLine();
 	if (isHalted) ImGui::PushDisabled();
 		if (ImGui::Button("Force Stop")) {
-			ab->mcu.debugger.halt();
+			abb->ab.mcu.debugger.halt();
 		}
 	if (isHalted) ImGui::PopDisabled();
 
 	ImGui::SameLine();
 	if (ImGui::Button("Reset")) {
-		ab->reset();
+		abb->resetMachine();
 	}
 
 	// ## Line 2 ##
@@ -54,7 +56,7 @@ void ABB::DebuggerBackend::drawControls(){
 
 	if(ImGui::Button("Jump to PC")) {
 		if(!srcMix.isFileEmpty()) {
-			size_t line = srcMix.getLineIndFromAddr(ab->mcu.cpu.getPCAddr());
+			size_t line = srcMix.getLineIndFromAddr(abb->ab.mcu.cpu.getPCAddr());
 			srcMix.scrollToLine(line);
 		}
 	}
@@ -63,19 +65,19 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::PopDisabled();
 
 	ImGui::SameLine();
-	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s", ab->mcu.cpu.getPC(), ab->mcu.cpu.getPCAddr(), std::to_string(ab->mcu.cpu.getTotalCycles()).c_str());
+	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s", abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr(), std::to_string(abb->ab.mcu.cpu.getTotalCycles()).c_str());
 }
 
 void ABB::DebuggerBackend::drawDebugStack() {
 	if (ImGui::BeginChild("DebugStack", { 600,80 }, true)) {
-		int32_t stackSize = ab->mcu.debugger.getAddressStackPointer();
+		int32_t stackSize = abb->ab.mcu.debugger.getAddressStackPointer();
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
 			for (int32_t i = stackSize-1; i >= 0; i--) {
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				
 				{
-					uint16_t Addr = ab->mcu.debugger.getAddresAt(i)*2;
+					uint16_t Addr = abb->ab.mcu.debugger.getAddresAt(i)*2;
 					const utils::SymbolTable::Symbol* symbol = symbolTable->drawAddrWithSymbol(Addr);
 
 					if (symbol && ImGui::IsItemHovered()) {
@@ -98,7 +100,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				ImGui::SameLine();
 					
 				{
-					uint16_t fromAddr = ab->mcu.debugger.getFromAddresAt(i) * 2;
+					uint16_t fromAddr = abb->ab.mcu.debugger.getFromAddresAt(i) * 2;
 					const utils::SymbolTable::Symbol* fromSymbol = symbolTable->drawAddrWithSymbol(fromAddr);
 
 					if (fromSymbol && ImGui::IsItemHovered()) {
@@ -122,7 +124,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 }
 
 void ABB::DebuggerBackend::drawRegisters(){
-	uint8_t sreg_val = ab->mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
+	uint8_t sreg_val = abb->ab.mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
 	constexpr const char* bitNames[] = {"I","T","H","S","V","N","Z","C"};
 	ImGui::TextUnformatted("SREG");
 	ImGui::BeginTable("SREG_TABLE",8, ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_SizingFixedFit);
@@ -151,7 +153,7 @@ void ABB::DebuggerBackend::draw() {
 			ImGui::TreePop();
 		}
 		
-		srcMix.drawFile(winName, ab->mcu.cpu.getPCAddr());
+		srcMix.drawFile(winName, abb->ab.mcu.cpu.getPCAddr());
 	}
 	ImGui::End();
 }
