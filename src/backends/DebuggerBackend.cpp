@@ -8,6 +8,8 @@
 
 #include "ArduboyBackend.h"
 
+#include "components/Disassembler.h"
+
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, const utils::SymbolTable* symbolTable) : abb(abb), symbolTable(symbolTable), winName(winName){
 	srcMix.setSymbolTable(symbolTable);
 	srcMix.setMcu(&abb->ab.mcu);
@@ -71,12 +73,13 @@ void ABB::DebuggerBackend::drawControls(){
 void ABB::DebuggerBackend::drawDebugStack() {
 	if (ImGui::BeginChild("DebugStack", { 600,80 }, true)) {
 		int32_t stackSize = abb->ab.mcu.debugger.getAddressStackPointer();
+		ImGui::Text("Stack Size: %d", stackSize);
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
 			for (int32_t i = stackSize-1; i >= 0; i--) {
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				
-				{
+				if(symbolTable->hasSymbols()){
 					uint16_t Addr = abb->ab.mcu.debugger.getAddresAt(i)*2;
 					const utils::SymbolTable::Symbol* symbol = symbolTable->drawAddrWithSymbol(Addr);
 
@@ -91,15 +94,26 @@ void ABB::DebuggerBackend::drawDebugStack() {
 							srcMix.scrollToLine(line, true);
 					}
 				}
+				else{
+					uint16_t Addr = abb->ab.mcu.debugger.getAddresAt(i)*2;
+
+					ImGui::Text("%04x",Addr);
+
+					if (ImGui::IsItemClicked()) {
+						size_t line = srcMix.getLineIndFromAddr(Addr);
+						if(line != (size_t)-1)
+							srcMix.scrollToLine(line, true);
+					}
+				}
 					
 
 				ImGui::TableNextColumn();
 					
 					
-				ImGui::TextUnformatted(" : from");
+				ImGui::TextUnformatted(": from ");
 				ImGui::SameLine();
 					
-				{
+				if(symbolTable->hasSymbols()){
 					uint16_t fromAddr = abb->ab.mcu.debugger.getFromAddresAt(i) * 2;
 					const utils::SymbolTable::Symbol* fromSymbol = symbolTable->drawAddrWithSymbol(fromAddr);
 
@@ -108,6 +122,16 @@ void ABB::DebuggerBackend::drawDebugStack() {
 						fromSymbol->draw();
 						ImGui::EndTooltip();
 					}
+					if (ImGui::IsItemClicked()) {
+						size_t line = srcMix.getLineIndFromAddr(fromAddr);
+						if(line != (size_t)-1)
+							srcMix.scrollToLine(line, true);
+					}
+				}else{
+					uint16_t fromAddr = abb->ab.mcu.debugger.getFromAddresAt(i) * 2;
+
+					ImGui::Text("%04x",fromAddr);
+
 					if (ImGui::IsItemClicked()) {
 						size_t line = srcMix.getLineIndFromAddr(fromAddr);
 						if(line != (size_t)-1)
@@ -153,7 +177,17 @@ void ABB::DebuggerBackend::draw() {
 			ImGui::TreePop();
 		}
 		
-		srcMix.drawFile(winName, abb->ab.mcu.cpu.getPCAddr());
+		if(!srcMix.isFileEmpty())
+			srcMix.drawFile(winName, abb->ab.mcu.cpu.getPCAddr());
+		else{
+			ImGui::TextUnformatted("Couldnt generate disassembly, load or generate?");
+			if(ImGui::Button("Load")){
+
+			}
+			if(ImGui::Button("Generate")){
+				printf("%d",A32u4::Disassembler::disassembleBin(&abb->ab.mcu.flash, abb->ab.mcu.flash.size).content.size());
+			}
+		}
 	}
 	ImGui::End();
 }

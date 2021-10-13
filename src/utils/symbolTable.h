@@ -82,11 +82,13 @@ namespace ABB {
 
 			size_t maxRamAddrEnd = 0;
 
+			bool doesHaveSymbols = false;
+
 			Symbol::Flags generateSymbolFlags(const char* str);
 			Symbol::Section* generateSymbolSection(const char* str, const char* strEnd, size_t* sectStrLen = nullptr);
 			void parseLine(const char* start, const char* end);
 		public:
-			static void init();
+			bool hasSymbols() const;
 
 			bool loadFromDumpFile(const char* path);
 			bool loadFromDumpString(const char* str, size_t size = -1);

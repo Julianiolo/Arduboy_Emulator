@@ -22,10 +22,6 @@ ABB::utils::SymbolTable::Symbol::Section::Section(const std::string& name) : nam
 
 std::vector<ABB::utils::SymbolTable::Symbol> ABB::utils::SymbolTable::deviceSpecSymbolStorage;
 
-void ABB::utils::SymbolTable::init() {
-
-}
-
 bool ABB::utils::SymbolTable::Symbol::operator<(const Symbol& rhs) const {
 	return this->value < rhs.value;
 }
@@ -349,8 +345,12 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 		delete strs;
 	}
 	
-
+	doesHaveSymbols = true;
 	return true;
+}
+
+bool ABB::utils::SymbolTable::hasSymbols() const {
+	return doesHaveSymbols;
 }
 
 const ABB::utils::SymbolTable::Symbol::Section* ABB::utils::SymbolTable::getSection(const std::string& name) const {
