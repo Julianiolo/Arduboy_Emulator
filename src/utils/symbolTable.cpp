@@ -20,7 +20,7 @@ ABB::utils::SymbolTable::Symbol::Section::Section(const std::string& name) : nam
 
 }
 
-std::vector<ABB::utils::SymbolTable::Symbol> ABB::utils::SymbolTable::deviceSpecSymbolStorage;
+
 
 bool ABB::utils::SymbolTable::Symbol::operator<(const Symbol& rhs) const {
 	return this->value < rhs.value;
@@ -46,6 +46,11 @@ void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) con
 	}
 
 	ImGui::Separator();
+
+	if (note.size() > 0) {
+		ImGui::TextUnformatted(note.c_str());
+		ImGui::Separator();
+	}
 
 	const ImGuiTableFlags tFlags = ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_BordersV | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoHostExtendX;
 	if (ImGui::BeginTable("symbolTableElemTable", 2, tFlags)) {
@@ -235,10 +240,21 @@ ABB::utils::SymbolTable::Symbol::Section* ABB::utils::SymbolTable::generateSymbo
 	return &sections[sectStr];
 }
 
-void ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
-	if (end - start < (8 + 1 + 7 + 1 + 0 + 1 + 8 + 1))
+ABB::utils::SymbolTable::SymbolTable() {
+	init();
+}
+void ABB::utils::SymbolTable::init() {
+	const char* path = "resources/device/regSymbs.txt";
+	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open device symbol table dump File: ") + path).c_str());
+	if (fileStr.size() == 0) // loading didnt work
 		return;
+	deviceSpecSymbolStorage = parseList(fileStr.c_str());
+	for (size_t i = 0; i < deviceSpecSymbolStorage.size(); i++) {
+		symbolsRam.push_back(&deviceSpecSymbolStorage[i]);
+	}
+}
 
+ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
 	Symbol symbol;
 	size_t ptr = 0;
 	symbol.value = StringUtils::hexStrToUIntLen(start, 8) & 0xFFFF;
@@ -260,17 +276,50 @@ void ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
 		constexpr char hiddenStr[] = ".hidden";
 		if ((start + ptr + sizeof(hiddenStr) <= end) && (std::string(start + ptr, start + ptr + sizeof(hiddenStr) - 1) == hiddenStr)) {
 			symbol.isHidden = true;
-			ptr += sizeof(hiddenStr)-1 + 1;
+			ptr += sizeof(hiddenStr) - 1 + 1;
 		}
 	}
-	symbol.name = std::string(start + ptr, end);
+
+	size_t tabPos = StringUtils::findCharInStr('\t', start + ptr, end);
+	if (tabPos == (size_t)-1) {
+		symbol.name = std::string(start + ptr, end);
+		symbol.note = "";
+	}
+	else {
+		symbol.name = std::string(start + ptr, start+ptr+tabPos);
+		symbol.note = std::string(start + ptr + tabPos, end);
+		size_t nlPos;
+		while ((nlPos = symbol.note.find("\\n")) != std::string::npos)
+			symbol.note.replace(nlPos, 2, "\n");
+	}
 	symbol.hasDemangledName = symbol.name != symbol.demangled;
 
 	ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8, 1, 1};
 	ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
 	symbol.col.w = col.w;
 
-	symbolStorage.push_back(symbol);
+	return symbol;
+}
+
+std::vector<ABB::utils::SymbolTable::Symbol> ABB::utils::SymbolTable::parseList(const char* str, size_t size) {
+	constexpr char startStr[] = "SYMBOL TABLE:";
+	const char* startStrOff = std::strstr(str, startStr);
+
+	std::vector<Symbol> out;
+
+	const size_t strOff = startStrOff != nullptr ? (startStrOff-str) + sizeof(startStr) : 0;
+
+	if (size == (size_t)-1)
+		size = std::strlen(str);
+
+	size_t lastLineStart = strOff;
+	for (size_t i = strOff; i < size; i++) {
+		if (str[i] == '\n') {
+			if ((str + i) - (str + lastLineStart) >= (8 + 1 + 7 + 1 + 0 + 1 + 8 + 1))
+				out.push_back(parseLine(str + lastLineStart, str + i));
+			lastLineStart = i + 1;
+		}
+	}
 }
 
 bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
@@ -281,25 +330,7 @@ bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
 	return loadFromDumpString(fileStr.c_str(), fileStr.size());
 }
 bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
-	constexpr char startStr[] = "SYMBOL TABLE:";
-	const char* startStrOff = std::strstr(str, startStr);
-	if (startStrOff == nullptr) {
-		LogBackend::log(LogBackend::LogLevel_Warning, "could not read symbol table dump since it doesnt contain \"SYMBOL TABLE:\"");
-		return false;
-	}
-
-	const size_t strOff = (startStrOff-str) + sizeof(startStr);
-
-	if (size == (size_t)-1)
-		size = std::strlen(str);
-
-	size_t lastLineStart = strOff;
-	for (size_t i = strOff; i < size; i++) {
-		if (str[i] == '\n') {
-			parseLine(str + lastLineStart, str + i);
-			lastLineStart = i + 1;
-		}
-	}
+	parseList(str,size);
 
 	std::sort(symbolStorage.begin(), symbolStorage.end());
 
@@ -532,3 +563,12 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
 }
+
+/*
+
+if (startStrOff == nullptr) {
+//LogBackend::log(LogBackend::LogLevel_Warning, "could not read symbol table dump since it doesnt contain \"SYMBOL TABLE:\"");
+//return false;
+}
+
+*/

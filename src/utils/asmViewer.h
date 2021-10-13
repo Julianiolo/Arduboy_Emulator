@@ -9,12 +9,14 @@
 #include "imgui_internal.h"
 #include "symbolTable.h"
 #include "ATmega32u4.h"
+#include "components/Disassembler.h"
 
 namespace ABB{
     namespace utils{
         class AsmViewer{
         private:
-            std::string fileStr = "";
+            A32u4::Disassembler::DisasmFile file;
+            //std::string fileStr = "";
             std::vector<size_t> fileStrLines;
             std::vector<uint16_t> fileStrAddrs;
             std::map<uint16_t, size_t> fileStrLabels;
@@ -57,6 +59,7 @@ namespace ABB{
             size_t selectedLine = -1;
 
             void loadSrcFile(const char* path);
+            void generateDisasmFile(const A32u4::Flash* data);
             size_t getLineIndFromAddr(uint16_t Addr);
             void drawFile(const std::string& winName, uint16_t PCAddr);
             void scrollToLine(size_t line, bool select = false);

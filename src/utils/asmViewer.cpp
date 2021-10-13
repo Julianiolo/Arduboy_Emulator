@@ -8,6 +8,8 @@
 #include "utils/StringUtils.h"
 #include "components/Disassembler.h"
 
+#include <iostream>
+
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 	{1,0.5f,0,1}, {1,1,0,1}, {0.2,0.2,0.7f,1}, {0.2,0.4f,0.7f,1}, {0.4,0.6,0.4,1}, {0.3,0.4,0.7,1}, {0.5,0.5,0.7,1}, {0.4,0.4,0.6,1},
 	{1,0.7,1,1}, {1,0,1,1},
@@ -345,7 +347,7 @@ void ABB::utils::AsmViewer::drawData(const char* lineStart, const char* lineEnd)
 }
 
 void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr) {
-	if(fileStr.size() == 0)
+	if(file.content.size() == 0)
 		return;
 
 	pushFileStyle();
@@ -366,12 +368,12 @@ void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr
 			const ImVec2 charSize = ImGui::CalcTextSize(" ");
 			
 			for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-				const char* lineStart = fileStr.c_str() + fileStrLines[line_no];
+				const char* lineStart = file.content.c_str() + fileStrLines[line_no];
 				const char* lineEnd;
 				if(((size_t)line_no+1) < fileStrLines.size())
-					lineEnd = fileStr.c_str() + fileStrLines[line_no+1];
+					lineEnd = file.content.c_str() + fileStrLines[line_no+1];
 				else
-					lineEnd = fileStr.c_str() + fileStr.size();
+					lineEnd = file.content.c_str() + file.content.size();
 
 				ImRect lineRect = ImRect(
 					ImGui::GetCursorScreenPos(),
@@ -437,14 +439,19 @@ void ABB::utils::AsmViewer::loadSrcFile(const char* path) {
 		return;
 	}
 
-	fileStr = "";
+	file.content = "";
 
 	t.seekg(0, std::ios::end);   
-	fileStr.reserve(t.tellg());
+	file.content.reserve(t.tellg());
 	t.seekg(0, std::ios::beg);
 
-	fileStr.assign(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());
+	file.content.assign(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());
 
+	processSrcFile();
+}
+void ABB::utils::AsmViewer::generateDisasmFile(const A32u4::Flash* data) {
+	file = A32u4::Disassembler::disassembleBin(data);
+	StringUtils::writeStringToFile(file.content, "disasm.asm");
 	processSrcFile();
 }
 void ABB::utils::AsmViewer::processSrcFile() {
@@ -453,9 +460,9 @@ void ABB::utils::AsmViewer::processSrcFile() {
 	fileStrLines[0] = 0;
 	fileStrAddrs.resize(1000);
 
-	const char* str = fileStr.c_str();
+	const char* str = file.content.c_str();
 	size_t i = 0;
-	for(; i < fileStr.size(); i++) {
+	for(; i < file.content.size(); i++) {
 		if(str[i] == '\n'){
 			if(lineInd >= fileStrLines.size()){
 				fileStrLines.resize(lineInd + 100);
@@ -467,7 +474,7 @@ void ABB::utils::AsmViewer::processSrcFile() {
 			lineInd++;
 		}
 	}
-	addAddrToList(str + fileStrLines[lineInd - 1], str + fileStr.size(), lineInd);
+	addAddrToList(str + fileStrLines[lineInd - 1], str + file.content.size(), lineInd);
 	//lineInd++;
 
 	fileStrLines.resize(lineInd);
@@ -571,7 +578,7 @@ void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
 }
 
 bool ABB::utils::AsmViewer::isFileEmpty() {
-    return fileStr.size() == 0;
+    return file.content.size() == 0;
 }
 
 void ABB::utils::AsmViewer::pushFileStyle(){

@@ -55,6 +55,7 @@ namespace ABB {
 				std::string flagStr;
 				std::string name;
 				std::string demangled;
+				std::string note;
 				bool hasDemangledName;
 				size_t size;
 				Section* section;
@@ -70,7 +71,7 @@ namespace ABB {
 
 			typedef std::vector<const Symbol*>* SymbolListPtr;
 		private:
-			static std::vector<Symbol> deviceSpecSymbolStorage;
+			std::vector<Symbol> deviceSpecSymbolStorage;
 
 			std::vector<Symbol> symbolStorage;
 			std::map<std::string, const Symbol*> symbsNameMap;
@@ -86,8 +87,13 @@ namespace ABB {
 
 			Symbol::Flags generateSymbolFlags(const char* str);
 			Symbol::Section* generateSymbolSection(const char* str, const char* strEnd, size_t* sectStrLen = nullptr);
-			void parseLine(const char* start, const char* end);
+			Symbol parseLine(const char* start, const char* end);
+			std::vector<Symbol> parseList(const char* str, size_t size = -1);
 		public:
+
+			SymbolTable();
+			void init();
+
 			bool hasSymbols() const;
 
 			bool loadFromDumpFile(const char* path);

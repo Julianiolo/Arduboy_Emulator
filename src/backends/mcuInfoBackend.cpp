@@ -11,7 +11,7 @@
 ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable) : ab(ab), winName(winName), 
 	dataspaceDataHex(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size), 
 	dataspaceEEPROMHex(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size), 
-	flashHex(ab->mcu.flash.getData(), A32u4::Flash::size)
+	flashHex(ab->mcu.flash.getData(), A32u4::Flash::sizeMax)
 {
 	dataspaceDataHex.setSymbolList(symbolTable->getSymbolsRam());
 	flashHex.setSymbolList(symbolTable->getSymbolsRom());

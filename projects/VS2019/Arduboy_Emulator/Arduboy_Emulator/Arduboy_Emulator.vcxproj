@@ -106,7 +106,7 @@
     </Link>
     <PreBuildEvent />
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y &amp;&amp; xcopy "$(SolutionDir)..\..\..\resources\device" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\device\" /E/H/Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -129,7 +129,7 @@
     </Link>
     <PreBuildEvent />
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y &amp;&amp; xcopy "$(SolutionDir)..\..\..\resources\device" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\device\" /E/H/Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -148,7 +148,7 @@
     </Link>
     <PreBuildEvent />
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y &amp;&amp; xcopy "$(SolutionDir)..\..\..\resources\device" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\device\" /E/H/Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -171,7 +171,7 @@
     </Link>
     <PreBuildEvent />
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\resources\binutils" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\binutils\" /E/H/Y &amp;&amp; xcopy "$(SolutionDir)..\..\..\resources\device" "$(SolutionDir)..\..\..\build\VS2019\Arduboy_Emulator\bin\$(Platform)\$(Configuration)\resources\device\" /E/H/Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

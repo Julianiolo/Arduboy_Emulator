@@ -185,7 +185,7 @@ void ABB::DebuggerBackend::draw() {
 
 			}
 			if(ImGui::Button("Generate")){
-				printf("%d",A32u4::Disassembler::disassembleBin(&abb->ab.mcu.flash, abb->ab.mcu.flash.size).content.size());
+				srcMix.generateDisasmFile(&abb->ab.mcu.flash);
 			}
 		}
 	}
