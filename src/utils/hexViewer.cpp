@@ -65,12 +65,20 @@ bool ABB::utils::HexViewer::newSymbol(size_t addr, size_t* symbolPtr, size_t nex
 				const size_t mid = from + ((to - from) / 2);
 				auto symbol = symbolList->operator[](mid);
 				if (symbol->addrEnd() <= addr) {
+					if(from == mid){ // couldnt find a symbol for the current address so we just select the next
+						size_t ind = mid;
+						while(symbolList->operator[](ind)->size == 0)
+							ind++;
+						
+						*symbolPtr = ind;
+						break;
+					}
 					from = mid;
 				}
 				else if (symbol->value > addr) {
 					to = mid;
 				}
-				else {
+				else { // found Symbol candidate
 					size_t ind = mid;
 					while (symbol->size == 0) { 
 						auto newSymbol = symbolList->operator[](--ind); // go back to seach for symbols with size > 0
@@ -90,6 +98,7 @@ bool ABB::utils::HexViewer::newSymbol(size_t addr, size_t* symbolPtr, size_t nex
 					}
 
 					*symbolPtr = ind;
+					break;
 				}
 			}
 		}

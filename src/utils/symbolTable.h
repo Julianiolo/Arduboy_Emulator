@@ -88,7 +88,7 @@ namespace ABB {
 			Symbol::Flags generateSymbolFlags(const char* str);
 			Symbol::Section* generateSymbolSection(const char* str, const char* strEnd, size_t* sectStrLen = nullptr);
 			Symbol parseLine(const char* start, const char* end);
-			std::vector<Symbol> parseList(const char* str, size_t size = -1);
+			void parseList(std::vector<Symbol>* vec,const char* str, size_t size = -1);
 		public:
 
 			SymbolTable();

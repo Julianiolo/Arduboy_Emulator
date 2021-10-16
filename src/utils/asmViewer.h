@@ -61,9 +61,11 @@ namespace ABB{
             void loadSrcFile(const char* path);
             void generateDisasmFile(const A32u4::Flash* data);
             size_t getLineIndFromAddr(uint16_t Addr);
+            void drawHeader();
             void drawFile(const std::string& winName, uint16_t PCAddr);
             void scrollToLine(size_t line, bool select = false);
             bool isFileEmpty();
+            bool isSelfDisassembled();
 
             void setSymbolTable(const SymbolTable* table);
             void setMcu(A32u4::ATmega32u4* mcuPtr);

@@ -28,6 +28,8 @@ public:
     }
 
     void add(const T& t){
+        if(ptr >= data.size())
+            throw std::runtime_error("ptr out of bounds");
         data[ptr++] = t;
         ptr %= data.size();
         len = std::min(len+1,data.size());

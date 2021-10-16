@@ -27,7 +27,7 @@ void ABB::ArduboyBackend::update() {
 
 	uint64_t lastCycs = ab.mcu.cpu.getTotalCycles();
 	ab.newFrame();
-	uint64_t stopAmt = 42500000;
+	//uint64_t stopAmt = 42500000;
 	//if(ab.mcu.cpu.getTotalCycles() > stopAmt && lastCycs <= stopAmt)
 	//	ab.mcu.debugger.halt();
 

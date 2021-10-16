@@ -12,6 +12,7 @@ namespace ABB{
         const utils::SymbolTable* symbolTable;
         std::string name;
         RingBuffer<uint16_t> StackSizeBuf;
+        RingBuffer<uint64_t> sleepCycsBuf;
     public:
         AnalyticsBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable);
 
@@ -19,6 +20,7 @@ namespace ABB{
         void draw();
         void reset();
         static float getStackSizeBuf(void* data, int ind);
+        static float getSleepCycsBuf(void* data, int ind);
     };
 }
 

@@ -56,7 +56,6 @@ void setup() {
     ArduEmu::init();
 
     ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
-    abb.ab.execFlags = A32u4::ATmega32u4::ExecFlags_Debug;
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
@@ -64,7 +63,7 @@ void setup() {
     abb.ab.load(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
     abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
-#elif 1
+#elif 0
     abb.ab.load(ROOTDIR"resources/games/MicroCity/MicroCity.ino.hex");
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/MicroCity/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/MicroCity/symbs.asm");

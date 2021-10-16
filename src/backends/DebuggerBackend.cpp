@@ -177,8 +177,9 @@ void ABB::DebuggerBackend::draw() {
 			ImGui::TreePop();
 		}
 		
-		if(!srcMix.isFileEmpty())
+		if(!srcMix.isFileEmpty()){
 			srcMix.drawFile(winName, abb->ab.mcu.cpu.getPCAddr());
+		}
 		else{
 			ImGui::TextUnformatted("Couldnt generate disassembly, load or generate?");
 			if(ImGui::Button("Load")){

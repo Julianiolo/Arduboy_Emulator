@@ -346,9 +346,26 @@ void ABB::utils::AsmViewer::drawData(const char* lineStart, const char* lineEnd)
 	ImGuiExt::TextColored(syntaxColors.dataBlockText, lineStart+dataEnd,   lineEnd);
 }
 
+void ABB::utils::AsmViewer::drawHeader(){
+	if(file.content.size() == 0)
+		return;
+
+	if(isSelfDisassembled()){
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Disassembled %d lines", file.disasmData.get()->lines.size());
+		ImGui::SameLine();
+		if(ImGui::Button("Update with analytics data")){
+			file.disassembleBinFileWithAnalytics(&mcu->flash, &mcu->analytics);
+			StringUtils::writeStringToFile(file.content, "disasm2.asm");
+			processSrcFile();
+		}
+	}
+}
 void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr) {
 	if(file.content.size() == 0)
 		return;
+
+	drawHeader();
 
 	pushFileStyle();
 
@@ -450,8 +467,7 @@ void ABB::utils::AsmViewer::loadSrcFile(const char* path) {
 	processSrcFile();
 }
 void ABB::utils::AsmViewer::generateDisasmFile(const A32u4::Flash* data) {
-	file = A32u4::Disassembler::disassembleBin(data);
-	StringUtils::writeStringToFile(file.content, "disasm.asm");
+	file.disassembleBinFile(data);
 	processSrcFile();
 }
 void ABB::utils::AsmViewer::processSrcFile() {
@@ -579,6 +595,9 @@ void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
 
 bool ABB::utils::AsmViewer::isFileEmpty() {
     return file.content.size() == 0;
+}
+bool ABB::utils::AsmViewer::isSelfDisassembled(){
+	return (bool)file.disasmData;
 }
 
 void ABB::utils::AsmViewer::pushFileStyle(){

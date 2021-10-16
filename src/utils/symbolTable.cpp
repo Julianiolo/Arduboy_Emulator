@@ -248,7 +248,10 @@ void ABB::utils::SymbolTable::init() {
 	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open device symbol table dump File: ") + path).c_str());
 	if (fileStr.size() == 0) // loading didnt work
 		return;
-	deviceSpecSymbolStorage = parseList(fileStr.c_str());
+
+	deviceSpecSymbolStorage.clear();
+	parseList(&deviceSpecSymbolStorage,fileStr.c_str(),fileStr.size());
+	
 	for (size_t i = 0; i < deviceSpecSymbolStorage.size(); i++) {
 		symbolsRam.push_back(&deviceSpecSymbolStorage[i]);
 	}
@@ -287,7 +290,7 @@ ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* s
 	}
 	else {
 		symbol.name = std::string(start + ptr, start+ptr+tabPos);
-		symbol.note = std::string(start + ptr + tabPos, end);
+		symbol.note = std::string(start + ptr + tabPos+1, end);
 		size_t nlPos;
 		while ((nlPos = symbol.note.find("\\n")) != std::string::npos)
 			symbol.note.replace(nlPos, 2, "\n");
@@ -301,11 +304,9 @@ ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* s
 	return symbol;
 }
 
-std::vector<ABB::utils::SymbolTable::Symbol> ABB::utils::SymbolTable::parseList(const char* str, size_t size) {
+void ABB::utils::SymbolTable::parseList(std::vector<Symbol>* vec, const char* str, size_t size) {
 	constexpr char startStr[] = "SYMBOL TABLE:";
 	const char* startStrOff = std::strstr(str, startStr);
-
-	std::vector<Symbol> out;
 
 	const size_t strOff = startStrOff != nullptr ? (startStrOff-str) + sizeof(startStr) : 0;
 
@@ -316,7 +317,7 @@ std::vector<ABB::utils::SymbolTable::Symbol> ABB::utils::SymbolTable::parseList(
 	for (size_t i = strOff; i < size; i++) {
 		if (str[i] == '\n') {
 			if ((str + i) - (str + lastLineStart) >= (8 + 1 + 7 + 1 + 0 + 1 + 8 + 1))
-				out.push_back(parseLine(str + lastLineStart, str + i));
+				vec->push_back(parseLine(str + lastLineStart, str + i));
 			lastLineStart = i + 1;
 		}
 	}
@@ -330,7 +331,7 @@ bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
 	return loadFromDumpString(fileStr.c_str(), fileStr.size());
 }
 bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
-	parseList(str,size);
+	parseList(&symbolStorage,str,size);
 
 	std::sort(symbolStorage.begin(), symbolStorage.end());
 
