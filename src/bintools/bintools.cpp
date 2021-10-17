@@ -152,7 +152,7 @@ bool BinTools::canDemangle() {
 #define pclose _pclose
 #endif
 
-const char* binutilsDir = "assets/software/";
+const char* binutilsDir = "resources/binutils/";
 
 static std::string exec(const char* cmd) {
 	std::string out = "";

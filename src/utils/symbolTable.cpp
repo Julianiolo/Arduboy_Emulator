@@ -255,6 +255,11 @@ void ABB::utils::SymbolTable::init() {
 	for (size_t i = 0; i < deviceSpecSymbolStorage.size(); i++) {
 		symbolsRam.push_back(&deviceSpecSymbolStorage[i]);
 	}
+
+	for(auto& s : symbolsRam){
+		if(s->addrEnd() > maxRamAddrEnd)
+			maxRamAddrEnd = s->addrEnd();
+	}
 }
 
 ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
