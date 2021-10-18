@@ -12,6 +12,7 @@ public:
 	static void destroy();
 
 	static void draw();
+	static void drawBenchmark();
 
 	static ABB::ArduboyBackend& addEmulator(const char* n);
 	static ABB::ArduboyBackend& getInstance(size_t ind);

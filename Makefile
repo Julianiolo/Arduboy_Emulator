@@ -68,7 +68,7 @@ ifeq ($(detected_OS),Windows)
 	EXTRA_FLAGS:=-lopengl32 -lgdi32 -lwinmm -static -static-libgcc -static-libstdc++
 	
 	ifeq ($(BUILD_MODE), RELEASE)
-		EXTRA_FLAGS += -Wl,--subsystem,windows
+#		EXTRA_FLAGS += -Wl,--subsystem,windows
 	endif
 else
 	EXTRA_FLAGS:= -no-pie -Wl,--no-as-needed -ldl -lpthread
