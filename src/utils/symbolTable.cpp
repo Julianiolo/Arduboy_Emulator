@@ -42,7 +42,7 @@ void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) con
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImGui::GetStyle().ItemSpacing.y);
 
 	if (addr > value && addr < addrEnd()) {
-		ImGui::Text("<+%04x>", addr - value);
+		ImGui::Text("<+%04x>", (uint16_t)(addr - value));
 	}
 
 	ImGui::Separator();
@@ -512,7 +512,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 			}
 		}
 			
-		if (i != 0)
+		if (i != 0 || symbol->value > lastSymbEnd)
 			ImGui::SameLine();
 		float width = ((float)symbol->size / listByteLen) * size.x * (*scale);
 		ImGuiExt::Rect(symbol->value * i, symbol->col, {width, size.y});

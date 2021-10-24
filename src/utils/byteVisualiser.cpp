@@ -25,7 +25,7 @@ void ABB::utils::ByteVisualiser::init() {
 	}
 
 	tex = LoadTextureFromImage(texImg);
-	delete[] texImg.data;
+	delete[] (Color*)texImg.data;
 }
 void ABB::utils::ByteVisualiser::destroy() {
 	UnloadTexture(tex);

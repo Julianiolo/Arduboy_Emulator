@@ -245,7 +245,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 
 			size_t numOfItemsInRow = bytesPerRow;
 			bool fillUp = false;
-			if (line_no == numOfRows - 1) { // if is last line
+			if ((size_t)line_no == numOfRows - 1) { // if is last line
 				numOfItemsInRow = dataAmt % bytesPerRow;
 				if (numOfItemsInRow == 0)
 					numOfItemsInRow = bytesPerRow;

@@ -442,6 +442,12 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 		float perc = (float)PCAddrLine / (float)fileStrLines.size();
 		ImGuiExt::AddLineToScrollBar(win, ImGuiAxis_Y, perc, { 1,0,0,1 });
 
+		constexpr size_t chunks = 100;
+		size_t lastChunkEnd = 0;
+		for(size_t i = 0; i< chunks;i++){
+			size_t chunkEnd = 0;
+		}
+
 		ImGui::GetContentRegionMaxAbs();
 
 		ImGui::PopClipRect();

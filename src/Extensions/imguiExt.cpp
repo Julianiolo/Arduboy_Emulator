@@ -53,7 +53,7 @@ float ImGuiExt::GetScrollBarHandleLen(ImGuiWindow* window, ImGuiAxis axis) {
 }
 
 void ImGuiExt::AddLineToScrollBar(ImGuiWindow* window, ImGuiAxis axis, float pos_norm, const ImVec4& col, float thick, ImRect scrollRect) {
-    if(scrollRect.Min.x = -1)
+    if(scrollRect.Min.x == -1)
         scrollRect = ImGui::GetWindowScrollbarRect(window, axis);
     ImDrawList* drawList = window->DrawList;
     

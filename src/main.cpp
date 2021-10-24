@@ -70,8 +70,8 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/Hollow/symbs.asm");
 #elif 1
-    abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/reversi_v0.11.hex");
-    //abb.ab.load("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+    //abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/reversi_v0.11.hex");
+    abb.ab.load("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
 #else
     abb.ab.load(ROOTDIR"resources/games/CastleBoySimple/CastleBoySimple.ino.hex");
     abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoySimple/srcMix.asm");
