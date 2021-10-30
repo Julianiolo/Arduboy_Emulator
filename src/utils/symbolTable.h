@@ -50,14 +50,14 @@ namespace ABB {
 					Section(const std::string& name);
 				};
 
-				size_t value;
+				uint64_t value;
 				Flags flags;
 				std::string flagStr;
 				std::string name;
 				std::string demangled;
 				std::string note;
 				bool hasDemangledName;
-				size_t size;
+				uint64_t size;
 				Section* section;
 
 				bool isHidden;
@@ -66,7 +66,7 @@ namespace ABB {
 
 				bool operator<(const Symbol& rhs) const;
 				void draw(size_t addr = -1, const uint8_t* data = nullptr) const;
-				size_t addrEnd() const;
+				uint64_t addrEnd() const;
 			};
 
 			typedef std::vector<const Symbol*>* SymbolListPtr;

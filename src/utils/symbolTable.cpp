@@ -115,7 +115,7 @@ void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) con
 	
 	
 }
-size_t ABB::utils::SymbolTable::Symbol::addrEnd() const {
+uint64_t ABB::utils::SymbolTable::Symbol::addrEnd() const {
 	return value + size;
 }
 
@@ -302,7 +302,7 @@ ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* s
 	}
 	symbol.hasDemangledName = symbol.name != symbol.demangled;
 
-	ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8, 1, 1};
+	ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8f, 1, 1};
 	ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
 	symbol.col.w = col.w;
 
@@ -379,7 +379,7 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 			LogBackend::log(LogBackend::LogLevel_Warning, "an error occured while trying to generate demangled list");
 		}
 		
-		delete strs;
+		delete strs; // dont use delete[] bc theres nothing to delete there
 	}
 	
 	doesHaveSymbols = true;
@@ -477,7 +477,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 	if (size.y == 0)
 		size.y = 50;
 
-	float listByteLen = totalSize;
+	const float listByteLen = (float)totalSize;
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 5);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
@@ -489,7 +489,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
-	size_t lastSymbEnd = 0;
+	uint64_t lastSymbEnd = 0;
 	for (size_t i = 0; i < list->size(); i++) {
 		const Symbol* symbol = list->operator[](i);
 		if (symbol->size == 0)
@@ -499,8 +499,8 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 			//ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (((float)(symbol->value - lastSymbEnd) / listByteLen)) * size.x * (*scale));
 			if (i != 0)
 				ImGui::SameLine();
-			size_t fillAmt = symbol->value - lastSymbEnd;
-			ImGuiExt::Rect(symbol->value * i, {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
+			uint64_t fillAmt = symbol->value - lastSymbEnd;
+			ImGuiExt::Rect(ImGuiID(symbol->value * i), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 			if (ImGui::IsItemHovered()) {
 				ImGui::PopStyleVar();
 				ImGui::PopStyleVar();
@@ -532,10 +532,10 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 		lastSymbEnd = symbol->addrEnd();
 	}
 
-	if (lastSymbEnd < listByteLen) {
-		size_t fillAmt = listByteLen - lastSymbEnd;
+	if (lastSymbEnd < totalSize) {
+		uint32_t fillAmt = totalSize - lastSymbEnd;
 		ImGui::SameLine();
-		ImGuiExt::Rect(listByteLen * lastSymbEnd, {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
+		ImGuiExt::Rect(ImGuiID(totalSize * lastSymbEnd), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 		if (ImGui::IsItemHovered()) {
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
@@ -557,7 +557,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 
 	ImGui::PopStyleVar();
 	if (ImGui::BeginPopup("settings")) {
-		ImGui::SliderFloat("Scale", scale, 0.1, 10);
+		ImGui::SliderFloat("Scale", scale, 0.1f, 10);
 		if (ImGui::Button("Reset"))
 			*scale = 1;
 		ImGui::EndPopup();

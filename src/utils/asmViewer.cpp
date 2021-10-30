@@ -11,10 +11,10 @@
 #include <iostream>
 
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
-	{1,0.5f,0,1}, {1,1,0,1}, {0.2,0.2,0.7f,1}, {0.2,0.4f,0.7f,1}, {0.4,0.6,0.4,1}, {0.3,0.4,0.7,1}, {0.5,0.5,0.7,1}, {0.4,0.4,0.6,1},
-	{1,0.7,1,1}, {1,0,1,1},
-	{0,1,1,1}, {.5,1,.5,1},
-	{0.6,0.6,0.7,1}
+	{1,0.5f,0,1}, {1,1,0,1}, {0.2f,0.2f,0.7f,1}, {0.2f,0.4f,0.7f,1}, {0.4f,0.6f,0.4f,1}, {0.3f,0.4f,0.7f,1}, {0.5f,0.5f,0.7f,1}, {0.4f,0.4f,0.6f,1},
+	{1,0.7f,1,1}, {1,0,1,1},
+	{0,1,1,1}, {0.5f,1,0.5f,1},
+	{0.6f,0.6f,0.7f,1}
 };
 
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
@@ -61,14 +61,14 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 
 	if(showLineHeat){
 		float intensity = std::log(mcu->analytics.getPCCnt(lineAddr)) / 15;
-		if(intensity < 0.05)
-			intensity = 0.1;
+		if(intensity < 0.05f)
+			intensity = 0.1f;
 		if(intensity > 1)
 			intensity = 1;
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddRectFilled(
 			lineRect.Min, lineRect.Max,
-			ImColor(ImVec4{1,0,0,intensity/1.5})
+			ImColor(ImVec4{1,0,0,intensity/1.5f})
 		);
 	}
 
@@ -216,7 +216,7 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 
 				switch (param[0]) {
 					case 'r': {
-						size_t regInd = StringUtils::numBaseStrToUIntT<10>(param.c_str() + 1, param.c_str() + param.size());
+						uint8_t regInd = (uint8_t)StringUtils::numBaseStrToUIntT<10>(param.c_str() + 1, param.c_str() + param.size());
 						if (regInd < A32u4::DataSpace::Consts::GPRs_size) {
 							uint8_t regVal = mcu->dataspace.getGPReg(regInd);
 							ImGui::SetTooltip("r%d: 0x%02x => %d (%d)", regInd, regVal, regVal, (int8_t)regVal);
@@ -261,25 +261,23 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 	ImGuiIO& io = ImGui::GetIO();
 
 	ImGui::BeginGroup();
-	ImGuiExt::TextColored(syntaxColors.asmCommentSymbolBrackets, lineStart+symbolStartOff, lineStart+symbolNameStartOff); // <
-	ImGui::SameLine();
-	ImGuiExt::TextColored(syntaxColors.asmCommentSymbol, lineStart+symbolNameStartOff, lineStart+symbolNameEndOff);       //  Symbol
-	ImRect symbolNameRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-
-	ImGui::SameLine();
-	ImRect symbolOffsetRect;
-	if (hasOffset) {
-		if(io.KeyCtrl && io.KeyShift && ImGui::IsWindowHovered())
-			symbolOffsetRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-		ImGuiExt::TextColored(syntaxColors.asmCommentSymbolOffset, lineStart+symbolNameEndOff, lineStart+symbolEndOff-1); //        +0123
+		ImGuiExt::TextColored(syntaxColors.asmCommentSymbolBrackets, lineStart+symbolStartOff, lineStart+symbolNameStartOff); // <
 		ImGui::SameLine();
-	}
-	ImGuiExt::TextColored(syntaxColors.asmCommentSymbolBrackets, lineStart+symbolEndOff-1, lineStart+symbolEndOff);       //             >
+		ImGuiExt::TextColored(syntaxColors.asmCommentSymbol, lineStart+symbolNameStartOff, lineStart+symbolNameEndOff);       //  Symbol
+		ImRect symbolNameRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+
+		ImGui::SameLine();
+		ImRect symbolOffsetRect;
+		if (hasOffset) {
+			if(io.KeyCtrl && io.KeyShift && ImGui::IsWindowHovered())
+				symbolOffsetRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+			ImGuiExt::TextColored(syntaxColors.asmCommentSymbolOffset, lineStart+symbolNameEndOff, lineStart+symbolEndOff-1); //        +0123
+			ImGui::SameLine();
+		}
+		ImGuiExt::TextColored(syntaxColors.asmCommentSymbolBrackets, lineStart+symbolEndOff-1, lineStart+symbolEndOff);       //             >
 	ImGui::EndGroup();
 
 	if (ImGui::IsItemHovered()) {
-		//symbolTable->drawAddrWithSymbol();
-		//ImGui::SetTooltip(std::string(lineStart+symbolStartOff, lineStart+symbolEndOff).c_str());
 		popFileStyle();
 			ImGui::BeginTooltip();
 			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff));
@@ -288,6 +286,7 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 			ImGui::EndTooltip();
 		pushFileStyle();
 
+		// add Underline
 		if (io.KeyCtrl) {
 			drawList->AddLine(
 				{ symbolNameRect.Min.x, symbolNameRect.Max.y},
@@ -297,6 +296,7 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 		}
 
+		// add other Underline
 		if (io.KeyCtrl && io.KeyShift)
 			drawList->AddLine(
 				{ symbolOffsetRect.Min.x, symbolOffsetRect.Max.y},
@@ -304,15 +304,16 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 				ImColor(syntaxColors.asmCommentSymbolOffset)
 			);
 	}
+
 	if (!*hasAlreadyClicked && ImGui::GetIO().KeyCtrl && ImGui::IsItemClicked()) {
 		*hasAlreadyClicked = true; 
-		if (symbolTable) {
+		if (symbolTable != nullptr) {
 			std::string symbolName = std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff);
 			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
 			if (symbol) {
 				if (fileStrLabels.find(symbol->value) != fileStrLabels.end()) {
 					if (io.KeyShift && hasOffset) {
-						size_t off = StringUtils::numStrToUInt(lineStart + symbolNameEndOff + 1, lineStart + symbolEndOff - 1);
+						size_t off = (size_t)StringUtils::numStrToUInt(lineStart + symbolNameEndOff + 1, lineStart + symbolEndOff - 1);
 						if(off != (size_t)-1)
 							selectedLine = getLineIndFromAddr(symbol->value+off);
 						else
@@ -451,7 +452,7 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 	if (win->ScrollbarY) {
 		ImGui::PushClipRect(win->OuterRectClipped.Min, win->OuterRectClipped.Max, false);
 
-		uint16_t PCAddrLine = getLineIndFromAddr(PCAddr);
+		size_t PCAddrLine = getLineIndFromAddr(PCAddr);
 		float perc = (float)PCAddrLine / (float)fileStrLines.size();
 		ImGuiExt::AddLineToScrollBar(win, ImGuiAxis_Y, perc, { 1,0,0,1 });
 
@@ -459,13 +460,13 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 			constexpr size_t chunks = 300;
 			size_t lastChunkEnd = 0;
 			for(size_t i = 0; i< chunks;i++){
-				size_t chunkEnd = std::ceil(((float) numLines()/ chunks) * (i+1));
+				uint32_t chunkEnd = (uint32_t)std::ceil(((float) numLines()/ chunks) * (i+1));
 				if(chunkEnd >= numLines())
 					chunkEnd = numLines()-1;
 				uint16_t startAddr,endAddr;
 				while((endAddr = fileStrAddrs[chunkEnd]) == Addrs_notAnAddr || endAddr == Addrs_symbolLabel){
 					if(chunkEnd+1 >= numLines()){
-						endAddr = mcu->flash.sizeWords()-1;
+						endAddr = (uint16_t)(mcu->flash.sizeWords()-1);
 						break;
 					}
 					chunkEnd++;
@@ -475,14 +476,14 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 					lastChunkEnd++;
 				
 				uint64_t sum = 0;
-				for(uint16_t j = startAddr; j<endAddr;j++){
-					sum += mcu->analytics.getPCCnt(j);
+				for(uint16_t j = startAddr/2; j<endAddr/2;j++){
+					sum += mcu->analytics.getPCHeat()[j];
 				}
 				if(sum > 0){
-					float avg = (double)sum / (double)(endAddr-startAddr);
+					float avg = (float)((double)sum / (double)(endAddr-startAddr));
 					float intensity = std::log(avg) / 15;
 					if(intensity < 0)
-						intensity = 0.05;
+						intensity = 0.05f;
 					if(intensity > 1)
 						intensity = 1;
 					
@@ -514,7 +515,7 @@ void ABB::utils::AsmViewer::loadSrcFile(const char* path) {
 	file.content = "";
 
 	t.seekg(0, std::ios::end);   
-	file.content.reserve(t.tellg());
+	file.content.reserve((size_t)t.tellg());
 	t.seekg(0, std::ios::beg);
 
 	file.content.assign(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());
@@ -559,7 +560,7 @@ void ABB::utils::AsmViewer::addAddrToList(const char* start, const char* end, si
 	fileStrAddrs[lineInd-1] = Addr;
 
 	if (Addr == Addrs_symbolLabel) {
-		uint16_t symbAddr = StringUtils::hexStrToUIntLen(start, 8);
+		uint16_t symbAddr = (uint16_t)StringUtils::hexStrToUIntLen(start, 8);
 		fileStrLabels[symbAddr] = lineInd-1;
 	}
 }
@@ -574,7 +575,7 @@ uint16_t ABB::utils::AsmViewer::generateAddrFromLine(const char* start, const ch
 	if(!isValidHexAddr(start,start+8))
 		return Addrs_notAnAddr;
 
-	return StringUtils::hexStrToUIntLen(start, 8);
+	return (uint16_t)StringUtils::hexStrToUIntLen(start, 8);
 }
 bool ABB::utils::AsmViewer::isValidHexAddr(const char* start, const char* end) {
 	static constexpr char validHexDigits[] = {' ','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};

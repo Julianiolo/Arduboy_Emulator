@@ -19,7 +19,7 @@ namespace ABB{
             //std::string fileStr = "";
             std::vector<size_t> fileStrLines;
             std::vector<uint16_t> fileStrAddrs;
-            std::map<uint16_t, size_t> fileStrLabels;
+            std::map<uint16_t, uint64_t> fileStrLabels;
 
             A32u4::ATmega32u4* mcu = nullptr;
             A32u4::Debugger::Breakpoint* breakpoints = nullptr;

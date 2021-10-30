@@ -6,7 +6,7 @@ ABB::LogBackend::LogBackend(const char* winName) : winName(winName) {
     logColors[A32u4::ATmega32u4::LogLevel_None] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
     logColors[A32u4::ATmega32u4::LogLevel_Output] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
     logColors[A32u4::ATmega32u4::LogLevel_DebugOutput] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-    logColors[A32u4::ATmega32u4::LogLevel_Warning] = {1, 0.85, 0, 1};
+    logColors[A32u4::ATmega32u4::LogLevel_Warning] = {1, 0.85f, 0, 1};
     logColors[A32u4::ATmega32u4::LogLevel_Error] = {255, 0, 0, 1};
 }
 

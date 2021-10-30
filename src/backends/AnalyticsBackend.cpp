@@ -23,7 +23,7 @@ void ABB::AnalyticsBackend::update(){
 void ABB::AnalyticsBackend::draw(){
     if(ImGui::Begin(name.c_str())){
         uint16_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
-        uint16_t max = A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd();
+        uint16_t max = (uint16_t)(A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd());
         ImGui::Text("%.2f%% of Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
         uint64_t usedSum = 0;
         for (size_t i = 0; i < StackSizeBuf.size(); i++) {
@@ -38,7 +38,7 @@ void ABB::AnalyticsBackend::draw(){
 
         ImGui::PlotHistogram("Sleep Cycles",
             &getSleepCycsBuf, &sleepCycsBuf, sleepCycsBuf.size(), 
-            0, NULL, 0, ab->cycsPerFrame(), {0,70}
+            0, NULL, 0, (float)ab->cycsPerFrame(), {0,70}
         );
     }
     ImGui::End();
@@ -56,7 +56,7 @@ float ABB::AnalyticsBackend::getSleepCycsBuf(void* data, int ind){
     if((size_t)ind >= sleepCycsBufPtr->size()){
         return 0;
     }
-    return sleepCycsBufPtr->get(ind);
+    return (float)sleepCycsBufPtr->get(ind);
 }
 
 void ABB::AnalyticsBackend::reset() {

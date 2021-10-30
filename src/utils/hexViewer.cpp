@@ -19,7 +19,9 @@ bool ABB::utils::HexViewer::Highlight::operator<(const Highlight& rhs) const {
 	return this->Addr < rhs.Addr;
 }
 
-ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { {1,1,0,1}, {0.7,0.7,0.9,1}, {0.5,0.6,0.5,1} };
+ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { 
+	{1,1,0,1}, {0.7f,0.7f,0.9f,1}, {0.5f,0.6f,0.5f,1} 
+};
 
 ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen) : data(data), dataLen(dataLen) {
 
@@ -382,7 +384,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 						drawList->AddRectFilled(
 							ImGui::GetCursorScreenPos(),
 							{ ImGui::GetCursorScreenPos().x + charSize.x, ImGui::GetCursorScreenPos().y + charSize.y },
-							ImColor(ImVec4{0.1,0.1,0.5,1})
+							ImColor(ImVec4{0.1f,0.1f,0.5f,1})
 						);
 					ImGui::TextUnformatted(&c, &c + 1);
 					if (ImGui::IsItemHovered())
