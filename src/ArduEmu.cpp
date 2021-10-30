@@ -49,7 +49,8 @@ void ArduEmu::drawBenchmark(){
 			static std::string res = "";
 			if(ImGui::Button("Do Benchmark")){
 				A32u4::ATmega32u4 mcu;
-				mcu.flash.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+				//mcu.flash.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+				mcu.flash.loadFromHexFile("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
 				mcu.powerOn();
 
 				uint8_t execFlags = 0;
@@ -62,7 +63,14 @@ void ArduEmu::drawBenchmark(){
 				auto end = std::chrono::high_resolution_clock::now();
 
 				auto time = end - start;
-				res = StringUtils::format("%s cycles run in %d ms\n", std::to_string(benchCycls).c_str(), time/std::chrono::milliseconds(1)).get() + res;
+				std::string str = std::string(StringUtils::format("%s cycles run in %d ms", std::to_string(benchCycls).c_str(), time / std::chrono::milliseconds(1)).get()) + " TC: " + std::to_string(mcu.cpu.getTotalCycles());
+				
+				if (analyse) {
+					str += " in " + std::to_string(mcu.analytics.getTotalInstCnt());
+					str += " SC: " + std::to_string(mcu.analytics.sleepSum);
+				}
+					
+				res = str + "\n" + res;
 			}
 
 			ImGui::TextUnformatted(res.c_str());
