@@ -66,11 +66,15 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/MicroCity/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/MicroCity/symbs.asm");
 #elif 0
-    abb.ab.load(ROOTDIR"resources/games/Hollow/hollow3.ino.hex");
-    //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
-    //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/Hollow/symbs.asm");
+    abb.ab.load(ROOTDIR"resources/games/Hollow/hollow2.ino.hex");
+    abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
+    abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/Hollow/symbs.asm");
 #elif 1
-    abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/reversi_v0.11.hex");
+    abb.ab.load(ROOTDIR"resources/games/stairssweep/stairssweep.ino.hex");
+    abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/stairssweep/srcMix.asm");
+    abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/stairssweep/symbs.asm");
+#elif 1
+    abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hopper_v0.22.hex");
     //abb.ab.load("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/.hex");
 #else
     abb.ab.load(ROOTDIR"resources/games/CastleBoySimple/CastleBoySimple.ino.hex");

@@ -16,6 +16,7 @@ namespace ABB{
         ArduboyBackend* abb;
         void drawControls();
         void drawDebugStack();
+        void drawBreakpoints();
         void drawRegisters();
         
         const utils::SymbolTable* symbolTable;

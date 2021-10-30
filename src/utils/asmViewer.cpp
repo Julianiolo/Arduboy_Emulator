@@ -20,19 +20,22 @@ ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
 	auto lineAddr = fileStrAddrs[line_no];
 
-	if (breakpoints) {
+	if (breakpointsEnabled) {
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 		auto linePC = lineAddr / 2;
 		bool isAddr = lineAddr != Addrs_notAnAddr && lineAddr != Addrs_symbolLabel;
-		bool hasBreakpoint = isAddr && breakpoints[linePC];
+		bool hasBreakpoint = isAddr && mcu->debugger.getBreakpoints()[linePC];
 
 		float lineHeight = lineRect.GetHeight();
 		float extraPadding = 3;
 
 		ImGuiExt::Rect(lineAddr + (size_t)lineStart + 20375324, ImVec4{ 0,0,0,0 }, {lineHeight+extraPadding*2, lineHeight});
 		if (isAddr && ImGui::IsItemClicked()) {
-			breakpoints[linePC] = !breakpoints[linePC];
+			if (!mcu->debugger.getBreakpoints()[linePC])
+				mcu->debugger.setBreakpoint(linePC);
+			else
+				mcu->debugger.clearBreakpoint(linePC);
 		}
 		ImGui::SameLine();
 
@@ -70,7 +73,7 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 			ImDrawList* drawList = ImGui::GetWindowDrawList();
 			drawList->AddRectFilled(
 				lineRect.Min, lineRect.Max,
-				ImColor(ImVec4{1,0,0,intensity/1.5f})
+				ImColor(ImVec4{1,0,0,intensity/3})
 			);
 		}
 		
@@ -286,7 +289,7 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 			ImGui::BeginTooltip();
 			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff));
 			if(symbol)
-				symbol->draw(-1,mcu->dataspace.getData());
+				symbol->draw(-1,mcu->flash.getData());
 			ImGui::EndTooltip();
 		pushFileStyle();
 
@@ -350,7 +353,7 @@ void ABB::utils::AsmViewer::drawSymbolLabel(const char* lineStart, const char* l
 			std::string symbolName = std::string(lineStart + addrEnd+2, lineEnd-3);
 			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
 			if(symbol)
-				symbol->draw(-1,mcu->dataspace.getData());
+				symbol->draw(-1,mcu->flash.getData());
 			ImGui::EndTooltip();
 		pushFileStyle();
 	}
@@ -486,13 +489,13 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 				if(sum > 0){
 					float avg = (float)((double)sum / (double)(endAddr-startAddr));
 					float intensity = std::log(avg) / 15;
-					if(intensity < 0)
+					if(intensity < 0.05f)
 						intensity = 0.05f;
 					if(intensity > 1)
 						intensity = 1;
 					
 					if(intensity > (1.0/256))
-						ImGuiExt::AddRectToScrollBar(win, ImGuiAxis_Y, {{0,lastChunkEnd/(float)numLines()},{1,chunkEnd/(float)numLines()}}, {1,0,0,intensity});
+						ImGuiExt::AddRectToScrollBar(win, ImGuiAxis_Y, {{0,lastChunkEnd/(float)numLines()},{1,chunkEnd/(float)numLines()}}, {1,0,0,intensity/1.5f});
 				}
 				
 				lastChunkEnd = chunkEnd+1;
@@ -677,9 +680,6 @@ void ABB::utils::AsmViewer::setSymbolTable(const SymbolTable* table) {
 }
 void ABB::utils::AsmViewer::setMcu(A32u4::ATmega32u4* mcuPtr) {
 	mcu = mcuPtr;
-}
-void ABB::utils::AsmViewer::setBreakpointArr(A32u4::Debugger::Breakpoint* breakpointsPtr) {
-	breakpoints = breakpointsPtr;
 }
 
 /*

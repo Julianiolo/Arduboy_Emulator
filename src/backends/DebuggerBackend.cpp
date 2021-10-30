@@ -13,7 +13,6 @@
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, const utils::SymbolTable* symbolTable) : abb(abb), symbolTable(symbolTable), winName(winName){
 	srcMix.setSymbolTable(symbolTable);
 	srcMix.setMcu(&abb->ab.mcu);
-	srcMix.setBreakpointArr(abb->ab.mcu.debugger.getBreakpoints());
 }
 
 void ABB::DebuggerBackend::drawControls(){
@@ -150,7 +149,14 @@ void ABB::DebuggerBackend::drawDebugStack() {
 	}
 	ImGui::EndChild();
 }
-
+void ABB::DebuggerBackend::drawBreakpoints() {
+	if (ImGui::BeginChild("DebugStack", { 600,80 }, true)) {
+		for (auto& b : abb->ab.mcu.debugger.getBreakpointList()) {
+			ImGui::Text("Breakpoint at addr %04x => PC %04x", b*2,b);
+		}
+	}
+	ImGui::EndChild();
+}
 void ABB::DebuggerBackend::drawRegisters(){
 	uint8_t sreg_val = abb->ab.mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
 	constexpr const char* bitNames[] = {"I","T","H","S","V","N","Z","C"};
@@ -174,6 +180,10 @@ void ABB::DebuggerBackend::draw() {
 		drawControls();
 		if (ImGui::TreeNode("Debug Stack")) {
 			drawDebugStack();
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("Breakpoints")) {
+			drawBreakpoints();
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNode("Registers")) {

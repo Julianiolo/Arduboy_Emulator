@@ -22,7 +22,7 @@ namespace ABB{
             std::map<uint16_t, uint64_t> fileStrLabels;
 
             A32u4::ATmega32u4* mcu = nullptr;
-            A32u4::Debugger::Breakpoint* breakpoints = nullptr;
+            
 
             float scrollSet = -1;
             void processSrcFile();
@@ -31,6 +31,7 @@ namespace ABB{
             size_t findCharInLine(const char* start, const char* end, const char chr);
             void addAddrToList(const char* start, const char* end, size_t lineInd);
         public:
+            bool breakpointsEnabled = true;
 
             const SymbolTable* symbolTable = nullptr;
             struct SyntaxColors{
@@ -72,7 +73,6 @@ namespace ABB{
 
             void setSymbolTable(const SymbolTable* table);
             void setMcu(A32u4::ATmega32u4* mcuPtr);
-            void setBreakpointArr(A32u4::Debugger::Breakpoint* breakpointsPtr);
         private:
             void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked);
             void drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked);

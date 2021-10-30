@@ -85,7 +85,7 @@ void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) con
 		ImGui::EndTable();
 	}
 	
-	if (data) {
+	if (data && size > 0) {
 		ImGui::SameLine();
 		
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
@@ -112,8 +112,6 @@ void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) con
 
 		ImGui::PopStyleVar();
 	}
-	
-	
 }
 uint64_t ABB::utils::SymbolTable::Symbol::addrEnd() const {
 	return value + size;
