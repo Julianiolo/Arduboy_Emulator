@@ -59,11 +59,24 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	
 	ImGui::BeginGroup();
 
+	if(showLineHeat){
+		float intensity = std::log(mcu->analytics.getPCCnt(lineAddr)) / 15;
+		if(intensity < 0.05)
+			intensity = 0.1;
+		if(intensity > 1)
+			intensity = 1;
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddRectFilled(
+			lineRect.Min, lineRect.Max,
+			ImColor(ImVec4{1,0,0,intensity/1.5})
+		);
+	}
+
 	if (line_no == selectedLine) {
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddRectFilled(
 			lineRect.Min, lineRect.Max,
-			IM_COL32(50,50,255,150)
+			IM_COL32(50,50,255,50)
 		);
 	}
 	
@@ -442,6 +455,48 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 		float perc = (float)PCAddrLine / (float)fileStrLines.size();
 		ImGuiExt::AddLineToScrollBar(win, ImGuiAxis_Y, perc, { 1,0,0,1 });
 
+		if(showScollBarHeat){
+			constexpr size_t chunks = 300;
+			size_t lastChunkEnd = 0;
+			for(size_t i = 0; i< chunks;i++){
+				size_t chunkEnd = std::ceil(((float) numLines()/ chunks) * (i+1));
+				if(chunkEnd >= numLines())
+					chunkEnd = numLines()-1;
+				uint16_t startAddr,endAddr;
+				while((endAddr = fileStrAddrs[chunkEnd]) == Addrs_notAnAddr || endAddr == Addrs_symbolLabel){
+					if(chunkEnd+1 >= numLines()){
+						endAddr = mcu->flash.sizeWords()-1;
+						break;
+					}
+					chunkEnd++;
+				}
+					
+				while(((startAddr = fileStrAddrs[lastChunkEnd]) == Addrs_notAnAddr || startAddr == Addrs_symbolLabel) && lastChunkEnd+1 < chunkEnd)
+					lastChunkEnd++;
+				
+				uint64_t sum = 0;
+				for(uint16_t j = startAddr; j<endAddr;j++){
+					sum += mcu->analytics.getPCCnt(j);
+				}
+				if(sum > 0){
+					float avg = (double)sum / (double)(endAddr-startAddr);
+					float intensity = std::log(avg) / 15;
+					if(intensity < 0)
+						intensity = 0.05;
+					if(intensity > 1)
+						intensity = 1;
+					
+					if(intensity > (1.0/256))
+						ImGuiExt::AddRectToScrollBar(win, ImGuiAxis_Y, {{0,lastChunkEnd/(float)numLines()},{1,chunkEnd/(float)numLines()}}, {1,0,0,intensity});
+				}
+				
+				lastChunkEnd = chunkEnd+1;
+			}
+		}
+		
+		const ImRect& scrollRect = ImGuiExt::GetScrollBarHandleRect(win, ImGuiAxis_Y);
+		ImGui::GetWindowDrawList()->AddRectFilled(scrollRect.Min,scrollRect.Max,  ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrab)), ImGui::GetStyle().ScrollbarRounding);
+
 		ImGui::GetContentRegionMaxAbs();
 
 		ImGui::PopClipRect();
@@ -593,10 +648,13 @@ void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
 		selectedLine = line;
 }
 
-bool ABB::utils::AsmViewer::isFileEmpty() {
+bool ABB::utils::AsmViewer::isFileEmpty() const {
     return file.content.size() == 0;
 }
-bool ABB::utils::AsmViewer::isSelfDisassembled(){
+size_t ABB::utils::AsmViewer::numLines() const {
+    return fileStrLines.size();
+}
+bool ABB::utils::AsmViewer::isSelfDisassembled() const {
 	return (bool)file.disasmData;
 }
 

@@ -4,6 +4,7 @@
 
 #include "imgui.h"
 #include <chrono>
+#include <intrin.h> // for __rdtsc()
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 
@@ -58,19 +59,20 @@ void ArduEmu::drawBenchmark(){
 					execFlags |= A32u4::ATmega32u4::ExecFlags_Debug;
 				if(analyse)
 					execFlags |= A32u4::ATmega32u4::ExecFlags_Analyse;
+
 				auto start = std::chrono::high_resolution_clock::now();
+				uint64_t cpu_start = __rdtsc();
 				mcu.execute(benchCycls, execFlags);
+				uint64_t cpu_end = __rdtsc();
 				auto end = std::chrono::high_resolution_clock::now();
 
 				auto time = end - start;
-				std::string str = std::string(StringUtils::format("%s cycles run in %d ms", std::to_string(benchCycls).c_str(), time / std::chrono::milliseconds(1)).get()) + " TC: " + std::to_string(mcu.cpu.getTotalCycles());
-				
-				if (analyse) {
-					str += " in " + std::to_string(mcu.analytics.getTotalInstCnt());
-					str += " SC: " + std::to_string(mcu.analytics.sleepSum);
-				}
-					
-				res = str + "\n" + res;
+
+				uint64_t cycles = cpu_end - cpu_start;
+				double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
+				double frames = (double)benchCycls/(A32u4::CPU::ClockFreq/60);
+				double fps = 1000/(ms/frames);
+				res = StringUtils::format("%s/%s cycles run in %.4f ms => %.2f frames => %.4ffps; %s cycles\n", std::to_string(mcu.cpu.getTotalCycles()).c_str(), std::to_string(benchCycls).c_str(), ms, frames, fps, std::to_string(cycles).c_str()).get() + res;
 			}
 
 			ImGui::TextUnformatted(res.c_str());

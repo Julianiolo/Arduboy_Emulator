@@ -4,7 +4,7 @@ BUILD_MODE ?=DEBUG
 PLATFORM:=PLATFORM_DESKTOP
 
 CC:=g++
-CFLAGS:=-Wall -Wno-narrowing
+CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing
 CSTD:=-std=c++17
 RELEASE_OPTIM?= -O2
 
@@ -84,9 +84,9 @@ $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)depFile.dep $(OBJ_FILES)
 	$(BASH_PREFX)"mkdir -p $(OUT_DIR)"
 	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(DEP_LIBS_DIR_FLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(CDEPFLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
 	$(BASH_PREFX)"mkdir -p $(OUT_DIR)resources"
-	$(BASH_PREFX)"mkdir -p $(OUT_DIR)resources/software"
+	$(BASH_PREFX)"mkdir -p $(OUT_DIR)resources/binutils"
 	$(BASH_PREFX)"mkdir -p $(OUT_DIR)resources/device"
-	$(BASH_PREFX)"cp $(ROOT_DIR)resources/software/avr-c++filt.exe  $(OUT_DIR)resources/software/"
+	$(BASH_PREFX)"cp $(ROOT_DIR)resources/software/avr-c++filt.exe  $(OUT_DIR)resources/binutils/"
 	$(BASH_PREFX)"cp $(ROOT_DIR)resources/device/regSymbs.txt  $(OUT_DIR)resources/device/"
 
 $(OBJ_DIR)%.o:%.cpp

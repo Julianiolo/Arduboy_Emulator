@@ -1,7 +1,7 @@
 #include "imguiExt.h"
 #include "imgui.h"
 #include "imgui_internal.h"
-
+#include "imguiOperators.h"
 
 
 void ImGuiExt::TextColored(const ImVec4& col, const char* text_start, const char* text_end) {
@@ -52,8 +52,43 @@ float ImGuiExt::GetScrollBarHandleLen(ImGuiWindow* window, ImGuiAxis axis) {
     return ImClamp(scrollBarWidth * (size_avail / win_size), style.GrabMinSize, scrollBarWidth);
 }
 
+ImRect ImGuiExt::GetScrollBarHandleRect(ImGuiWindow* window, ImGuiAxis axis){
+    ImRect bb_frame = ImGui::GetWindowScrollbarRect(window,axis);
+    float size_avail_v = window->InnerRect.Max[axis] - window->InnerRect.Min[axis];
+    float size_contents_v = window->ContentSize[axis] + window->WindowPadding[axis] * 2.0f;
+    const ImGuiStyle& style = ImGui::GetStyle();
+    float* p_scroll_v = &window->Scroll[axis];
+
+    const float bb_frame_width = bb_frame.GetWidth();
+    const float bb_frame_height = bb_frame.GetHeight();
+    if (bb_frame_width <= 0.0f || bb_frame_height <= 0.0f)
+        return ImRect{{0,0},{0,0}};
+
+    ImRect bb = bb_frame;
+    bb.Expand(ImVec2(-ImClamp(IM_FLOOR((bb_frame_width - 2.0f) * 0.5f), 0.0f, 3.0f), -ImClamp(IM_FLOOR((bb_frame_height - 2.0f) * 0.5f), 0.0f, 3.0f)));
+    
+    // V denote the main, longer axis of the scrollbar (= height for a vertical scrollbar)
+    const float scrollbar_size_v = (axis == ImGuiAxis_X) ? bb.GetWidth() : bb.GetHeight();
+
+    // Calculate the height of our grabbable box. It generally represent the amount visible (vs the total scrollable amount)
+    // But we maintain a minimum size in pixel to allow for the user to still aim inside.
+    const float win_size_v = ImMax(ImMax(size_contents_v, size_avail_v), 1.0f);
+    const float grab_h_pixels = ImClamp(scrollbar_size_v * (size_avail_v / win_size_v), style.GrabMinSize, scrollbar_size_v);
+    
+    float scroll_max = ImMax(1.0f, size_contents_v - size_avail_v);
+    float scroll_ratio = ImSaturate(*p_scroll_v / scroll_max);
+    float grab_v_norm = scroll_ratio * (scrollbar_size_v - grab_h_pixels) / scrollbar_size_v; // Grab position in normalized space
+
+    ImRect grab_rect;
+    if (axis == ImGuiAxis_X)
+        grab_rect = ImRect(ImLerp(bb.Min.x, bb.Max.x, grab_v_norm), bb.Min.y, ImLerp(bb.Min.x, bb.Max.x, grab_v_norm) + grab_h_pixels, bb.Max.y);
+    else
+        grab_rect = ImRect(bb.Min.x, ImLerp(bb.Min.y, bb.Max.y, grab_v_norm), bb.Max.x, ImLerp(bb.Min.y, bb.Max.y, grab_v_norm) + grab_h_pixels);
+    return grab_rect;
+}
+
 void ImGuiExt::AddLineToScrollBar(ImGuiWindow* window, ImGuiAxis axis, float pos_norm, const ImVec4& col, float thick, ImRect scrollRect) {
-    if(scrollRect.Min.x = -1)
+    if(scrollRect.Min.x == -1)
         scrollRect = ImGui::GetWindowScrollbarRect(window, axis);
     ImDrawList* drawList = window->DrawList;
     
@@ -73,6 +108,16 @@ void ImGuiExt::AddLineToScrollBar(ImGuiWindow* window, ImGuiAxis axis, float pos
             ImColor(col), thick
         );
     }
+}
+
+void ImGuiExt::AddRectToScrollBar(ImGuiWindow* window,  ImGuiAxis axis, const ImRect& pos_norm, const ImVec4& col, ImRect scrollRect) {
+    if(scrollRect.Min.x == -1)
+        scrollRect = ImGui::GetWindowScrollbarRect(window, axis);
+    ImDrawList* drawList = window->DrawList;
+    
+    ImVec2 min = scrollRect.Min + (scrollRect.GetSize() * pos_norm.Min);
+    ImVec2 max = min + (scrollRect.GetSize() * pos_norm.GetSize());
+    drawList->AddRectFilled(min, max, ImColor(col));
 }
 
 ImGuiLastItemData& ImGuiExt::GetItem() {
