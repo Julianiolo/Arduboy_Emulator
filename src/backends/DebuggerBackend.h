@@ -23,6 +23,7 @@ namespace ABB{
         std::string winName;
         utils::AsmViewer srcMix;
         bool stepFrame = false;
+        bool haltOnReset = false;
 
         DebuggerBackend(ArduboyBackend* abb, const char* winName, const utils::SymbolTable* symbolTable);
 

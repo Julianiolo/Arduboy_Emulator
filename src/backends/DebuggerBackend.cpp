@@ -49,7 +49,11 @@ void ABB::DebuggerBackend::drawControls(){
 	ImGui::SameLine();
 	if (ImGui::Button("Reset")) {
 		abb->resetMachine();
+		if(haltOnReset)
+			abb->ab.mcu.debugger.halt();
 	}
+	ImGui::SameLine();
+	ImGui::Checkbox("Halt on Reset", &haltOnReset);
 
 	// ## Line 2 ##
 

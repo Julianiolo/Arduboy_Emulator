@@ -56,6 +56,8 @@ namespace ABB{
             static constexpr uint16_t Addrs_symbolLabel = -2;
 
             bool showScollBarHints = true;
+            bool showScollBarHeat = true;
+            bool showLineHeat = true;
             size_t selectedLine = -1;
 
             void loadSrcFile(const char* path);
@@ -64,8 +66,9 @@ namespace ABB{
             void drawHeader();
             void drawFile(const std::string& winName, uint16_t PCAddr);
             void scrollToLine(size_t line, bool select = false);
-            bool isFileEmpty();
-            bool isSelfDisassembled();
+            bool isFileEmpty() const;
+            size_t numLines() const;
+            bool isSelfDisassembled() const;
 
             void setSymbolTable(const SymbolTable* table);
             void setMcu(A32u4::ATmega32u4* mcuPtr);
