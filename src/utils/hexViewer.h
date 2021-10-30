@@ -7,6 +7,7 @@
 #include "imgui_internal.h"
 #include "symbolTable.h"
 #include "raylib.h"
+#include "ATmega32u4.h"
 
 namespace ABB {
 	namespace utils {
@@ -25,6 +26,7 @@ namespace ABB {
 			} settings;
 
 		private:
+			const A32u4::ATmega32u4* mcu = nullptr;
 			const uint8_t* const data;
 			const size_t dataLen;
 
@@ -32,16 +34,6 @@ namespace ABB {
 			size_t selectStart = 0;
 			size_t selectEnd = 0;
 
-			struct Highlight {
-				size_t Addr;
-				ImVec4 col;
-
-				Highlight();
-				Highlight(size_t Addr, const ImVec4& col);
-				bool operator<(const Highlight& rhs) const;
-			};
-
-			std::vector<Highlight> highlights;
 			size_t highlightCntr = 0;
 
 			bool newFrame = true;
@@ -65,7 +57,7 @@ namespace ABB {
 			void drawSettings();
 			void drawHoverInfo(size_t addr, const SymbolTable::Symbol* symbol);
 		public:
-			HexViewer(const uint8_t* data, size_t dataLen);
+			HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu = nullptr);
 
 			struct SyntaxColors{
 				ImVec4 Addr;
@@ -75,8 +67,6 @@ namespace ABB {
 			static SyntaxColors syntaxColors;
 
 			bool isSelected(size_t addr) const;
-
-			void addHighlight(size_t addr, const ImVec4& col);
 
 			void draw(size_t dataAmt = -1, size_t dataOff = 0);
 			void sameFrame();

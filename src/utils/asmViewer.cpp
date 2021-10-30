@@ -59,17 +59,21 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	
 	ImGui::BeginGroup();
 
-	if(showLineHeat){
-		float intensity = std::log(mcu->analytics.getPCCnt(lineAddr)) / 15;
-		if(intensity < 0.05f)
-			intensity = 0.1f;
-		if(intensity > 1)
-			intensity = 1;
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(
-			lineRect.Min, lineRect.Max,
-			ImColor(ImVec4{1,0,0,intensity/1.5f})
-		);
+	if(showLineHeat && lineAddr != Addrs_notAnAddr && lineAddr != Addrs_symbolLabel){
+		uint64_t cnt = mcu->analytics.getPCCnt(lineAddr);
+		if (cnt > 0) {
+			float intensity = std::log(cnt) / 15;
+			if(intensity < 0.05f)
+				intensity = 0.1f;
+			if(intensity > 1)
+				intensity = 1;
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			drawList->AddRectFilled(
+				lineRect.Min, lineRect.Max,
+				ImColor(ImVec4{1,0,0,intensity/1.5f})
+			);
+		}
+		
 	}
 
 	if (line_no == selectedLine) {

@@ -9,38 +9,16 @@
 #include "utils/StringUtils.h"
 #include "byteVisualiser.h"
 
-ABB::utils::HexViewer::Highlight::Highlight() {
-
-}
-ABB::utils::HexViewer::Highlight::Highlight(size_t Addr, const ImVec4& col) : Addr(Addr), col(col) {
-
-}
-bool ABB::utils::HexViewer::Highlight::operator<(const Highlight& rhs) const {
-	return this->Addr < rhs.Addr;
-}
-
 ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { 
 	{1,1,0,1}, {0.7f,0.7f,0.9f,1}, {0.5f,0.6f,0.5f,1} 
 };
 
-ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen) : data(data), dataLen(dataLen) {
+ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu) : data(data), dataLen(dataLen), mcu(mcu) {
 
 }
 
 bool ABB::utils::HexViewer::isSelected(size_t addr) const {
 	return addr >= selectStart && addr < selectEnd;
-}
-
-void ABB::utils::HexViewer::addHighlight(size_t addr, const ImVec4& col) {
-	if (newHighlights) {
-		newHighlights = false;
-		highlightCntr = 0;
-	}
-
-	if (highlightCntr + 1 >= highlights.size()) {
-		highlights.resize(highlightCntr + 10);
-	}
-	highlights[highlightCntr++] = Highlight(addr, col);
 }
 void ABB::utils::HexViewer::setSymbolList(SymbolTable::SymbolListPtr list) {
 	symbolList = list;
@@ -188,13 +166,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 			drawSettings();
 			ImGui::EndPopup();
 		}
-
-		if (highlights.size() > highlightCntr + 20)
-			highlights.resize(highlightCntr);
-		std::sort(highlights.begin(), highlights.begin() + highlightCntr);
 	}
-	size_t highlightPtr = 0;
-	size_t nextHighlightAddr = highlightCntr > 0 ? highlights[highlightPtr].Addr : -1;
 
 	size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
 	size_t symbolPtr = 0;
@@ -262,6 +234,8 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 				const uint8_t byte = *(data + addrOff);
 				ImGui::SameLine();
 
+				const ImRect nextItemRect = getNextByteRect(charSize);
+
 				const SymbolTable::Symbol* symbol = nullptr;
 				if (settings.showSymbols && symbolList) {
 					if (newSymbol(addrOff, &symbolPtr, nextSymbolAddrEnd)) {
@@ -275,33 +249,38 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 					}
 					if (addrOff >= nextSymbolAddr && addrOff < nextSymbolAddrEnd) {
 						symbol = symbolList->operator[](symbolPtr);
-						ImRect nextItemRect = getNextByteRect(charSize);
+						ImVec2 min = nextItemRect.Min, max = nextItemRect.Max;
 
 						if(i != 0) // check if not first item in row
 							if (addrOff == nextSymbolAddr)
-								nextItemRect.Min.x -= charSize.x / 2;
+								min.x -= charSize.x / 2;
 
 						if (i != numOfItemsInRow - 1) { // check if not last item in row
-							nextItemRect.Max.x += charSize.x; // make rect wider to include the ' '
+							max.x += charSize.x; // make rect wider to include the ' '
 							if (addrOff + 1 == nextSymbolAddrEnd)
-								nextItemRect.Max.x -= charSize.x / 2;
+								max.x -= charSize.x / 2;
 						}
 
 						//if (nextSymbolAddrEnd > (lineAddr + bytesPerRow))
-							nextItemRect.Max.y += vertSpacing;
+							max.y += vertSpacing;
 						
-						drawList->AddRectFilled( nextItemRect.Min, nextItemRect.Max, ImColor(symbol->col) );
+						drawList->AddRectFilled( min, max, ImColor(symbol->col) );
 					}
+				}
+
+				if (mcu != nullptr && addrOff >= A32u4::DataSpace::Consts::ISRAM_start && mcu->debugger.getAddressStackIndicators()[addrOff - A32u4::DataSpace::Consts::ISRAM_start]) {
+					uint8_t val = mcu->debugger.getAddressStackIndicators()[addrOff - A32u4::DataSpace::Consts::ISRAM_start];
+					ImVec2 min = nextItemRect.Min, max = nextItemRect.Max;
+					if (val == 1)
+						min.x -= charSize.x/2;
+					if (val == 2)
+						max.x += charSize.x/2;
+					drawList->AddRectFilled( min, max, IM_COL32(0,255,50,70) );
 				}
 
 				if (isSelected(addrOff)) {
 					ImRect nextItemRect = getNextByteRect(charSize);
 					drawList->AddRectFilled( nextItemRect.Min, nextItemRect.Max,IM_COL32(50, 50, 255, 100) );
-				}
-				
-				ImRect nextItemRect;
-				if (nextHighlightAddr == addrOff) {
-					nextItemRect = getNextByteRect(charSize);
 				}
 
 				//std::string byteStr = stringExtras::intToHex(*(data + addrOff), 2);
@@ -320,11 +299,8 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 				}
 					
 
-				if (nextHighlightAddr == addrOff) {
-					drawList->AddRect( nextItemRect.Min, nextItemRect.Max, ImColor(highlights[highlightPtr].col) );
-
-					highlightPtr++;
-					nextHighlightAddr = highlightPtr < highlightCntr ? highlights[highlightPtr].Addr : -1;
+				if (mcu != nullptr && mcu->cpu.getPCAddr() == addrOff) {
+					drawList->AddRect( nextItemRect.Min, nextItemRect.Max, IM_COL32(255,0,0,255) );
 				}
 
 				if (ImGui::IsItemClicked()) {

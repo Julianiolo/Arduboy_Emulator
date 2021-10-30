@@ -9,7 +9,7 @@
 
 
 ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable) : ab(ab), winName(winName), 
-	dataspaceDataHex(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size), 
+	dataspaceDataHex(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, &ab->mcu), 
 	dataspaceEEPROMHex(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size), 
 	flashHex(ab->mcu.flash.getData(), A32u4::Flash::sizeMax)
 {
@@ -28,7 +28,6 @@ void ABB::McuInfoBackend::draw() {
 
 		if (ImGui::TreeNode("DataSpace")) {
 			if (ImGui::TreeNode("Data")) {
-				dataspaceDataHex.addHighlight(ab->mcu.dataspace.getSP(), {1,0,0,1});
 				if (!dataSpaceSplitHexView) {
 					dataspaceDataHex.draw();
 				}
