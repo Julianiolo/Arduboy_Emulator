@@ -40,6 +40,10 @@ void ABB::AnalyticsBackend::draw(){
             &getSleepCycsBuf, &sleepCycsBuf, sleepCycsBuf.size(), 
             0, NULL, 0, (float)ab->cycsPerFrame(), {0,70}
         );
+
+        if(ImGui::Button("reset PC heat")){
+            ab->mcu.analytics.resetPCHeat();
+        }
     }
     ImGui::End();
 }

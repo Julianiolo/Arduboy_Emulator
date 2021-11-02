@@ -75,7 +75,7 @@ void ABB::DebuggerBackend::drawControls(){
 
 void ABB::DebuggerBackend::drawDebugStack() {
 	if (ImGui::BeginChild("DebugStack", { 600,80 }, true)) {
-		int32_t stackSize = abb->ab.mcu.debugger.getAddressStackPointer();
+		int32_t stackSize = abb->ab.mcu.debugger.getCallStackPointer();
 		ImGui::Text("Stack Size: %d", stackSize);
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
 			for (int32_t i = stackSize-1; i >= 0; i--) {
@@ -83,7 +83,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				ImGui::TableNextColumn();
 				
 				if(symbolTable->hasSymbols()){
-					uint16_t Addr = abb->ab.mcu.debugger.getAddresAt(i)*2;
+					uint16_t Addr = abb->ab.mcu.debugger.getPCAt(i)*2;
 					const utils::SymbolTable::Symbol* symbol = symbolTable->drawAddrWithSymbol(Addr);
 
 					if (symbol && ImGui::IsItemHovered()) {
@@ -98,7 +98,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 					}
 				}
 				else{
-					uint16_t Addr = abb->ab.mcu.debugger.getAddresAt(i)*2;
+					uint16_t Addr = abb->ab.mcu.debugger.getPCAt(i)*2;
 
 					ImGui::Text("%04x",Addr);
 
@@ -117,7 +117,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				ImGui::SameLine();
 					
 				if(symbolTable->hasSymbols()){
-					uint16_t fromAddr = abb->ab.mcu.debugger.getFromAddresAt(i) * 2;
+					uint16_t fromAddr = abb->ab.mcu.debugger.getFromPCAt(i) * 2;
 					const utils::SymbolTable::Symbol* fromSymbol = symbolTable->drawAddrWithSymbol(fromAddr);
 
 					if (fromSymbol && ImGui::IsItemHovered()) {
@@ -131,7 +131,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 							srcMix.scrollToLine(line, true);
 					}
 				}else{
-					uint16_t fromAddr = abb->ab.mcu.debugger.getFromAddresAt(i) * 2;
+					uint16_t fromAddr = abb->ab.mcu.debugger.getFromPCAt(i) * 2;
 
 					ImGui::Text("%04x",fromAddr);
 
