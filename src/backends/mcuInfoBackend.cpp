@@ -21,8 +21,8 @@ void ABB::McuInfoBackend::draw() {
 	if (ImGui::Begin(winName.c_str(),&winOpen)) {
 		if (ImGui::TreeNode("CPU")) {
 			ImGui::Text("PC: 0x%04x => PC Addr: 0x%04x", ab->mcu.cpu.getPC(), ab->mcu.cpu.getPCAddr());
-			ImGui::Text("Cycles: %i", ab->mcu.cpu.getTotalCycles());
-			ImGui::Text("Is Sleeping: %i", ab->mcu.cpu.isSleeping());
+			ImGui::Text("Cycles: %s", std::to_string(ab->mcu.cpu.getTotalCycles()).c_str());
+			ImGui::Text("Is Sleeping: %d", ab->mcu.cpu.isSleeping());
 			ImGui::TreePop();
 		}
 

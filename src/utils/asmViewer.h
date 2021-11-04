@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 
+#include "A32u4Types.h"
+
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "symbolTable.h"

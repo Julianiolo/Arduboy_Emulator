@@ -142,12 +142,12 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 	// raw instruction bytes
 	ImGuiExt::TextColored(syntaxColors.rawInstBytes, lineStart+instBytesStart, lineStart+instBytesEnd);
 	if(ImGui::IsItemHovered()){
-		uint16_t word = (	StringUtils::hexStrToUIntLen(lineStart+instBytesStart,   2)) |
-						(	StringUtils::hexStrToUIntLen(lineStart+instBytesStart+3, 2) << 8);
+		uint16_t word = (	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart,   2)) |
+						(	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3, 2) << 8);
 		uint16_t word2 = 0;
 		if(instBytesEnd - instBytesStart > 6){
-			word2 = (	StringUtils::hexStrToUIntLen(lineStart+instBytesStart+3+3,   2)) |
-					(	StringUtils::hexStrToUIntLen(lineStart+instBytesStart+3+3+3, 2) << 8);
+			word2 = (	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3,   2)) |
+					(	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3+3, 2) << 8);
 		}
 		ImGui::SetTooltip(A32u4::Disassembler::disassembleRaw(word, word2).c_str());
 	}
@@ -222,8 +222,9 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 				}
 
 				switch (param[0]) {
+					case 'R':
 					case 'r': {
-						uint8_t regInd = (uint8_t)StringUtils::numBaseStrToUIntT<10>(param.c_str() + 1, param.c_str() + param.size());
+						uint8_t regInd = (uint8_t)StringUtils::numBaseStrToUIntT<10,uint8_t>(param.c_str() + 1, param.c_str() + param.size());
 						if (regInd < A32u4::DataSpace::Consts::GPRs_size) {
 							uint8_t regVal = mcu->dataspace.getGPReg(regInd);
 							ImGui::SetTooltip("r%d: 0x%02x => %d (%d)", regInd, regVal, regVal, (int8_t)regVal);
@@ -320,7 +321,7 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 			if (symbol) {
 				if (fileStrLabels.find(symbol->value) != fileStrLabels.end()) {
 					if (io.KeyShift && hasOffset) {
-						size_t off = (size_t)StringUtils::numStrToUInt(lineStart + symbolNameEndOff + 1, lineStart + symbolEndOff - 1);
+						size_t off = (size_t)StringUtils::numStrToUInt<size_t>(lineStart + symbolNameEndOff + 1, lineStart + symbolEndOff - 1);
 						if(off != (size_t)-1)
 							selectedLine = getLineIndFromAddr(symbol->value+off);
 						else
@@ -567,7 +568,8 @@ void ABB::utils::AsmViewer::addAddrToList(const char* start, const char* end, si
 	fileStrAddrs[lineInd-1] = Addr;
 
 	if (Addr == Addrs_symbolLabel) {
-		uint16_t symbAddr = (uint16_t)StringUtils::hexStrToUIntLen(start, 8);
+		// should never be bigger than 2 bytes
+		addr_t symbAddr = (addr_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
 		fileStrLabels[symbAddr] = lineInd-1;
 	}
 }
@@ -582,7 +584,7 @@ uint16_t ABB::utils::AsmViewer::generateAddrFromLine(const char* start, const ch
 	if(!isValidHexAddr(start,start+8))
 		return Addrs_notAnAddr;
 
-	return (uint16_t)StringUtils::hexStrToUIntLen(start, 8);
+	return (uint16_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
 }
 bool ABB::utils::AsmViewer::isValidHexAddr(const char* start, const char* end) {
 	static constexpr char validHexDigits[] = {' ','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};

@@ -263,7 +263,7 @@ void ABB::utils::SymbolTable::init() {
 ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
 	Symbol symbol;
 	size_t ptr = 0;
-	symbol.value = StringUtils::hexStrToUIntLen(start, 8) & 0xFFFF;
+	symbol.value = StringUtils::hexStrToUIntLen<uint64_t>(start, 8) & 0xFFFF;
 	ptr += 8 + 1;
 
 	symbol.flags = generateSymbolFlags(start + ptr);
@@ -274,7 +274,7 @@ ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* s
 	symbol.section = generateSymbolSection(start + ptr, end, &sectStrLen);
 	ptr += sectStrLen + 1;
 
-	symbol.size = StringUtils::hexStrToUIntLen(start + ptr, 8);
+	symbol.size = StringUtils::hexStrToUIntLen<uint64_t>(start + ptr, 8);
 	ptr += 8 + 1;
 
 	symbol.isHidden = false;

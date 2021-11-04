@@ -30,7 +30,7 @@ void ArduEmu::drawBenchmark(){
 	static bool open = true;
 	if(open){
 		if(ImGui::Begin("Benchmark",&open)){
-			static uint64_t benchCycls = (A32u4::CPU::ClockFreq/60)*10;
+			static uint64_t benchCycls = (A32u4::CPU::ClockFreq/60)*1000;
 			constexpr uint64_t min = 0;
 			ImGui::DragScalar("",ImGuiDataType_U64, &benchCycls, 1000, &min);
 			ImGui::SameLine();
@@ -50,8 +50,8 @@ void ArduEmu::drawBenchmark(){
 			static std::string res = "";
 			if(ImGui::Button("Do Benchmark")){
 				A32u4::ATmega32u4 mcu;
-				//mcu.flash.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
-				mcu.flash.loadFromHexFile("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+				mcu.flash.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+				//mcu.flash.loadFromHexFile("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
 				mcu.powerOn();
 
 				uint8_t execFlags = 0;
