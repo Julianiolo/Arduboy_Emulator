@@ -7,3 +7,6 @@
 [submodule "dependencies/imgui"]
 	path = dependencies/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "dependencies/ImGuiFileDialog"]
+	path = dependencies/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git
