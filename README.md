@@ -1,8 +1,10 @@
 # Arduboy_Emulator
-a currently wip emulator of the Arduboy console
+a currently wip cross platform emulator of the Arduboy console written in C++
 
 ## Features:
 - Debugger
 - Analytics
 - Ram/Rom/Eeprom Hex Editor
-- Dissasembler
+- Disassembler
+
+
