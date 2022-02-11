@@ -407,11 +407,11 @@ void ABB::utils::HexViewer::drawSettings() {
 	ImGui::Checkbox("Show Space Diagram", &settings.showDiagram);
 	ImGui::Checkbox("Show Ascii", &settings.showAscii);
 	ImGui::Checkbox("Show Symbols", &settings.showSymbols);
-		if (!settings.showSymbols) ImGui::PushDisabled();
+		if (!settings.showSymbols) ImGui::BeginDisabled();
 		ImGui::Indent();
 		ImGui::Checkbox("Invert Text Color", &settings.invertTextColOverSymbols);
 		ImGui::Unindent();
-		if (!settings.showSymbols) ImGui::PopDisabled();
+		if (!settings.showSymbols) ImGui::EndDisabled();
 
 	ImGui::Checkbox("Show Texture", &settings.showTex);
 

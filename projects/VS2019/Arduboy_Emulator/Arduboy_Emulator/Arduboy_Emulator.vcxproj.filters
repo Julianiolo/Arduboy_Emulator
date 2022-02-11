@@ -31,6 +31,9 @@
     <Filter Include="Source Files\bintools">
       <UniqueIdentifier>{3a96327a-63ce-4cdc-9f9a-6f2541c7893a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ImGuiFD">
+      <UniqueIdentifier>{08521704-9d1a-48ff-9be6-1288e68a3192}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp">
@@ -77,6 +80,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\backends\AnalyticsBackend.cpp">
       <Filter>Source Files\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD.cpp">
+      <Filter>Source Files\ImGuiFD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFDNative.cpp">
+      <Filter>Source Files\ImGuiFD</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +139,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\backends\AnalyticsBackend.h">
       <Filter>Source Files\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD.h">
+      <Filter>Source Files\ImGuiFD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD_internal.h">
+      <Filter>Source Files\ImGuiFD</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

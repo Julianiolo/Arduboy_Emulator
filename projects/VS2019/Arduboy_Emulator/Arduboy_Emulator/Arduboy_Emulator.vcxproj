@@ -31,6 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -44,6 +45,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -96,7 +98,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;$(SolutionDir)..\..\..\dependencies\ImGuiFD\dependencies\dirent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,7 +119,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;$(SolutionDir)..\..\..\dependencies\ImGuiFD\dependencies\dirent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -159,7 +161,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -175,6 +177,8 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD.cpp" />
+    <ClCompile Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFDNative.cpp" />
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\AnalyticsBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp" />
@@ -192,6 +196,8 @@
     <ClCompile Include="..\..\..\..\src\utils\symbolTable.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD.h" />
+    <ClInclude Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD_internal.h" />
     <ClInclude Include="..\..\..\..\src\ArdEmu.h" />
     <ClInclude Include="..\..\..\..\src\backends\AnalyticsBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\ArduboyBackend.h" />

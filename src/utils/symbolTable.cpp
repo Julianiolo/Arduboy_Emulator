@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <inttypes.h> // for printing uint64_t
 #include "utils/StringUtils.h"
 #include "../Extensions/imguiExt.h"
 
@@ -467,9 +468,6 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 }
 
 void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
-	if (list->size() == 0)
-		return;
-
 	if (size.x == 0)
 		size.x = ImGui::GetContentRegionAvail().x;
 	if (size.y == 0)
@@ -497,13 +495,14 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 			//ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (((float)(symbol->value - lastSymbEnd) / listByteLen)) * size.x * (*scale));
 			if (i != 0)
 				ImGui::SameLine();
-			uint64_t fillAmt = symbol->value - lastSymbEnd;
+
+			uint32_t fillAmt = symbol->value - lastSymbEnd;
 			ImGuiExt::Rect(ImGuiID(symbol->value * i), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 			if (ImGui::IsItemHovered()) {
 				ImGui::PopStyleVar();
 				ImGui::PopStyleVar();
 
-				ImGui::SetTooltip("Space Without Symbol: %d bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
+				ImGui::SetTooltip("Space Without Symbol: %" PRIu32 " bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
 
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
@@ -538,7 +537,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 
-			ImGui::SetTooltip("Space Without Symbol: %d bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
+			ImGui::SetTooltip("Space Without Symbol: %" PRIu32 " bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });

@@ -2,6 +2,8 @@
 
 #include "utils/byteVisualiser.h"
 
+#include "ImGuiFD.h"
+
 #include "imgui.h"
 #include <chrono>
 #include <intrin.h> // for __rdtsc()
@@ -24,6 +26,7 @@ void ArduEmu::draw() {
 		i->draw();
 	}
 	drawBenchmark();
+	drawMenu();
 }
 
 void ArduEmu::drawBenchmark(){
@@ -32,7 +35,7 @@ void ArduEmu::drawBenchmark(){
 		if(ImGui::Begin("Benchmark",&open)){
 			static uint64_t benchCycls = (A32u4::CPU::ClockFreq/60)*1000;
 			constexpr uint64_t min = 0;
-			ImGui::DragScalar("",ImGuiDataType_U64, &benchCycls, 1000, &min);
+			ImGui::DragScalar("##cycs",ImGuiDataType_U64, &benchCycls, 1000, &min);
 			ImGui::SameLine();
 			if(ImGui::SmallButton("*10"))
 				benchCycls *= 10;
@@ -79,6 +82,29 @@ void ArduEmu::drawBenchmark(){
 		}
 		ImGui::End();
 	}
+}
+
+void ArduEmu::drawMenu() {
+	if (ImGui::Begin("Open Game")) {
+		if (ImGui::Button("Open")) {
+			ImGuiFD::OpenFileDialog("GAME", "*", "");
+		}
+
+		if (ImGuiFD::BeginDialog("GAME")) {
+			if (ImGuiFD::ActionDone()) {
+				std::string path = ImGuiFD::GetSelectionPathString(0);
+				std::string name = ImGuiFD::GetSelectionNameString(0);
+
+				ABB::ArduboyBackend& abb = addEmulator(name.c_str());
+				abb.ab.load(path.c_str());
+				abb.ab.mcu.powerOn();
+				ImGuiFD::CloseCurrentDialog();
+			}
+
+			ImGuiFD::EndDialog();
+		}
+	}
+	ImGui::End();
 }
 
 ABB::ArduboyBackend& ArduEmu::addEmulator(const char* n) {

@@ -23,7 +23,7 @@ void ABB::DebuggerBackend::drawControls(){
 
 	bool isHalted = abb->ab.mcu.debugger.isHalted();
 
-	if (!isHalted) ImGui::PushDisabled();
+	if (!isHalted) ImGui::BeginDisabled();
 		if (ImGui::Button("Step")) {
 			abb->ab.mcu.debugger.step();
 		}
@@ -36,14 +36,14 @@ void ABB::DebuggerBackend::drawControls(){
 		if (ImGui::Button("Continue")) {
 			abb->ab.mcu.debugger.continue_();
 		}
-	if (!isHalted) ImGui::PopDisabled();
+	if (!isHalted) ImGui::EndDisabled();
 
 	ImGui::SameLine();
-	if (isHalted) ImGui::PushDisabled();
+	if (isHalted) ImGui::BeginDisabled();
 		if (ImGui::Button("Force Stop")) {
 			abb->ab.mcu.debugger.halt();
 		}
-	if (isHalted) ImGui::PopDisabled();
+	if (isHalted) ImGui::EndDisabled();
 
 	ImGui::SameLine();
 	if (ImGui::Button("Reset")) {
@@ -57,7 +57,7 @@ void ABB::DebuggerBackend::drawControls(){
 	// ## Line 2 ##
 
 	if (!isHalted)
-		ImGui::PushDisabled();
+		ImGui::BeginDisabled();
 
 	if(ImGui::Button("Jump to PC")) {
 		if(!srcMix.isFileEmpty()) {
@@ -67,7 +67,7 @@ void ABB::DebuggerBackend::drawControls(){
 	}
 
 	if (!isHalted)
-		ImGui::PopDisabled();
+		ImGui::EndDisabled();
 
 	ImGui::SameLine();
 	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s", abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr(), std::to_string(abb->ab.mcu.cpu.getTotalCycles()).c_str());
@@ -199,8 +199,20 @@ void ABB::DebuggerBackend::draw() {
 			if(ImGui::Button("Load")){
 
 			}
+
+			bool programLoaded = abb->ab.mcu.flash.isProgramLoaded();
+			if (!programLoaded)
+				ImGui::BeginDisabled();
+
 			if(ImGui::Button("Generate")){
 				srcMix.generateDisasmFile(&abb->ab.mcu.flash);
+			}
+
+			if (!programLoaded) {
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+					ImGui::SetTooltip("Cannot generate assembly because there is no program present in flash memory!");
+				}
+				ImGui::EndDisabled();
 			}
 		}
 	}

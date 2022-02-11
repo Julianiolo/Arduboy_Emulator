@@ -349,14 +349,17 @@ void ABB::utils::AsmViewer::drawSymbolLabel(const char* lineStart, const char* l
 	ImGui::SameLine();
 	ImGuiExt::TextColored(syntaxColors.syntaxLabelText, lineStart+addrEnd, lineEnd);
 	if(ImGui::IsItemHovered()){
-		popFileStyle();
+		std::string symbolName = std::string(lineStart + addrEnd+2, lineEnd-3);
+		const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
+		if (symbol) {
+			popFileStyle();
 			ImGui::BeginTooltip();
-			std::string symbolName = std::string(lineStart + addrEnd+2, lineEnd-3);
-			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
-			if(symbol)
-				symbol->draw(-1,mcu->flash.getData());
+
+			symbol->draw(-1,mcu->flash.getData());
+
 			ImGui::EndTooltip();
-		pushFileStyle();
+			pushFileStyle();
+		}
 	}
 }
 
@@ -569,7 +572,7 @@ void ABB::utils::AsmViewer::addAddrToList(const char* start, const char* end, si
 
 	if (Addr == Addrs_symbolLabel) {
 		// should never be bigger than 2 bytes
-		addr_t symbAddr = (addr_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
+		at_addr_t symbAddr = (at_addr_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
 		fileStrLabels[symbAddr] = lineInd-1;
 	}
 }
