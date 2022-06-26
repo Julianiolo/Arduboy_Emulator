@@ -2,8 +2,8 @@
 
 #include "imgui.h"
 
-ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable)
-: ab(ab), symbolTable(symbolTable), name(std::string(winName) + " - Analytics"), StackSizeBuf(100), sleepCycsBuf(100)
+ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable)
+: ab(ab), winName(std::string(winName) + " - Analytics"), open(open), symbolTable(symbolTable), StackSizeBuf(100), sleepCycsBuf(100)
 {
     StackSizeBuf.initTo(0);
     sleepCycsBuf.initTo(0);
@@ -21,9 +21,11 @@ void ABB::AnalyticsBackend::update(){
 }
 
 void ABB::AnalyticsBackend::draw(){
-    if(ImGui::Begin(name.c_str())){
-        uint16_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
-        uint16_t max = (uint16_t)(A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd());
+    if(ImGui::Begin(winName.c_str(), open)){
+        winFocused = ImGui::IsWindowFocused();
+
+        at_addr_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
+        at_addr_t max = (at_addr_t)(A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd());
         ImGui::Text("%.2f%% of Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
         uint64_t usedSum = 0;
         for (size_t i = 0; i < StackSizeBuf.size(); i++) {
@@ -33,7 +35,7 @@ void ABB::AnalyticsBackend::draw(){
         ImGui::Text("Average: %.2f%% of Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
         ImGui::PlotHistogram("Stack Size",
             &getStackSizeBuf, &StackSizeBuf, StackSizeBuf.size(), 
-            0, NULL, 0, A32u4::DataSpace::Consts::data_size-1 - symbolTable->getMaxRamAddrEnd(), {0,70}
+            0, NULL, 0, (float)max, {0,70}
         );
 
         ImGui::PlotHistogram("Sleep Cycles",
@@ -45,8 +47,21 @@ void ABB::AnalyticsBackend::draw(){
             ab->mcu.analytics.resetPCHeat();
         }
     }
+    else {
+        winFocused = false;
+    }
     ImGui::End();
 }
+
+const char* ABB::AnalyticsBackend::getWinName() const {
+    return winName.c_str();
+}
+
+void ABB::AnalyticsBackend::reset() {
+    StackSizeBuf.clear();
+    sleepCycsBuf.clear();
+}
+
 
 float ABB::AnalyticsBackend::getStackSizeBuf(void* data, int ind){
     RingBuffer<uint16_t>* stackSizeBufPtr = (RingBuffer<uint16_t>*)data;
@@ -63,7 +78,6 @@ float ABB::AnalyticsBackend::getSleepCycsBuf(void* data, int ind){
     return (float)sleepCycsBufPtr->get(ind);
 }
 
-void ABB::AnalyticsBackend::reset() {
-    StackSizeBuf.clear();
-    sleepCycsBuf.clear();
+bool ABB::AnalyticsBackend::isWinFocused() const {
+    return winFocused;
 }

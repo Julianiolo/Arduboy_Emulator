@@ -87,6 +87,9 @@
     <ClCompile Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFDNative.cpp">
       <Filter>Source Files\ImGuiFD</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\utils\elfReader.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h">
@@ -145,6 +148,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD_internal.h">
       <Filter>Source Files\ImGuiFD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\elfReader.h">
+      <Filter>Source Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

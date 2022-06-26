@@ -10,19 +10,34 @@
 
 namespace ABB {
 	class McuInfoBackend {
-		Arduboy* ab;
-	public:
-		std::string winName;
-		bool winOpen = true;
-
-		McuInfoBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable);
-
-		void draw();
 	private:
+		Arduboy* ab;
+
 		utils::HexViewer dataspaceDataHex;
 		utils::HexViewer dataspaceEEPROMHex;
 		bool dataSpaceSplitHexView = false;
 		utils::HexViewer flashHex;
+
+		bool winFocused = false;
+
+		std::vector<std::pair<size_t,std::string>> ramStrings;
+		std::vector<std::pair<size_t,std::string>> eepromStrings;
+		std::vector<std::pair<size_t,std::string>> romStrings;
+
+		static void setRamValue(at_addr_t addr, reg_t val, void* userData);
+		static void setEepromValue(at_addr_t addr, reg_t val, void* userData);
+		static void setRomValue(at_addr_t addr, reg_t val, void* userData);
+	public:
+		const std::string winName;
+		bool* open;
+
+		McuInfoBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable);
+
+		void draw();
+
+		const char* getWinName() const;
+
+		bool isWinFocused() const;
 	};
 }
 

@@ -66,9 +66,14 @@ bool ABB::DisplayBackend::getPixelOfImage(uint8_t x, uint8_t y) {
 }
 
 void ABB::DisplayBackend::draw(const ImVec2& size) {
+	if (ImGui::IsWindowFocused()) {
+		lastWinFocused = ImGui::GetCurrentContext()->FrameCount;
+	}
+
 	const ImVec2 pos = ImGui::GetCursorScreenPos();
-	RLImGuiImageRect(&displayTex,size.x,size.y, getTexSrcRect());
-	if (ImGui::IsItemHovered()) {
+	RLImGuiImageRect(&displayTex,(int)size.x,(int)size.y, getTexSrcRect());
+
+	if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		ImGui::BeginTooltip();
 		ImGuiIO& io = ImGui::GetIO();
 		ImVec2 region = { 32, 16 };
@@ -89,7 +94,7 @@ void ABB::DisplayBackend::draw(const ImVec2& size) {
 		ImGuiExt::Rect(2074620378, getPixelOfImage(pixX, pixY) ? ImVec4{1, 1, 1, 1} : ImVec4{0, 0, 0, 1});
 
 		ImVec2 texScl = {size.x / AB::Display::WIDTH, size.y / AB::Display::HEIGHT};
-		RLImGuiImageRect(&displayTex, region.x * texScl.x * zoom, region.y * texScl.y * zoom, { relPos.x + 1, relPos.y + 1, region.x, region.y });
+		RLImGuiImageRect(&displayTex, (int)(region.x * texScl.x * zoom), (int)(region.y * texScl.y * zoom), { relPos.x + 1, relPos.y + 1, region.x, region.y });
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		ImVec2 imgCenter = ImRect{ ImGui::GetItemRectMin(), ImGui::GetItemRectMax() }.GetCenter();
@@ -111,4 +116,9 @@ void ABB::DisplayBackend::draw(const ImVec2& size) {
 
 		ImGui::EndTooltip();
 	}
+}
+
+
+bool ABB::DisplayBackend::isWinFocused() const {
+	return lastWinFocused == ImGui::GetCurrentContext()->FrameCount || lastWinFocused == ImGui::GetCurrentContext()->FrameCount-1;
 }

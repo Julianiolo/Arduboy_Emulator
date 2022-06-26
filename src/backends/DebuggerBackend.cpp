@@ -1,5 +1,6 @@
 #include "DebuggerBackend.h"
 
+#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "../Extensions/imguiExt.h"
@@ -10,7 +11,10 @@
 
 #include "components/Disassembler.h"
 
-ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, const utils::SymbolTable* symbolTable) : abb(abb), symbolTable(symbolTable), winName(winName){
+#include <inttypes.h> // for PRIx64 etc.
+
+ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open, const utils::SymbolTable* symbolTable) 
+	: abb(abb), open(open), winName(winName), symbolTable(symbolTable){
 	srcMix.setSymbolTable(symbolTable);
 	srcMix.setMcu(&abb->ab.mcu);
 }
@@ -60,8 +64,8 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::BeginDisabled();
 
 	if(ImGui::Button("Jump to PC")) {
-		if(!srcMix.isFileEmpty()) {
-			size_t line = srcMix.getLineIndFromAddr(abb->ab.mcu.cpu.getPCAddr());
+		if(!srcMix.file.isEmpty()) {
+			size_t line = srcMix.file.getLineIndFromAddr(abb->ab.mcu.cpu.getPCAddr());
 			srcMix.scrollToLine(line);
 		}
 	}
@@ -70,11 +74,12 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::EndDisabled();
 
 	ImGui::SameLine();
-	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s", abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr(), std::to_string(abb->ab.mcu.cpu.getTotalCycles()).c_str());
+	double totalSeconds = (double)abb->ab.mcu.cpu.getTotalCycles() / A32u4::CPU::ClockFreq;
+	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %" PRId64 " (%.6fs)", abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr(), abb->ab.mcu.cpu.getTotalCycles(), totalSeconds);
 }
 
 void ABB::DebuggerBackend::drawDebugStack() {
-	if (ImGui::BeginChild("DebugStack", { 600,80 }, true)) {
+	if (ImGui::BeginChild("DebugStack", { 0,80 }, true)) {
 		int32_t stackSize = abb->ab.mcu.debugger.getCallStackPointer();
 		ImGui::Text("Stack Size: %d", stackSize);
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
@@ -92,7 +97,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 						ImGui::EndTooltip();
 					}
 					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.getLineIndFromAddr(Addr);
+						size_t line = srcMix.file.getLineIndFromAddr(Addr);
 						if(line != (size_t)-1)
 							srcMix.scrollToLine(line, true);
 					}
@@ -103,7 +108,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 					ImGui::Text("%04x",Addr);
 
 					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.getLineIndFromAddr(Addr);
+						size_t line = srcMix.file.getLineIndFromAddr(Addr);
 						if(line != (size_t)-1)
 							srcMix.scrollToLine(line, true);
 					}
@@ -126,7 +131,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 						ImGui::EndTooltip();
 					}
 					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.getLineIndFromAddr(fromAddr);
+						size_t line = srcMix.file.getLineIndFromAddr(fromAddr);
 						if(line != (size_t)-1)
 							srcMix.scrollToLine(line, true);
 					}
@@ -136,7 +141,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 					ImGui::Text("%04x",fromAddr);
 
 					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.getLineIndFromAddr(fromAddr);
+						size_t line = srcMix.file.getLineIndFromAddr(fromAddr);
 						if(line != (size_t)-1)
 							srcMix.scrollToLine(line, true);
 					}
@@ -158,6 +163,9 @@ void ABB::DebuggerBackend::drawBreakpoints() {
 	ImGui::EndChild();
 }
 void ABB::DebuggerBackend::drawRegisters(){
+	ImGui::Checkbox("Show GP-Registers", &showGPRegs);
+
+
 	uint8_t sreg_val = abb->ab.mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
 	constexpr const char* bitNames[] = {"I","T","H","S","V","N","Z","C"};
 	ImGui::TextUnformatted("SREG");
@@ -174,9 +182,117 @@ void ABB::DebuggerBackend::drawRegisters(){
 	}
 	ImGui::EndTable();
 }
+void ABB::DebuggerBackend::drawGPRegisters() {
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1,ImGui::GetStyle().ItemSpacing.y });
+	if (ImGui::BeginChild("GPRegs", { ImGui::CalcTextSize("r99: ff").x+2*4+1, 0}, true)) {
+		{
+			size_t indPtr = 0;
+			for (uint8_t i = 0; i < 32; i++) {
+				ImGui::BeginGroup();
+
+				if (gprWatches.size() > 0) {
+					while (indPtr+1 < gprWatches.size() && gprWatches[indPtr+1].ind <= i) indPtr++; // advance indPtr to next entry in gprWatches (to the next where ind < i)
+					if (i >= gprWatches[indPtr].ind && i < gprWatches[indPtr].ind+gprWatches[indPtr].len) { // check if inside Watch
+						ImRect lineRect = ImRect(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2{ ImGui::GetContentRegionAvail().x,ImGui::GetTextLineHeight() });
+						ImGui::GetWindowDrawList()->AddRect(lineRect.Min, lineRect.Max, ImColor(gprWatches[indPtr].col));
+					}
+				}
+
+				reg_t val = abb->ab.mcu.dataspace.getGPReg(i);
+				ImGui::Text("%s%d: ", i > 9 ? "r" : " r", (int)i);
+				ImGui::SameLine();
+				ImGui::Text("%02x", val);
+
+				ImGui::EndGroup();
+				if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+					ImGui::OpenPopup("dbgbkend_gprw");
+					gprWatchAddAt = i;
+				}
+			}
+		}
+		
+
+		if (ImGui::BeginPopup("dbgbkend_gprw")) {
+			ImGui::TextUnformatted("General Porpouse Register Watch");
+			ImGui::Separator();
+			size_t indPtr = 0;
+			while (indPtr+1 < gprWatches.size() && gprWatches[indPtr+1].ind <= gprWatchAddAt) indPtr++;
+			if (gprWatches.size() > 0 && gprWatches[indPtr].ind == gprWatchAddAt) {
+				if (ImGui::Button("Remove")) {
+					gprWatches.erase(gprWatches.begin() + indPtr); // remove Watch
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			else {
+				ImGui::TextUnformatted("Add Watch Here!");
+
+				static uint8_t size = 1;
+				char buf[2]; // 2 should be enough, since we only ever need one digit and a null terminator
+				buf[1] = 0;
+				StringUtils::uIntToNumBaseBuf(1 << size, 1, buf);
+				if (ImGui::BeginCombo("Size", buf)) {
+					for (int i = 0; i < 4; i++) {
+						StringUtils::uIntToNumBaseBuf(1 << i, 1, buf);
+						if (ImGui::Selectable(buf, i == size))
+							size = i;
+					}
+					ImGui::EndCombo();
+				}
+
+				if (ImGui::Button("Add")) {
+					if (gprWatches.size() > 0 && gprWatchAddAt > gprWatches[indPtr].ind)
+						indPtr++;
+
+					uint8_t s = 1 << size;
+					GPRWatch watch = GPRWatch{ gprWatchAddAt, s, {0,0,0,1} };
+
+					ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8f, 1, 1};
+					ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, watch.col.x, watch.col.y, watch.col.z);
+					gprWatches.insert(gprWatches.begin() + indPtr, watch);
+
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			ImGui::EndPopup();
+		}
+
+		if (gprWatches.size() > 0) {
+			float bottom = ImGui::GetCursorPosY() + ImGui::GetContentRegionAvail().y;
+			ImGui::SetCursorPosY(bottom - ImGui::GetTextLineHeightWithSpacing() * gprWatches.size());
+
+			for (size_t i = 0; i < gprWatches.size(); i++) {
+				ImRect lineRect = ImRect(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2{ ImGui::GetContentRegionAvail().x,ImGui::GetTextLineHeight() });
+				ImGui::GetWindowDrawList()->AddRectFilled(lineRect.Min, lineRect.Max, ImColor(gprWatches[i].col));
+
+				// collect Val
+				uint64_t val = 0;
+				for (uint8_t b = 0; b < gprWatches[i].len; b++) {
+					val <<= 8;
+					val |= abb->ab.mcu.dataspace.getDataByte(gprWatches[i].ind + (gprWatches[i].len - 1 - b));
+				}
+
+				if ((gprWatches[i].col.x + gprWatches[i].col.y + gprWatches[i].col.z) > 1.5) {
+					ImGui::TextColored({0,0,0,1}, "%" PRIu64, val);
+				}
+				else {
+					ImGui::Text("%" PRIu64, val);
+				}
+			}
+		}
+	}
+
+
+	ImGui::EndChild();
+	ImGui::PopStyleVar();
+	ImGui::PopStyleVar();
+	ImGui::SameLine();
+}
 
 void ABB::DebuggerBackend::draw() {
-	if (ImGui::Begin(winName.c_str())) {
+	if (ImGui::Begin(winName.c_str(),open)) {
+		winFocused = ImGui::IsWindowFocused();
+
 		drawControls();
 		if (ImGui::TreeNode("Debug Stack")) {
 			drawDebugStack();
@@ -190,8 +306,13 @@ void ABB::DebuggerBackend::draw() {
 			drawRegisters();
 			ImGui::TreePop();
 		}
+
+
+		if (showGPRegs) {
+			drawGPRegisters();
+		}
 		
-		if(!srcMix.isFileEmpty()){
+		if(!srcMix.file.isEmpty()){
 			srcMix.drawFile(winName, abb->ab.mcu.cpu.getPCAddr());
 		}
 		else{
@@ -216,7 +337,17 @@ void ABB::DebuggerBackend::draw() {
 			}
 		}
 	}
+	else {
+		winFocused = false;
+	}
 	ImGui::End();
+}
+
+const char* ABB::DebuggerBackend::getWinName() const {
+	return winName.c_str();
+}
+bool ABB::DebuggerBackend::isWinFocused() const {
+	return winFocused;
 }
 
 /*

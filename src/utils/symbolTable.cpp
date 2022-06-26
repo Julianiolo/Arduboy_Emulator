@@ -26,7 +26,7 @@ ABB::utils::SymbolTable::Symbol::Section::Section(const std::string& name) : nam
 bool ABB::utils::SymbolTable::Symbol::operator<(const Symbol& rhs) const {
 	return this->value < rhs.value;
 }
-void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) const {
+void ABB::utils::SymbolTable::Symbol::draw(symb_size_t addr, const uint8_t* data) const {
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
 	if (hasDemangledName) {
@@ -243,10 +243,13 @@ ABB::utils::SymbolTable::SymbolTable() {
 	init();
 }
 void ABB::utils::SymbolTable::init() {
-	const char* path = "resources/device/regSymbs.txt";
-	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open device symbol table dump File: ") + path).c_str());
-	if (fileStr.size() == 0) // loading didnt work
+	const char* path = "./resources/device/regSymbs.txt";
+	bool success = false;
+	std::string fileStr = StringUtils::loadFileIntoString(path, &success);
+	if (!success) { // loading didnt work
+		LogBackend::logf(LogBackend::LogLevel_Error, "Cannot Open device symbol table dump File: %s", path);
 		return;
+	}
 
 	deviceSpecSymbolStorage.clear();
 	parseList(&deviceSpecSymbolStorage,fileStr.c_str(),fileStr.size());
@@ -328,9 +331,12 @@ void ABB::utils::SymbolTable::parseList(std::vector<Symbol>* vec, const char* st
 }
 
 bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
-	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open symbol table dump File: ") + path).c_str());
-	if (fileStr.size() == 0) // loading didnt work
+	bool success = false;
+	std::string fileStr = StringUtils::loadFileIntoString(path, &success);
+	if (!success) { // loading didnt work
+		LogBackend::logf(LogBackend::LogLevel_Error, "Cannot Open symbol table dump File: %s", path);
 		return false;
+	}
 
 	return loadFromDumpString(fileStr.c_str(), fileStr.size());
 }
@@ -347,10 +353,10 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 		for (auto& s : symbolStorage) {
 			symbsNameMap[s.name] = &s;
 
-			if (s.section == bssSection)
+			if (s.section == bssSection || s.section == dataSection)
 				symbolsRam.push_back(&s);
 
-			if (s.section == textSection || s.section == dataSection)
+			if (s.section == textSection)
 				symbolsRom.push_back(&s);
 		}
 
@@ -400,12 +406,12 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByName(
 	return symbsNameMap.at(name);
 }
 
-const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByValue(const size_t value) const {
+const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByValue(const symb_size_t value) const {
 	size_t from = 0;
 	size_t to = symbolStorage.size() - 1;
 	while (from != to) {
 		size_t mid = from + (to - from) / 2;
-		size_t val = symbolStorage[mid].value;
+		symb_size_t val = symbolStorage[mid].value;
 		if (val == value) {
 			return &symbolStorage[mid];
 		}
@@ -443,11 +449,11 @@ ABB::utils::SymbolTable::SymbolListPtr ABB::utils::SymbolTable::getSymbolsRom() 
 	return (SymbolTable::SymbolListPtr)&symbolsRom;
 }
 
-size_t ABB::utils::SymbolTable::getMaxRamAddrEnd() const {
+ABB::utils::SymbolTable::symb_size_t ABB::utils::SymbolTable::getMaxRamAddrEnd() const {
 	return maxRamAddrEnd;
 }
 
-const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymbol(size_t Addr) const {
+const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymbol(symb_size_t Addr) const {
 	constexpr size_t AddrDigits = 4;
 	char texBuf[AddrDigits];
 
@@ -467,7 +473,7 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 	return symbol;
 }
 
-void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
+void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, symb_size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
 	if (size.x == 0)
 		size.x = ImGui::GetContentRegionAvail().x;
 	if (size.y == 0)
@@ -485,7 +491,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
-	uint64_t lastSymbEnd = 0;
+	symb_size_t lastSymbEnd = 0;
 	for (size_t i = 0; i < list->size(); i++) {
 		const Symbol* symbol = list->operator[](i);
 		if (symbol->size == 0)
@@ -496,7 +502,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 			if (i != 0)
 				ImGui::SameLine();
 
-			uint32_t fillAmt = symbol->value - lastSymbEnd;
+			symb_size_t fillAmt = symbol->value - lastSymbEnd;
 			ImGuiExt::Rect(ImGuiID(symbol->value * i), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 			if (ImGui::IsItemHovered()) {
 				ImGui::PopStyleVar();
@@ -512,7 +518,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 		if (i != 0 || symbol->value > lastSymbEnd)
 			ImGui::SameLine();
 		float width = ((float)symbol->size / listByteLen) * size.x * (*scale);
-		ImGuiExt::Rect(symbol->value * i, symbol->col, {width, size.y});
+		ImGuiExt::Rect((ImGuiID)(symbol->value * i), symbol->col, {width, size.y});
 
 		if (ImGui::IsItemHovered()) {
 			ImGui::PopStyleVar();
@@ -530,14 +536,14 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 	}
 
 	if (lastSymbEnd < totalSize) {
-		uint32_t fillAmt = totalSize - lastSymbEnd;
+		symb_size_t fillAmt = totalSize - lastSymbEnd;
 		ImGui::SameLine();
 		ImGuiExt::Rect(ImGuiID(totalSize * lastSymbEnd), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 		if (ImGui::IsItemHovered()) {
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 
-			ImGui::SetTooltip("Space Without Symbol: %" PRIu32 " bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
+			ImGui::SetTooltip("Space Without Symbol: %" PRIu64 " bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
