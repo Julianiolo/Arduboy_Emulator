@@ -11,6 +11,8 @@ namespace ABB {
 	namespace utils {
 		class SymbolTable {
 		public:
+			typedef uint64_t symb_size_t;
+
 			struct Symbol {
 				struct Flags {
 					uint8_t scope;
@@ -50,14 +52,14 @@ namespace ABB {
 					Section(const std::string& name);
 				};
 
-				uint64_t value;
+				symb_size_t value;
 				Flags flags;
 				std::string flagStr;
 				std::string name;
 				std::string demangled;
 				std::string note;
 				bool hasDemangledName;
-				uint64_t size;
+				symb_size_t size;
 				Section* section;
 
 				bool isHidden;
@@ -65,11 +67,12 @@ namespace ABB {
 				ImVec4 col;
 
 				bool operator<(const Symbol& rhs) const;
-				void draw(size_t addr = -1, const uint8_t* data = nullptr) const;
-				uint64_t addrEnd() const;
+				void draw(symb_size_t addr = -1, const uint8_t* data = nullptr) const;
+				symb_size_t addrEnd() const;
 			};
 
 			typedef std::vector<const Symbol*>* SymbolListPtr;
+			
 		private:
 			std::vector<Symbol> deviceSpecSymbolStorage;
 
@@ -81,7 +84,7 @@ namespace ABB {
 			std::vector<const Symbol*> symbolsRamExp;
 			std::vector<const Symbol*> symbolsRom;
 
-			size_t maxRamAddrEnd = 0;
+			symb_size_t maxRamAddrEnd = 0;
 
 			bool doesHaveSymbols = false;
 
@@ -101,17 +104,17 @@ namespace ABB {
 
 			const Symbol::Section* getSection(const std::string& name) const;
 			const Symbol* getSymbolByName(const std::string& name) const;
-			const Symbol* getSymbolByValue(const size_t value) const;
+			const Symbol* getSymbolByValue(const symb_size_t value) const;
 
 			const std::vector<Symbol>& getSymbols() const;
 			SymbolListPtr getSymbolsRam() const;
 			SymbolListPtr getSymbolsRamExp() const;
 			SymbolListPtr getSymbolsRom() const;
 
-			size_t getMaxRamAddrEnd() const;
+			symb_size_t getMaxRamAddrEnd() const;
 
-			const Symbol* drawAddrWithSymbol(size_t Addr) const;
-			static void drawSymbolListSizeDiagramm(SymbolListPtr list, size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});
+			const Symbol* drawAddrWithSymbol(symb_size_t Addr) const;
+			static void drawSymbolListSizeDiagramm(SymbolListPtr list, symb_size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});
 		};
 	}
 }

@@ -1,6 +1,6 @@
 #include "LogBackend.h"
 
-ABB::LogBackend::LogBackend(const char* winName) : winName(winName) {
+ABB::LogBackend::LogBackend(const char* winName, bool* open) : winName(winName), open(open) {
     activate();
 
     logColors[A32u4::ATmega32u4::LogLevel_None] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
@@ -12,6 +12,8 @@ ABB::LogBackend::LogBackend(const char* winName) : winName(winName) {
 
 void ABB::LogBackend::draw() {
     if(ImGui::Begin(winName.c_str())){
+        winFocused = ImGui::IsWindowFocused();
+
         if(ImGui::Button("Clear")){
             clear();
         }
@@ -28,11 +30,18 @@ void ABB::LogBackend::draw() {
         }
         ImGui::EndChild();
     }
+    else {
+        winFocused = false;
+    }
     ImGui::End();
 }
 
 void ABB::LogBackend::clear() {
     logs.clear();
+}
+
+const char* ABB::LogBackend::getWinName() const {
+    return winName.c_str();
 }
 
 ABB::LogBackend* ABB::LogBackend::activeLB = nullptr;
@@ -43,4 +52,8 @@ void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg)
     if(activeLB != nullptr) {
         activeLB->logs.push_back({logLevel,msg});
     }
+}
+
+bool ABB::LogBackend::isWinFocused() const {
+    return winFocused;
 }

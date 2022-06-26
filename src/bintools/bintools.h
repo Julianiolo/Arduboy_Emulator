@@ -7,6 +7,8 @@
 namespace BinTools {
 	bool canDemangle();
 	std::vector<std::string> demangleList(const char** strs, size_t num);
+
+	std::string generateSrcMix(const uint8_t* elfData, size_t elfDataLen);
 }
 
 #endif

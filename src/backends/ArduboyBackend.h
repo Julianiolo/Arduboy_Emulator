@@ -18,6 +18,7 @@ namespace ABB {
 		Arduboy ab;
 
 		std::string name;
+		std::string devWinName;
 
 		DisplayBackend displayBackend;
 		DebuggerBackend debuggerBackend;
@@ -25,16 +26,29 @@ namespace ABB {
 		McuInfoBackend mcuInfoBackend;
 		AnalyticsBackend analyticsBackend;
 		utils::SymbolTable symbolTable;
-	private:
-		
 
+		bool open = true;
+	private:
+		bool open_try = true;
+
+		bool winActive = false;
+
+		bool devToolsOpen = true;
+		bool execMenuOpen = false;
+		bool firstFrame = true; // whether this is the first frame ever displayed
+
+		bool isWinFocused(); // is one of the windows associated with this instance focused
 		void update();
+
+		void drawExecMenu();
 	public:
 
 		ArduboyBackend(const char* n);
 
 		void draw();
 		void resetMachine();
+
+		void buildDefaultLayout();
 	};
 }
 

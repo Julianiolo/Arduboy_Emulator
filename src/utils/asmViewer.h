@@ -8,6 +8,7 @@
 #include "A32u4Types.h"
 
 #include "imgui.h"
+#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui_internal.h"
 #include "symbolTable.h"
 #include "ATmega32u4.h"
@@ -16,22 +17,13 @@
 namespace ABB{
     namespace utils{
         class AsmViewer{
-        private:
+        public:
             A32u4::Disassembler::DisasmFile file;
-            //std::string fileStr = "";
-            std::vector<size_t> fileStrLines;
-            std::vector<uint16_t> fileStrAddrs;
-            std::map<uint16_t, uint64_t> fileStrLabels;
 
+        private:
             A32u4::ATmega32u4* mcu = nullptr;
-            
-
             float scrollSet = -1;
-            void processSrcFile();
-            static uint16_t generateAddrFromLine(const char* start, const char* end);
-            static bool isValidHexAddr(const char* start, const char* end);
-            size_t findCharInLine(const char* start, const char* end, const char chr);
-            void addAddrToList(const char* start, const char* end, size_t lineInd);
+            
         public:
             bool breakpointsEnabled = true;
 
@@ -55,8 +47,7 @@ namespace ABB{
                 ImVec4 srcCodeText;
             };
             static SyntaxColors syntaxColors;
-            static constexpr uint16_t Addrs_notAnAddr = -1;
-            static constexpr uint16_t Addrs_symbolLabel = -2;
+            
 
             bool showScollBarHints = true;
             bool showScollBarHeat = true;
@@ -65,13 +56,9 @@ namespace ABB{
 
             void loadSrcFile(const char* path);
             void generateDisasmFile(const A32u4::Flash* data);
-            size_t getLineIndFromAddr(uint16_t Addr);
             void drawHeader();
             void drawFile(const std::string& winName, uint16_t PCAddr);
             void scrollToLine(size_t line, bool select = false);
-            bool isFileEmpty() const;
-            size_t numLines() const;
-            bool isSelfDisassembled() const;
 
             void setSymbolTable(const SymbolTable* table);
             void setMcu(A32u4::ATmega32u4* mcuPtr);

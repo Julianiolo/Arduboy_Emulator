@@ -22,6 +22,8 @@ namespace ABB {
 		Texture& getTex();
 		Rectangle getTexSrcRect();
 		bool getPixelOfImage(uint8_t x, uint8_t y);
+
+		uint64_t lastWinFocused = -1;
 	public:
 
 		DisplayBackend(AB::Display* display);
@@ -30,6 +32,8 @@ namespace ABB {
 		void update();
 		
 		void draw(const ImVec2& size);
+
+		bool isWinFocused() const;
 	};
 }
 
