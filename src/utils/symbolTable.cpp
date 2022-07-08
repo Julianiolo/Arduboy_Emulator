@@ -30,13 +30,13 @@ void ABB::utils::SymbolTable::Symbol::draw(symb_size_t addr, const uint8_t* data
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
 	if (hasDemangledName) {
-		ImGui::TextColored(col, demangled.c_str());
+		ImGuiExt::TextColored(col, demangled.c_str());
 		ImGui::SameLine();
 		ImGui::TextUnformatted(": ");
 		if(demangled.size() < 40) // only put name in same line if it isnt already super long
 			ImGui::SameLine();
 	}
-	ImGui::TextColored(col, name.c_str());
+	ImGuiExt::TextColored(col, name.c_str());
 
 	ImGui::PopStyleVar();
 
@@ -60,14 +60,14 @@ void ABB::utils::SymbolTable::Symbol::draw(symb_size_t addr, const uint8_t* data
 
 			ImGui::TextUnformatted("Value:");
 			ImGui::TableNextColumn();
-			ImGui::Text("%x", value);
+			ImGui::Text("%" PRIx64, value);
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
 			ImGui::TextUnformatted("Size:");
 			ImGui::TableNextColumn();
-			ImGui::Text("%d", size);
+			ImGui::Text("%" PRId64, size);
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
@@ -246,11 +246,10 @@ ABB::utils::SymbolTable::SymbolTable() {
 	init();
 }
 void ABB::utils::SymbolTable::init() {
-	const char* path = "./resources/device/regSymbs.txt";
-	bool success = false;
-	std::string fileStr = StringUtils::loadFileIntoString(path, &success);
-	if (!success) { // loading didnt work
-		LogBackend::logf(LogBackend::LogLevel_Error, "Cannot Open device symbol table dump File: %s", path);
+	const char* path = "resources/device/regSymbs.txt";
+	bool success = true;
+	std::string fileStr = StringUtils::loadFileIntoString(path, &success); // (std::string("Cannot Open device symbol table dump File: ") + path).c_str()
+	if (!success) // loading didnt work
 		return;
 	}
 
@@ -335,6 +334,17 @@ void ABB::utils::SymbolTable::setupConnections() {
 		ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
 		symbol.col.w = col.w;
 	}
+}
+bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
+	bool success = true;
+	std::string fileStr = StringUtils::loadFileIntoString(path, &success); //(std::string("Cannot Open symbol table dump File: ") + path).c_str()
+	if (!success) // loading didnt work
+		return false;
+
+	return loadFromDumpString(fileStr.c_str(), fileStr.size());
+}
+bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
+	parseList(&symbolStorage,str,size);
 
 	std::sort(symbolStorage.begin(), symbolStorage.end());
 
@@ -554,7 +564,7 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 	const utils::SymbolTable::Symbol* symbol = getSymbolByValue(Addr);
 	if (symbol) {
 		ImGui::SameLine();
-		ImGui::TextColored(symbol->col, symbol->demangled.c_str());
+		ImGuiExt::TextColored(symbol->col, symbol->demangled.c_str());
 	}
 
 	ImGui::EndGroup();

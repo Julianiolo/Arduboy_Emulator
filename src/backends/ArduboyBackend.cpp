@@ -21,6 +21,9 @@ bool ABB::ArduboyBackend::isWinFocused() {
 }
 
 void ABB::ArduboyBackend::update() {
+	if(!ab.mcu.flash.isProgramLoaded())
+		return;
+
 	ab.buttonState = 0;
 	if (isWinFocused()) {
 		ab.buttonState |= IsKeyDown(KEY_LEFT)  << Arduboy::Button_Left_Bit;

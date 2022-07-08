@@ -1,4 +1,5 @@
 #include "LogBackend.h"
+#include "../Extensions/imguiExt.h"
 
 ABB::LogBackend::LogBackend(const char* winName, bool* open) : winName(winName), open(open) {
     activate();
@@ -23,7 +24,7 @@ void ABB::LogBackend::draw() {
             while (clipper.Step()) {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
                     auto& line = logs[line_no];
-                    ImGui::TextColored(logColors[line.first], line.second.c_str());
+                    ImGuiExt::TextColored(logColors[line.first], line.second.c_str());
                 }
             }
             clipper.End();
