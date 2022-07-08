@@ -37,7 +37,7 @@ int main(void) {
 }
 
 void setup() {
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
+    SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );
     InitWindow(1200, 800, "ABemu");
 
     SetWindowResizeDrawCallback(draw);
@@ -72,6 +72,10 @@ void setup() {
 
 #elif 0
     abb.ab.load(ROOTDIR "resources/games/ardynia.hex");
+#elif 1
+    abb.loadFromELFFile(ROOTDIR "resources/games/Hollow/hollow.ino.elf");
+    //abb.ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
+    StringUtils::writeBytesToFile(abb.ab.mcu.flash.getData(), abb.ab.mcu.flash.size(), "hex2.bin");
 #elif 1
 //#define GAME_NAME "almostPong"
 //#define GAME_NAME "PixelPortal"

@@ -13,3 +13,5 @@
 *.asm
 *.hex
 *.elf
+*.bin
+*.7z

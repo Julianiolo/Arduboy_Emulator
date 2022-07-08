@@ -11,6 +11,7 @@
 #include "mcuInfoBackend.h"
 #include "AnalyticsBackend.h"
 #include "../utils/symbolTable.h"
+#include "../utils/elfReader.h"
 
 namespace ABB {
 	class ArduboyBackend {
@@ -49,6 +50,9 @@ namespace ABB {
 		void resetMachine();
 
 		void buildDefaultLayout();
+
+		void loadFromELF(const uint8_t* data, size_t dataLen);
+		void loadFromELFFile(const char* path);
 	};
 }
 
