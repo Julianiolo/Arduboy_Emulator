@@ -249,7 +249,7 @@ void ABB::utils::SymbolTable::init() {
 	const char* path = "resources/device/regSymbs.txt";
 	bool success = true;
 	std::string fileStr = StringUtils::loadFileIntoString(path, &success); // (std::string("Cannot Open device symbol table dump File: ") + path).c_str()
-	if (!success) // loading didnt work
+	if (!success) {// loading didnt work
 		return;
 	}
 
@@ -334,17 +334,6 @@ void ABB::utils::SymbolTable::setupConnections() {
 		ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
 		symbol.col.w = col.w;
 	}
-}
-bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
-	bool success = true;
-	std::string fileStr = StringUtils::loadFileIntoString(path, &success); //(std::string("Cannot Open symbol table dump File: ") + path).c_str()
-	if (!success) // loading didnt work
-		return false;
-
-	return loadFromDumpString(fileStr.c_str(), fileStr.size());
-}
-bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
-	parseList(&symbolStorage,str,size);
 
 	std::sort(symbolStorage.begin(), symbolStorage.end());
 
@@ -390,7 +379,6 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 		delete[] strs; // dont use delete[] bc theres nothing to delete there
 	}
 }
-
 bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
 	bool success = false;
 	std::string fileStr = StringUtils::loadFileIntoString(path, &success);
@@ -406,7 +394,7 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 	parseList(&symbolStorage,str,size);
 
 	setupConnections();
-	
+
 	doesHaveSymbols = true;
 	return true;
 }
