@@ -244,8 +244,9 @@ ABB::utils::SymbolTable::SymbolTable() {
 }
 void ABB::utils::SymbolTable::init() {
 	const char* path = "resources/device/regSymbs.txt";
-	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open device symbol table dump File: ") + path).c_str());
-	if (fileStr.size() == 0) // loading didnt work
+	bool success = true;
+	std::string fileStr = StringUtils::loadFileIntoString(path, &success); // (std::string("Cannot Open device symbol table dump File: ") + path).c_str()
+	if (!success) // loading didnt work
 		return;
 
 	deviceSpecSymbolStorage.clear();
@@ -328,8 +329,9 @@ void ABB::utils::SymbolTable::parseList(std::vector<Symbol>* vec, const char* st
 }
 
 bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
-	std::string fileStr = StringUtils::loadFileIntoString(path, (std::string("Cannot Open symbol table dump File: ") + path).c_str());
-	if (fileStr.size() == 0) // loading didnt work
+	bool success = true;
+	std::string fileStr = StringUtils::loadFileIntoString(path, &success); //(std::string("Cannot Open symbol table dump File: ") + path).c_str()
+	if (!success) // loading didnt work
 		return false;
 
 	return loadFromDumpString(fileStr.c_str(), fileStr.size());

@@ -377,7 +377,7 @@ void ABB::utils::AsmViewer::drawHeader(){
 
 	if(isSelfDisassembled()){
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Disassembled %d lines", file.disasmData.get()->lines.size());
+		ImGui::Text("Disassembled %d lines", file.getDisasmData()->lines.size());
 		ImGui::SameLine();
 		if(ImGui::Button("Update with analytics data")){
 			file.disassembleBinFileWithAnalytics(&mcu->flash, &mcu->analytics);
@@ -668,7 +668,7 @@ size_t ABB::utils::AsmViewer::numLines() const {
     return fileStrLines.size();
 }
 bool ABB::utils::AsmViewer::isSelfDisassembled() const {
-	return (bool)file.disasmData;
+	return file.getDisasmData() != nullptr;
 }
 
 void ABB::utils::AsmViewer::pushFileStyle(){
