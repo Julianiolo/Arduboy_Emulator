@@ -6,7 +6,11 @@
 
 #include "imgui.h"
 #include <chrono>
-#include <intrin.h> // for __rdtsc()
+#ifdef _WIN32
+	#include <intrin.h> // for __rdtsc()
+#else
+	#include <x86intrin.h>
+#endif
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 
@@ -92,12 +96,14 @@ void ArduEmu::drawMenu() {
 
 		if (ImGuiFD::BeginDialog("GAME")) {
 			if (ImGuiFD::ActionDone()) {
-				std::string path = ImGuiFD::GetSelectionPathString(0);
-				std::string name = ImGuiFD::GetSelectionNameString(0);
+				if(ImGuiFD::SelectionMade()) {
+					std::string path = ImGuiFD::GetSelectionPathString(0);
+					std::string name = ImGuiFD::GetSelectionNameString(0);
 
-				ABB::ArduboyBackend& abb = addEmulator(name.c_str());
-				abb.ab.load(path.c_str());
-				abb.ab.mcu.powerOn();
+					ABB::ArduboyBackend& abb = addEmulator(name.c_str());
+					abb.ab.load(path.c_str());
+					abb.ab.mcu.powerOn();
+				}
 				ImGuiFD::CloseCurrentDialog();
 			}
 
