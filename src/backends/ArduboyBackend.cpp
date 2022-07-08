@@ -4,8 +4,6 @@
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
 
-#include <iostream>
-
 ABB::ArduboyBackend::ArduboyBackend(const char* n) 
 : name(n), devWinName(std::string(n) + "devtools"), displayBackend(&ab.display), debuggerBackend(this, (name + " - Debugger").c_str(), &open, &symbolTable), logBackend((name + " - Log").c_str(), &open),
 	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &open, &symbolTable), analyticsBackend(&ab, name.c_str(), &open, &symbolTable)
@@ -150,4 +148,34 @@ void ABB::ArduboyBackend::drawExecMenu() {
 			ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Analyse;
 	}
 	ImGui::End();
+}
+
+void ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
+	utils::ELF::ELFFile elf = utils::ELF::parseELFFile(data, dataLen);
+
+	symbolTable.loadFromELF(elf);
+
+	size_t textInd = elf.getIndOfSectionWithName(".text");
+	size_t dataInd = elf.getIndOfSectionWithName(".data");
+
+	if (textInd != (size_t)-1 && dataInd != (size_t)-1) {
+		size_t len = elf.sectionContents[textInd].second + elf.sectionContents[dataInd].second;
+		uint8_t* romData = new uint8_t[len];
+		memcpy(romData, &elf.data[0] + elf.sectionContents[textInd].first, elf.sectionContents[textInd].second);
+		memcpy(romData + elf.sectionContents[textInd].second, &elf.data[0] + elf.sectionContents[dataInd].first, elf.sectionContents[dataInd].second);
+
+		ab.mcu.flash.loadFromMemory(romData, len);
+
+		delete[] romData;
+
+		LogBackend::log(LogBackend::LogLevel_DebugOutput, "Successfully loaded Flash content from elf!");
+	}
+	else {
+		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't find required sections for execution: %s %s", textInd == (size_t)-1 ? ".text" : "", dataInd == (size_t)-1 ? ".data" : "");
+	}
+}
+
+void ABB::ArduboyBackend::loadFromELFFile(const char* path) {
+	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path);
+	loadFromELF(&content[0], content.size());
 }

@@ -7,6 +7,8 @@
 
 #include "imgui.h"
 
+#include "elfReader.h"
+
 namespace ABB {
 	namespace utils {
 		class SymbolTable {
@@ -43,7 +45,8 @@ namespace ABB {
 					Flags_FuncFileObj_Normal = 0,
 					Flags_FuncFileObj_Function = 1,
 					Flags_FuncFileObj_File = 2,
-					Flags_FuncFileObj_Obj = 3
+					Flags_FuncFileObj_Obj = 3,
+					Flags_FuncFileObj_Section = 4,
 				};
 
 				struct Section {
@@ -89,9 +92,13 @@ namespace ABB {
 			bool doesHaveSymbols = false;
 
 			Symbol::Flags generateSymbolFlags(const char* str);
-			Symbol::Section* generateSymbolSection(const char* str, const char* strEnd, size_t* sectStrLen = nullptr);
+			Symbol::Section* generateSymbolSection(const char* str, const char* strEnd = 0, size_t* sectStrLen = nullptr);
 			Symbol parseLine(const char* start, const char* end);
 			void parseList(std::vector<Symbol>* vec,const char* str, size_t size = -1);
+
+			void setupConnections();
+
+			void resetAll();
 		public:
 
 			SymbolTable();
@@ -101,6 +108,7 @@ namespace ABB {
 
 			bool loadFromDumpFile(const char* path);
 			bool loadFromDumpString(const char* str, size_t size = -1);
+			bool loadFromELF(const ELF::ELFFile& elf);
 
 			const Symbol::Section* getSection(const std::string& name) const;
 			const Symbol* getSymbolByName(const std::string& name) const;
