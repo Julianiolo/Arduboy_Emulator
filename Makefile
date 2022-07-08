@@ -38,22 +38,18 @@ endif
 CDEPFLAGS=-MMD -MF ${@:.o=.d}
 CDEFS:=$(addprefix -D,$(PLATFORM))
 
-MAKE:=make
-ifeq ($(detected_OS),Windows)
-	MAKE_CMD:=mingw32-make
-	BASH_PREFX:=bash -c 
-endif
+MAKE_CMD?=make
 
 OUT_PATH:=$(OUT_DIR)$(OUT_NAME)
 
-SRC_FILES:=$(shell $(BASH_PREFX)"find $(SRC_DIR) -name '*.cpp'")
+SRC_FILES:=$(shell find $(SRC_DIR) -name '*.cpp')
 OBJ_FILES:=$(addprefix $(OBJ_DIR),${SRC_FILES:.cpp=.o})
 DEP_FILES:=$(patsubst %.o,%.d,$(OBJ_FILES))
 
-DEPENDENCIES_INCLUDE_PATHS:=$(addprefix dependencies/,Arduboy_Emulator_HL/src Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui)
+DEPENDENCIES_INCLUDE_PATHS:=$(addprefix $(ROOT_DIR)dependencies/,Arduboy_Emulator_HL/src Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui ImGuiFD)
 DEPENDENCIES_LIBS_DIR:=$(BUILD_DIR)dependencies/libs
 
-DEP_LIBS:=libraylib.a imgui.a Arduboy_Emulator_HL.a ATmega32u4_Emulator.a
+DEP_LIBS:=libraylib.a imgui.a Arduboy_Emulator_HL.a ATmega32u4_Emulator.a ImGuiFD.a
 DEP_LIBS_PATH:=$(addprefix $(DEPENDENCIES_LIBS_DIR)/,$(DEP_LIBS))
 
 DEP_LIBS_INCLUDE_FLAGS:=$(addprefix -I,$(DEPENDENCIES_INCLUDE_PATHS))
@@ -62,7 +58,7 @@ DEP_LIBS_FLAGS:=$(addprefix -l:,$(DEP_LIBS))
 
 DEP_LIBS_BUILD_DIR:=$(current_dir)$(BUILD_DIR)dependencies/
 
-DEP_LIBS_DEPS:=dependencies/Makefile $(shell $(BASH_PREFX)"find dependencies/ -name '*h' -o -name '*.c' -o -name '*.cpp'")
+DEP_LIBS_DEPS:=dependencies/Makefile $(shell find $(ROOT_DIR)dependencies/ -name '*h' -o -name '*.c' -o -name '*.cpp')
 
 ifeq ($(detected_OS),Windows)
 	EXTRA_FLAGS:=-lopengl32 -lgdi32 -lwinmm -static -static-libgcc -static-libstdc++
@@ -81,16 +77,18 @@ endif
 all: $(OUT_PATH)
 
 $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)depFile.dep $(OBJ_FILES)
-	$(BASH_PREFX)"mkdir -p $(OUT_DIR)"
+	# LOL 
+	mkdir -p $(OUT_DIR)
 	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(DEP_LIBS_DIR_FLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(CDEPFLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
-	$(BASH_PREFX)"mkdir -p $(OUT_DIR)resources"
-	$(BASH_PREFX)"mkdir -p $(OUT_DIR)resources/binutils"
-	$(BASH_PREFX)"mkdir -p $(OUT_DIR)resources/device"
-	$(BASH_PREFX)"cp $(ROOT_DIR)resources/software/avr-c++filt.exe  $(OUT_DIR)resources/binutils/"
-	$(BASH_PREFX)"cp $(ROOT_DIR)resources/device/regSymbs.txt  $(OUT_DIR)resources/device/"
+	mkdir -p $(OUT_DIR)resources
+	mkdir -p $(OUT_DIR)resources/binutils
+	mkdir -p $(OUT_DIR)resources/device
+	cp $(ROOT_DIR)resources/software/avr-c++filt.exe  $(OUT_DIR)resources/binutils/
+	cp $(ROOT_DIR)resources/device/regSymbs.txt  $(OUT_DIR)resources/device/
 
 $(OBJ_DIR)%.o:%.cpp
-	$(BASH_PREFX)"mkdir -p $(dir $@)"
+	# OBJ LOL 
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(CDEFS) $(DEP_LIBS_INCLUDE_FLAGS) -c $< -o $@ $(CDEPFLAGS)
 
 -include $(DEP_FILES)

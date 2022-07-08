@@ -26,11 +26,7 @@ else
 	BUILD_MODE_CFLAGS +=$(RELEASE_OPTIM)
 endif
 
-MAKE_CMD:=make
-ifeq ($(detected_OS),Windows)
-	MAKE_CMD:=mingw32-make
-	BASH_PREFX:=bash -c 
-endif
+MAKE_CMD?=make
 
 ifeq ($(BUILD_DIR),build/)
 	BUILD_DIR:=$(current_dir)$(BUILD_DIR)
@@ -44,7 +40,7 @@ RAYLIB_SRC_DIR:=$(RAYLIB_DIR)src/
 RAYLIB_OUTNAME:=libraylib.a
 RAYLIB_BUILD_DIR:=$(BUILD_DIR)libs/
 RAYLIB_OUTPATH:=$(RAYLIB_BUILD_DIR)$(RAYLIB_OUTNAME)
-RAYLIB_DEPS:=$(shell $(BASH_PREFX)"find $(RAYLIB_SRC_DIR) -name *.*")
+RAYLIB_DEPS:=$(shell find $(RAYLIB_SRC_DIR) -name '*.*')
 
 # imgui:
 IMGUI_DIR:=imgui/
@@ -56,7 +52,7 @@ IMGUI_OBJ_DIR:=$(IMGUI_BUILD_DIR)objs/imgui/
 IMGUI_OUTNAME:=imgui.a
 IMGUI_OUTPATH:=$(IMGUI_BUILD_DIR)$(IMGUI_OUTNAME)
 
-IMGUI_SRC_FILES:=$(shell $(BASH_PREFX)"cd $(IMGUI_SRC_DIR) && find . -maxdepth 1 -name '*.cpp'")
+IMGUI_SRC_FILES:=$(shell cd $(IMGUI_SRC_DIR) && find . -maxdepth 1 -name '*.cpp')
 IMGUI_OBJ_FILES:=$(addprefix $(IMGUI_OBJ_DIR),$(notdir ${IMGUI_SRC_FILES:.cpp=.o}))
 IMGUI_DEP_FILES:=$(patsubst %.o,%.d,$(IMGUI_OBJ_FILES))
 
@@ -70,35 +66,63 @@ ABHL_DEP_DIR:=$(ABHL_DIR)dependencies/
 
 ABHL_OUTNAME:=Arduboy_Emulator_HL.a
 ABHL_OUTPATH:=$(ABHL_BUILD_DIR)$(ABHL_OUTNAME)
-ABHL_DEPS:=$(shell $(BASH_PREFX)"find $(ABHL_SRC_DIR) -name *.*") $(shell $(BASH_PREFX)"find $(ABHL_DEP_DIR) -name *.*")
+ABHL_DEPS:=$(shell find $(ABHL_SRC_DIR) -name '*.*') $(shell find $(ABHL_DEP_DIR) -name '*.*')
+
+# ImGuiFD
+
+IMGUIFD_DIR:=ImGuiFD/
+
+IMGUIFD_BUILD_DIR:=$(BUILD_DIR)libs/
+IMGUIFD_SRC_DIR:=$(IMGUIFD_DIR)
+
+IMGUIFD_INCLUDE_DIRS:=$(addprefix -I,./imgui)
+
+IMGUIFD_OUTNAME:=ImGuiFD.a
+IMGUIFD_OUTPATH:=$(IMGUIFD_BUILD_DIR)$(IMGUIFD_OUTNAME)
+
+IMGUIFD_SRC_FILES:=$(shell cd $(IMGUIFD_SRC_DIR) && find . -maxdepth 1 -name '*.cpp')
+IMGUIFD_OBJ_FILES:=$(addprefix $(IMGUIFD_OBJ_DIR),$(notdir ${IMGUIFD_SRC_FILES:.cpp=.o}))
+IMGUIFD_DEP_FILES:=$(patsubst %.o,%.d,$(IMGUIFD_OBJ_FILES))
 
 # rules:
 
 .PHONY:all clean
 
-all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH)
-	$(BASH_PREFX)"touch $(BUILD_DIR)depFile.dep";
+all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH) $(IMGUIFD_OUTPATH)
+	touch $(BUILD_DIR)depFile.dep
 
 # raylib:
 $(RAYLIB_OUTPATH):$(RAYLIB_DEPS)
-	$(BASH_PREFX)"mkdir -p $(RAYLIB_BUILD_DIR)"
+	mkdir -p $(RAYLIB_BUILD_DIR)
 	$(MAKE_CMD) -C "$(RAYLIB_DIR)/src" CC=gcc PLATFORM=PLATFORM_DESKTOP RAYLIB_BUILD_MODE=$(BUILD_MODE) RAYLIB_RELEASE_PATH="$(RAYLIB_BUILD_DIR)"
 
 # imgui:
 $(IMGUI_OUTPATH):$(IMGUI_OBJ_FILES)
-	$(BASH_PREFX)"mkdir -p $(IMGUI_BUILD_DIR)"
+	mkdir -p $(IMGUI_BUILD_DIR)
 	ar rvs $@ $(IMGUI_OBJ_FILES)
 
 -include $(IMGUI_DEP_FILES)
 
 $(IMGUI_OBJ_DIR)%.o: $(IMGUI_SRC_DIR)%.cpp
-	$(BASH_PREFX)"mkdir -p $(dir $@)"
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) -c $< -o $@ $(CDEPFLAGS)
 
 # Arduboy_Emulator_HL
 $(ABHL_OUTPATH):$(ABHL_DEPS)
-	$(BASH_PREFX)"mkdir -p $(ABHL_BUILD_DIR)"
+	mkdir -p $(ABHL_BUILD_DIR)
 	$(MAKE_CMD) -C "$(ABHL_DIR)" BUILD_MODE=$(BUILD_MODE) BUILD_DIR="$(ABHL_BUILD_DIR)" RELEASE_OPTIM=$(RELEASE_OPTIM)
+
+
+# ImGuiFD:
+$(IMGUIFD_OUTPATH):$(IMGUIFD_OBJ_FILES)
+	mkdir -p $(IMGUIFD_BUILD_DIR)
+	ar rvs $@ $(IMGUIFD_OBJ_FILES)
+
+-include $(IMGUIFD_DEP_FILES)
+
+$(IMGUIFD_OBJ_DIR)%.o: $(IMGUIFD_SRC_DIR)%.cpp
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(IMGUIFD_INCLUDE_DIRS) -c $< -o $@ $(CDEPFLAGS)
 
 clean:
 	$(MAKE_CMD) -C "$(RAYLIB_DIR)/src" clean
