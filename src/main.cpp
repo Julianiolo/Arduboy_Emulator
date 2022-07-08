@@ -53,6 +53,7 @@ void setup() {
     
     ArduEmu::init();
 
+#if 0
     ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
@@ -90,6 +91,7 @@ void setup() {
     */
 
     abb.ab.mcu.powerOn();
+#endif
 }
 void draw() {
     BeginDrawing();

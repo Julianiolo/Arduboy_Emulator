@@ -17,6 +17,9 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n)
 }
 
 void ABB::ArduboyBackend::update() {
+	if(!ab.mcu.flash.isProgramLoaded())
+		return;
+
 	ab.buttonState = 0;
 	ab.buttonState |= IsKeyDown(KEY_LEFT) << Arduboy::Button_Left_Bit;
 	ab.buttonState |= IsKeyDown(KEY_RIGHT) << Arduboy::Button_Right_Bit;

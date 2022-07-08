@@ -8,6 +8,8 @@
 #include "utils/StringUtils.h"
 #include "components/Disassembler.h"
 
+#include <inttypes.h> // for printf
+
 #include <iostream>
 
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
@@ -377,7 +379,7 @@ void ABB::utils::AsmViewer::drawHeader(){
 
 	if(isSelfDisassembled()){
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Disassembled %d lines", file.getDisasmData()->lines.size());
+		ImGui::Text("Disassembled %" PRId64 " lines", file.getDisasmData()->lines.size());
 		ImGui::SameLine();
 		if(ImGui::Button("Update with analytics data")){
 			file.disassembleBinFileWithAnalytics(&mcu->flash, &mcu->analytics);
