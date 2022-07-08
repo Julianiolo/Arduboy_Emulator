@@ -30,13 +30,13 @@ void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) con
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
 	if (hasDemangledName) {
-		ImGui::TextColored(col, demangled.c_str());
+		ImGuiExt::TextColored(col, demangled.c_str());
 		ImGui::SameLine();
 		ImGui::TextUnformatted(": ");
 		if(demangled.size() < 40) // only put name in same line if it isnt already super long
 			ImGui::SameLine();
 	}
-	ImGui::TextColored(col, name.c_str());
+	ImGuiExt::TextColored(col, name.c_str());
 
 	ImGui::PopStyleVar();
 
@@ -60,14 +60,14 @@ void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) con
 
 			ImGui::TextUnformatted("Value:");
 			ImGui::TableNextColumn();
-			ImGui::Text("%x", value);
+			ImGui::Text("%" PRIx64, value);
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
 			ImGui::TextUnformatted("Size:");
 			ImGui::TableNextColumn();
-			ImGui::Text("%d", size);
+			ImGui::Text("%" PRId64, size);
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
@@ -461,7 +461,7 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 	const utils::SymbolTable::Symbol* symbol = getSymbolByValue(Addr);
 	if (symbol) {
 		ImGui::SameLine();
-		ImGui::TextColored(symbol->col, symbol->demangled.c_str());
+		ImGuiExt::TextColored(symbol->col, symbol->demangled.c_str());
 	}
 
 	ImGui::EndGroup();

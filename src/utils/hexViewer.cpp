@@ -13,7 +13,7 @@ ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = {
 	{1,1,0,1}, {0.7f,0.7f,0.9f,1}, {0.5f,0.6f,0.5f,1} 
 };
 
-ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu) : data(data), dataLen(dataLen), mcu(mcu) {
+ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu) : mcu(mcu), data(data), dataLen(dataLen) {
 
 }
 

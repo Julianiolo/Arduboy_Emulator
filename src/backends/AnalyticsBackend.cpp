@@ -10,7 +10,7 @@ ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, const 
 }
 
 void ABB::AnalyticsBackend::update(){
-    if(!ab->mcu.debugger.isHalted()){
+    if(!(ab->mcu.debugger.isHalted() || !ab->mcu.flash.isProgramLoaded())){
         uint16_t SP = ab->mcu.analytics.maxSP;
         ab->mcu.analytics.maxSP = 0xFFFF;
         StackSizeBuf.add(A32u4::DataSpace::Consts::data_size-1-SP);

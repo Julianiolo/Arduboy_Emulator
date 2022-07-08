@@ -14,8 +14,13 @@ BUILD_DIR:=$(ROOT_DIR)build/make/$(BUILD_MODE)/
 OBJ_DIR:=$(BUILD_DIR)objs/
 DEPENDENCIES_DIR:=$(ROOT_DIR)dependencies/
 
-OUT_NAME:=ABemu.exe
+
+OUT_NAME:=ABemu
 OUT_DIR:=$(BUILD_DIR)ABemu/
+
+ifeq ($(OS),Windows_NT)
+	OUT_NAME+=.exe
+endif
 
 # you dont need to worry about this stuff:
 
