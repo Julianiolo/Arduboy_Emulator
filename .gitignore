@@ -9,3 +9,8 @@
 *.vcxproj.user
 
 *.ini
+*.asm
+*.hex
+*.elf
+*.bin
+*.7z

@@ -22,14 +22,19 @@ namespace ABB {
         };
 
         std::string winName;
+        bool* open;
         ImVec4 logColors[A32u4::ATmega32u4::LogLevel_COUNT];
 
-        LogBackend(const char* winName);
+        LogBackend(const char* winName, bool* open);
 
         void draw();
         void clear();
+
+        const char* getWinName() const;
     private:
         static LogBackend* activeLB;
+
+        bool winFocused = false;
     public:
         void activate();
         static void log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg);
@@ -37,6 +42,8 @@ namespace ABB {
         static void logf(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, Args ... args) {
             log(logLevel, StringUtils::format(msg, args ...).get());
         }
+
+        bool isWinFocused() const;
     };
 }
 

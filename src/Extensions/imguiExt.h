@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "raylib.h"
+#include <string>
 
 namespace ImGuiExt {
 	void TextColored(const ImVec4& col, const char* text_start, const char* text_end = NULL);
@@ -24,6 +25,8 @@ namespace ImGuiExt {
 
 	void Rect(const char* desc_id, const ImVec4& col, ImVec2 size = {0,0});
 	void Rect(ImGuiID id, const ImVec4& col, ImVec2 size = {0,0});
+
+	bool InputTextString(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags = 0, const ImVec2& size = { 0,0 });
 }
 
 #endif

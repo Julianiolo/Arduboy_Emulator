@@ -23,6 +23,10 @@ bool ABB::utils::HexViewer::isSelected(size_t addr) const {
 void ABB::utils::HexViewer::setSymbolList(SymbolTable::SymbolListPtr list) {
 	symbolList = list;
 }
+void ABB::utils::HexViewer::setEditCallback(SetValueCallB func, void* userData) {
+	setValueCallB = func;
+	setValueUserData = userData;
+}
 
 void ABB::utils::HexViewer::sameFrame() {
 	newFrame = false;
@@ -35,10 +39,10 @@ ImRect ABB::utils::HexViewer::getNextByteRect(const ImVec2& charSize) const {
 		{ cursorScreenPos.x + charSize.x * 3, cursorScreenPos.y + charSize.y }
 	);
 }
-bool ABB::utils::HexViewer::newSymbol(size_t addr, size_t* symbolPtr, size_t nextSymbolAddrEnd) {
+bool ABB::utils::HexViewer::newSymbol(SymbolTable::symb_size_t addr, size_t* symbolPtr, SymbolTable::symb_size_t nextSymbolAddrEnd) {
 	if (addr >= nextSymbolAddrEnd) {
-		if (*symbolPtr == 0 && *symbolPtr + 1 < symbolList->size() && addr > symbolList->operator[](*symbolPtr+1)->addrEnd()) {
-			size_t from = *symbolPtr;
+		if (*symbolPtr == 0 && *symbolPtr + 1 < symbolList->size() && addr > symbolList->operator[]((size_t)( *symbolPtr + 1 ))->addrEnd()) {
+			size_t from = (size_t)*symbolPtr;
 			size_t to = symbolList->size() - 1;
 
 			while (from != to) {
@@ -114,9 +118,9 @@ size_t ABB::utils::HexViewer::getBytesPerRow(float widthAvail, const ImVec2& cha
 		const float texPixWidthRel = texPixWidth / charSize.x;
 
 		if(!settings.showAscii)
-			bytesPerRow = (numCharsFit-1)     /  (3 + texPixWidthRel);
+			bytesPerRow = (size_t)((numCharsFit-1)     /  (3 + texPixWidthRel));
 		else 
-			bytesPerRow = (numCharsFit-1 - 2) /  (4 + texPixWidthRel);
+			bytesPerRow = (size_t)((numCharsFit-1 - 2) /  (4 + texPixWidthRel));
 	}
 
 	if (bytesPerRow <= 0)
@@ -168,7 +172,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		}
 	}
 
-	size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
+	SymbolTable::symb_size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
 	size_t symbolPtr = 0;
 	if (settings.showSymbols && symbolList) {
 		if (symbolList->size() > 0) {
@@ -268,6 +272,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 					}
 				}
 
+				// highlight address stack indicators (indicators that bytes in ram are addresses pushed onto stack by instructions e.g. "call")
 				if (mcu != nullptr && addrOff >= A32u4::DataSpace::Consts::ISRAM_start && mcu->debugger.getAddressStackIndicators()[addrOff - A32u4::DataSpace::Consts::ISRAM_start]) {
 					uint8_t val = mcu->debugger.getAddressStackIndicators()[addrOff - A32u4::DataSpace::Consts::ISRAM_start];
 					ImVec2 min = nextItemRect.Min, max = nextItemRect.Max;
@@ -303,11 +308,17 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 					drawList->AddRect( nextItemRect.Min, nextItemRect.Max, IM_COL32(255,0,0,255) );
 				}
 
-				if (ImGui::IsItemClicked()) {
-					isSelecting = true;
-					selectStart = addrOff;
-					selectEnd = addrOff + 1;
+				if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::GetIO().KeyShift) {
+						isSelecting = true;
+						selectStart = addrOff;
+						selectEnd = addrOff + 1;
 				}
+				else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+					if (setValueCallB != nullptr) {
+						openEditPopup((at_addr_t)addrOff);
+					}
+				}
+
 				if (ImGui::IsItemHovered()) {
 					if (isSelecting) {
 						selectEnd = addrOff + 1;
@@ -315,7 +326,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 					else {
 						currHoveredAddr = hoveredAddr = addrOff;
 
-						if (symbol && ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+						if (symbol && ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::GetIO().KeyShift) {
 							ImGui::OpenPopup("symbolHoverInfoPopup");
 							
 							popupSymbol = symbol;
@@ -393,6 +404,8 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		ImGui::EndPopup();
 	}
 
+	drawEditPopup();
+
 	// add missing item spacing
 	float itemSpacingAmtV = ImGui::GetStyle().ItemSpacing.y;
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + itemSpacingAmtV);
@@ -400,7 +413,6 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 	hoveredAddr = currHoveredAddr;
 
 	newFrame = true;
-	newHighlights = true;
 }
 
 void ABB::utils::HexViewer::drawSettings() {
@@ -422,6 +434,178 @@ void ABB::utils::HexViewer::drawSettings() {
 	const char* labels[] = { "LowerCase", "UpperCase" };
 	settings.upperCaseHex = ImGuiExt::SelectSwitch(labels, 2, settings.upperCaseHex);
 	ImGui::Unindent();
+}
+void ABB::utils::HexViewer::openEditPopup(at_addr_t addr) {
+	ImGui::OpenPopup("hexViewEdit");
+	editAddr = addr;
+	editStr = "";
+}
+void ABB::utils::HexViewer::editPopupError(const char* msg) {
+	ImGui::OpenPopup("hexViewEditError");
+	editErrorStr = msg;
+}
+void ABB::utils::HexViewer::drawEditPopup() {
+	if (!setValueCallB)
+		return;
+
+
+	if (ImGui::BeginPopup("hexViewEditError")) {
+		ImGui::TextUnformatted(editErrorStr.c_str());
+		if (ImGui::Button("OK", { ImGui::GetContentRegionAvail().x, 0 })) {
+			editErrorStr = "";
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+	
+	if (ImGui::BeginPopup("hexViewEdit")) {
+		ImGui::Text("Edit Value at 0x%04x", editAddr);
+		ImGui::Separator();
+
+		const char* lables[] = {"8bit","16bit","32bit","64bit","float","double","string","byte stream"};
+		if (ImGui::BeginCombo("Edit as", lables[editType])) {
+			for (int i = 0; i < EditType_COUNT; i++)
+				if (ImGui::Selectable(lables[i], i == editType))
+					editType = i;
+			ImGui::EndCombo();
+		}
+
+		// edit data type is not float or double
+		bool useInteger = editType == EditType_8bit || editType == EditType_16bit || editType == EditType_32bit || editType == EditType_64bit;	
+
+		bool useSigned = (editBase == EditBase_10) && editSigned;
+		const ImGuiDataType types[] = {
+			useSigned ? ImGuiDataType_S8 : ImGuiDataType_U8,
+			useSigned ? ImGuiDataType_S16 : ImGuiDataType_U16,
+			useSigned ? ImGuiDataType_S32 : ImGuiDataType_U32,
+			useSigned ? ImGuiDataType_S64 : ImGuiDataType_U64,
+			ImGuiDataType_Float, ImGuiDataType_Double
+		};
+		
+
+		// select Base
+		const char* format = 0;
+		if (useInteger) {
+			ImGui::PushItemWidth(70);
+			const char* lablesBase[] = {"Bin", "Dec", "Hex"};
+			if (ImGui::BeginCombo("Base", lablesBase[editBase])) {
+				for (int i = 0; i < EditBase_COUNT; i++)
+					if (ImGui::Selectable(lablesBase[i], i == editBase))
+						editBase = i;
+				ImGui::EndCombo();
+			}
+			ImGui::PopItemWidth();
+
+			const char* formatsBase16[] = {
+				"%02x", "%04x", "%08x", "%016x"
+			};
+			switch (editBase) {
+				case EditBase_2:
+				case EditBase_10:
+					format = 0;
+					break;
+				case EditBase_16:
+					format = formatsBase16[editType];
+					break;
+			}
+		}
+
+		if (editType != EditType_8bit) {
+			ImGui::SameLine();
+			ImGui::PushItemWidth(100);
+			const char* lablesEndian[] = {"Little", "Big"};
+			if (ImGui::BeginCombo("Endian", lablesEndian[editEndian])) {
+				for (int i = 0; i < EditEndian_COUNT; i++)
+					if (ImGui::Selectable(lablesEndian[i], i == editEndian))
+						editEndian = i;
+				ImGui::EndCombo();
+			}
+			ImGui::PopItemWidth();
+		}
+
+		// only use Signed Box when editing in base 10 and editing an integer
+		if (editBase == EditBase_10 && useInteger) {
+			ImGui::SameLine();
+			ImGui::Checkbox("Signed", &editSigned);
+		}
+
+
+		if (editType != EditType_string && editType != EditType_bytestream) {
+			ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+			if (editBase == EditBase_16)
+				flags |= ImGuiInputTextFlags_CharsHexadecimal;
+			ImGui::InputScalar("hexViewEditInput", types[editType], &editValTemp, 0, 0, format, flags);
+		}
+		else {
+			ImGuiExt::InputTextString("hexViewEditInputStr", 0, &editStr);
+		}
+		
+
+		if (ImGui::Button("OK")) {
+			uint16_t bytesToCopy = 0;
+			switch (editType) {
+				case EditType_8bit:
+					setValueCallB((at_addr_t)editAddr, (reg_t)editValTemp, setValueUserData);
+					break;
+
+				case EditType_16bit:
+					bytesToCopy = 2;
+					goto edit_cpy_tmpval;
+				case EditType_32bit:
+					bytesToCopy = 4;
+					goto edit_cpy_tmpval;
+				case EditType_64bit:
+					bytesToCopy = 8;
+					goto edit_cpy_tmpval;
+
+				case EditType_float:
+					editValTemp = StringUtils::stof(editStr.c_str(), editStr.c_str() + editStr.size(), 8, 23);
+					bytesToCopy = 4;
+					goto edit_cpy_tmpval;
+				case EditType_double:
+					editValTemp = StringUtils::stof(editStr.c_str(), editStr.c_str() + editStr.size(), 11, 52);
+					bytesToCopy = 8;
+					goto edit_cpy_tmpval;
+
+				edit_cpy_tmpval:
+					for (at_addr_t i = 0; i < bytesToCopy; i++) {
+						at_addr_t offset = editEndian == EditEndian_Big ? (at_addr_t)i : (bytesToCopy - (at_addr_t)i - 1);
+						setValueCallB((at_addr_t)editAddr+offset, (reg_t)((editValTemp>>(i*8)) & 0xFF), setValueUserData);
+					}
+					break;
+
+				case EditType_string:
+					for (size_t i = 0; i < editStr.length(); i++) {
+						at_addr_t offset = editEndian == EditEndian_Big ? (at_addr_t)i : (bytesToCopy - (at_addr_t)i - 1);
+						setValueCallB((at_addr_t)editAddr+offset, (reg_t)editStr[i], setValueUserData);
+					}
+					break;
+
+				case EditType_bytestream:
+					if (editStr.size() % 2 != 1) {
+						editPopupError("bytestream invalid, must be of even length!");
+						break;
+					}
+					for (size_t i = 0; i < editStr.length()/2; i++) {
+						at_addr_t offset = editEndian == EditEndian_Big ? (at_addr_t)i : (bytesToCopy - (at_addr_t)i - 1);
+						reg_t byte = StringUtils::hexStrToUIntLen<reg_t>(editStr.c_str() + i * 2, 2);
+						setValueCallB((at_addr_t)editAddr+offset, byte, setValueUserData);
+					}
+					break;
+
+			}
+
+			editValTemp = 0;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if(ImGui::Button("Cancel")) {
+			ImGui::CloseCurrentPopup();
+		}
+
+
+		ImGui::EndPopup();
+	}
 }
 
 /*

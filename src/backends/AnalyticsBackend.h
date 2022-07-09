@@ -9,18 +9,28 @@ namespace ABB{
     class AnalyticsBackend{
     private:
         Arduboy* ab = nullptr;
+        bool* open;
         const utils::SymbolTable* symbolTable;
-        std::string name;
+        
         RingBuffer<uint16_t> StackSizeBuf;
         RingBuffer<uint64_t> sleepCycsBuf;
+
+        bool winFocused = false;
     public:
-        AnalyticsBackend(Arduboy* ab, const char* winName, const utils::SymbolTable* symbolTable);
+        const std::string winName;
+
+        AnalyticsBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable);
 
         void update();
         void draw();
+
+        const char* getWinName() const;
+
         void reset();
         static float getStackSizeBuf(void* data, int ind);
         static float getSleepCycsBuf(void* data, int ind);
+
+        bool isWinFocused() const;
     };
 }
 
