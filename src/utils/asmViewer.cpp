@@ -1,7 +1,10 @@
 #include "asmViewer.h"
 
+
+
 #include <fstream>
 #include <streambuf>
+#include <iostream>
 
 #include "../backends/LogBackend.h"
 #include "../Extensions/imguiExt.h"
@@ -20,13 +23,13 @@ ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 };
 
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
-	auto lineAddr = fileStrAddrs[line_no];
+	auto lineAddr = file.addrs[line_no];
 
 	if (breakpointsEnabled) {
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 		auto linePC = lineAddr / 2;
-		bool isAddr = lineAddr != Addrs_notAnAddr && lineAddr != Addrs_symbolLabel;
+		bool isAddr = lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel;
 		bool hasBreakpoint = isAddr && mcu->debugger.getBreakpoints()[linePC];
 
 		float lineHeight = lineRect.GetHeight();
@@ -64,10 +67,10 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	
 	ImGui::BeginGroup();
 
-	if(showLineHeat && lineAddr != Addrs_notAnAddr && lineAddr != Addrs_symbolLabel){
+	if(showLineHeat && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel){
 		uint64_t cnt = mcu->analytics.getPCCnt(lineAddr);
 		if (cnt > 0) {
-			float intensity = std::log(cnt) / 15;
+			float intensity = (float)std::log(cnt) / 15;
 			if(intensity < 0.05f)
 				intensity = 0.1f;
 			if(intensity > 1)
@@ -89,8 +92,8 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 		);
 	}
 	
-	if(lineAddr != Addrs_notAnAddr){
-		if (lineAddr != Addrs_symbolLabel) {
+	if(lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr){
+		if (lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel) {
 			constexpr size_t addrEnd = 8;
 			constexpr size_t addrEndExt = 10;
 
@@ -107,7 +110,7 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 				drawData(lineStart, lineEnd);
 			}
 
-			if(fileStrAddrs[line_no] == PCAddr){
+			if(file.addrs[line_no] == PCAddr){
 				ImDrawList* drawList = ImGui::GetWindowDrawList();
 				drawList->AddRect(
 					lineRect.Min, lineRect.Max,
@@ -136,7 +139,7 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 	constexpr size_t instBytesStart = 10;
 	constexpr size_t instBytesEnd = 21;
 	constexpr size_t instNameStart = 23;
-	const size_t paramTabOff = findCharInLine(lineStart + instNameStart, lineEnd, '\t');
+	const size_t paramTabOff = StringUtils::findCharInStr('\t', lineStart + instNameStart, lineEnd);
 	const bool hasParams = paramTabOff != (size_t)-1;
 	const size_t instNameEnd = hasParams ? (instNameStart + paramTabOff) : (lineEnd-lineStart);
 	const size_t paramStart = instNameEnd;
@@ -161,7 +164,7 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 	if (hasParams) {
 		ImGui::SameLine();
 
-		const size_t commentCharPos = findCharInLine(lineStart+paramStart, lineEnd, ';');
+		const size_t commentCharPos = StringUtils::findCharInStr(';', lineStart+paramStart, lineEnd);
 		if(commentCharPos == (size_t)-1){
 			// parameters
 			drawInstParams(lineStart+paramStart, lineEnd);
@@ -171,8 +174,8 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 			drawInstParams(lineStart+paramStart, lineStart+paramStart+commentCharPos);
 			ImGui::SameLine();
 
-			const size_t symbolPos = findCharInLine(lineStart + paramStart + commentCharPos, lineEnd, '<');
-			const size_t symbolEndPos = findCharInLine(lineStart + paramStart + commentCharPos, lineEnd, '>');
+			const size_t symbolPos = StringUtils::findCharInStr('<', lineStart + paramStart + commentCharPos, lineEnd);
+			const size_t symbolEndPos = StringUtils::findCharInStr('>', lineStart + paramStart + commentCharPos, lineEnd);
 			if (symbolPos == (size_t)-1 || symbolEndPos == (size_t)-1) {
 				// comment
 				ImGuiExt::TextColored(syntaxColors.asmComment, lineStart+paramStart+commentCharPos, lineEnd);
@@ -208,7 +211,7 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 
 		size_t nextParamOff = 0;
 		for (size_t i = 0; i < paramCnt; i++) {
-			size_t comma = findCharInLine(start+nextParamOff, end, ',');
+			size_t comma = StringUtils::findCharInStr(',', start+nextParamOff, end);
 			const char* paramEnd = (comma != (size_t)-1) ? start + nextParamOff + comma + 1 : end;
 			ImGuiExt::TextColored(syntaxColors.instParams, start + nextParamOff, paramEnd);
 
@@ -261,7 +264,7 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 }
 void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char* lineEnd, const size_t symbolStartOff, const size_t symbolEndOff, bool* hasAlreadyClicked) {
 	const size_t symbolNameStartOff = symbolStartOff+1;
-	const size_t plusPos = findCharInLine(lineStart + symbolStartOff, lineEnd, '+');
+	const size_t plusPos = StringUtils::findCharInStr('+', lineStart + symbolStartOff, lineEnd);
 	const size_t symbolNameEndOff = (plusPos!=(size_t)-1) ? (symbolStartOff + plusPos) : (symbolEndOff-1);
 	const bool hasOffset = symbolNameEndOff != symbolEndOff - 1;
 	
@@ -321,16 +324,16 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 			std::string symbolName = std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff);
 			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
 			if (symbol) {
-				if (fileStrLabels.find(symbol->value) != fileStrLabels.end()) {
+				if (file.labels.find((at_addr_t)symbol->value) != file.labels.end()) {
 					if (io.KeyShift && hasOffset) {
 						size_t off = (size_t)StringUtils::numStrToUInt<size_t>(lineStart + symbolNameEndOff + 1, lineStart + symbolEndOff - 1);
 						if(off != (size_t)-1)
-							selectedLine = getLineIndFromAddr(symbol->value+off);
+							selectedLine = file.getLineIndFromAddr((at_addr_t)( symbol->value + off ));
 						else
-							selectedLine = fileStrLabels.at(symbol->value);
+							selectedLine = file.labels.at((at_addr_t)symbol->value);
 					}
 					else {
-						selectedLine = fileStrLabels.at(symbol->value);
+						selectedLine = file.labels.at((at_addr_t)symbol->value);
 					}
 					
 					scrollToLine(selectedLine);
@@ -377,14 +380,12 @@ void ABB::utils::AsmViewer::drawHeader(){
 	if(file.content.size() == 0)
 		return;
 
-	if(isSelfDisassembled()){
+	if(file.isSelfDisassembled()){
 		ImGui::AlignTextToFramePadding();
 		ImGui::Text("Disassembled %" PRId64 " lines", file.getDisasmData()->lines.size());
 		ImGui::SameLine();
 		if(ImGui::Button("Update with analytics data")){
 			file.disassembleBinFileWithAnalytics(&mcu->flash, &mcu->analytics);
-			StringUtils::writeStringToFile(file.content, "disasm2.asm");
-			processSrcFile();
 		}
 	}
 }
@@ -392,72 +393,77 @@ void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr
 	if(file.content.size() == 0)
 		return;
 
-	drawHeader();
+	if (ImGui::BeginChild("asmViewer_box")) {
+		drawHeader();
 
-	pushFileStyle();
+		pushFileStyle();
 
-	if(ImGui::BeginChild((winName+" srcWin").c_str(), {0,0},true)){
-		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-			selectedLine = -1;
+		if(ImGui::BeginChild((winName+" srcWin").c_str(), {0,0},true)){
+			if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+				selectedLine = -1;
 
-		if (showScollBarHints)
-			decorateScrollBar(PCAddr);
+			if (showScollBarHints)
+				decorateScrollBar(PCAddr);
 
-		bool hasAlreadyClicked = false;
+			bool hasAlreadyClicked = false;
 
-		ImGuiListClipper clipper;
-		clipper.Begin(fileStrLines.size());
-		while (clipper.Step()) {
-			const float contentWidth = ImGui::GetContentRegionAvail().x;
-			const ImVec2 charSize = ImGui::CalcTextSize(" ");
-			
-			for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-				const char* lineStart = file.content.c_str() + fileStrLines[line_no];
-				const char* lineEnd;
-				if(((size_t)line_no+1) < fileStrLines.size())
-					lineEnd = file.content.c_str() + fileStrLines[line_no+1];
-				else
-					lineEnd = file.content.c_str() + file.content.size();
+			ImGuiListClipper clipper;
+			clipper.Begin(file.lines.size());
+			while (clipper.Step()) {
+				const float contentWidth = ImGui::GetContentRegionAvail().x;
+				const ImVec2 charSize = ImGui::CalcTextSize(" ");
 
-				ImRect lineRect = ImRect(
-					ImGui::GetCursorScreenPos(),
-					{ImGui::GetCursorScreenPos().x + contentWidth, ImGui::GetCursorScreenPos().y + charSize.y}
-				);
+				for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
+					const char* lineStart = file.content.c_str() + file.lines[line_no];
+					const char* lineEnd;
+					if(((size_t)line_no+1) < file.lines.size())
+						lineEnd = file.content.c_str() + file.lines[line_no+1];
+					else
+						lineEnd = file.content.c_str() + file.content.size();
 
-				drawLine(lineStart, lineEnd, line_no, PCAddr, lineRect, &hasAlreadyClicked);
+					ImRect lineRect = ImRect(
+						ImGui::GetCursorScreenPos(),
+						{ImGui::GetCursorScreenPos().x + contentWidth, ImGui::GetCursorScreenPos().y + charSize.y}
+					);
+
+					drawLine(lineStart, lineEnd, line_no, PCAddr, lineRect, &hasAlreadyClicked);
+				}
 			}
-		}
-		clipper.End();
+			clipper.End();
 
-		if(scrollSet != -1){
-			ImGuiExt::SetScrollNormY(scrollSet);
-			scrollSet = -1;
-		}
+			if(scrollSet != -1){
+				ImGuiExt::SetScrollNormY(scrollSet);
+				scrollSet = -1;
+			}
 
-		/*
-		
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		ImGuiWindow* win = ImGui::GetCurrentWindowRead();
-		ImVec2 contentSize = ImGuiExt::GetContentSize();
-		drawList->AddRect(
+			/*
+
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			ImGuiWindow* win = ImGui::GetCurrentWindowRead();
+			ImVec2 contentSize = ImGuiExt::GetContentSize();
+			drawList->AddRect(
 			{win->DC.CursorStartPos},
 			{win->DC.CursorStartPos.x + contentSize.x, win->DC.CursorStartPos.y + contentSize.y - 10},
 			IM_COL32(255,255,0,255)
-		);
-		float scrollMax = ImGui::GetScrollMaxY();
-		drawList->AddRect(
+			);
+			float scrollMax = ImGui::GetScrollMaxY();
+			drawList->AddRect(
 			{win->DC.CursorStartPos},
 			{win->DC.CursorStartPos.x + scrollMax, win->DC.CursorStartPos.y + scrollMax - 10},
 			IM_COL32(255,0,0,255)
-		);
+			);
 
-		*/
-		
+			*/
+
+		}
+
+		ImGui::EndChild();
+
+		popFileStyle();
 	}
-
 	ImGui::EndChild();
 
-	popFileStyle();
+	
 }
 
 void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
@@ -465,27 +471,27 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 	if (win->ScrollbarY) {
 		ImGui::PushClipRect(win->OuterRectClipped.Min, win->OuterRectClipped.Max, false);
 
-		size_t PCAddrLine = getLineIndFromAddr(PCAddr);
-		float perc = (float)PCAddrLine / (float)fileStrLines.size();
+		size_t PCAddrLine = file.getLineIndFromAddr(PCAddr);
+		float perc = (float)PCAddrLine / (float)file.getNumLines();
 		ImGuiExt::AddLineToScrollBar(win, ImGuiAxis_Y, perc, { 1,0,0,1 });
 
 		if(showScollBarHeat){
 			constexpr size_t chunks = 300;
 			size_t lastChunkEnd = 0;
 			for(size_t i = 0; i< chunks;i++){
-				uint32_t chunkEnd = (uint32_t)std::ceil(((float) numLines()/ chunks) * (i+1));
-				if(chunkEnd >= numLines())
-					chunkEnd = numLines()-1;
+				uint32_t chunkEnd = (uint32_t)std::ceil(((float) file.getNumLines()/ chunks) * (i+1));
+				if(chunkEnd >= file.getNumLines())
+					chunkEnd = file.getNumLines()-1;
 				uint16_t startAddr,endAddr;
-				while((endAddr = fileStrAddrs[chunkEnd]) == Addrs_notAnAddr || endAddr == Addrs_symbolLabel){
-					if(chunkEnd+1 >= numLines()){
+				while((endAddr = file.addrs[chunkEnd]) == A32u4::Disassembler::DisasmFile::Addrs_notAnAddr || endAddr == A32u4::Disassembler::DisasmFile::Addrs_symbolLabel){
+					if(chunkEnd+1 >= file.getNumLines()){
 						endAddr = (uint16_t)(mcu->flash.sizeWords()-1);
 						break;
 					}
 					chunkEnd++;
 				}
 					
-				while(((startAddr = fileStrAddrs[lastChunkEnd]) == Addrs_notAnAddr || startAddr == Addrs_symbolLabel) && lastChunkEnd+1 < chunkEnd)
+				while(((startAddr = file.addrs[lastChunkEnd]) == A32u4::Disassembler::DisasmFile::Addrs_notAnAddr || startAddr == A32u4::Disassembler::DisasmFile::Addrs_symbolLabel) && lastChunkEnd+1 < chunkEnd)
 					lastChunkEnd++;
 				
 				uint64_t sum = 0;
@@ -501,7 +507,7 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 						intensity = 1;
 					
 					if(intensity > (1.0/256))
-						ImGuiExt::AddRectToScrollBar(win, ImGuiAxis_Y, {{0,lastChunkEnd/(float)numLines()},{1,chunkEnd/(float)numLines()}}, {1,0,0,intensity/1.5f});
+						ImGuiExt::AddRectToScrollBar(win, ImGuiAxis_Y, {{0,lastChunkEnd/(float)file.getNumLines()},{1,chunkEnd/(float)file.getNumLines()}}, {1,0,0,intensity/1.5f});
 				}
 				
 				lastChunkEnd = chunkEnd+1;
@@ -518,159 +524,22 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 }
 
 void ABB::utils::AsmViewer::loadSrcFile(const char* path) {
-	std::ifstream t(path);
-
-	if(!t.is_open()){
+	bool res = file.loadSrcFile(path);
+	if(!res)
 		LogBackend::log(A32u4::ATmega32u4::LogLevel_Error, (std::string("Cannot Open Source File: ") + path).c_str());
-		return;
-	}
-
-	file.content = "";
-
-	t.seekg(0, std::ios::end);   
-	file.content.reserve((size_t)t.tellg());
-	t.seekg(0, std::ios::beg);
-
-	file.content.assign(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());
-
-	processSrcFile();
 }
 void ABB::utils::AsmViewer::generateDisasmFile(const A32u4::Flash* data) {
 	file.disassembleBinFile(data);
-	processSrcFile();
-}
-void ABB::utils::AsmViewer::processSrcFile() {
-	size_t lineInd = 1;
-	fileStrLines.resize(1000);
-	fileStrLines[0] = 0;
-	fileStrAddrs.resize(1000);
-
-	const char* str = file.content.c_str();
-	size_t i = 0;
-	for(; i < file.content.size(); i++) {
-		if(str[i] == '\n'){
-			if(lineInd >= fileStrLines.size()){
-				fileStrLines.resize(lineInd + 100);
-			}
-			fileStrLines[lineInd] = i+1;
-
-			addAddrToList(str + fileStrLines[lineInd - 1], str + i, lineInd);
-			
-			lineInd++;
-		}
-	}
-	addAddrToList(str + fileStrLines[lineInd - 1], str + file.content.size(), lineInd);
-	//lineInd++;
-
-	fileStrLines.resize(lineInd);
-	fileStrAddrs.resize(lineInd);
-}
-void ABB::utils::AsmViewer::addAddrToList(const char* start, const char* end, size_t lineInd) {
-	uint16_t Addr = generateAddrFromLine(start, end);
-	if(lineInd >= fileStrAddrs.size()){
-		fileStrAddrs.resize(lineInd + 100);
-	}
-	fileStrAddrs[lineInd-1] = Addr;
-
-	if (Addr == Addrs_symbolLabel) {
-		// should never be bigger than 2 bytes
-		at_addr_t symbAddr = (at_addr_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
-		fileStrLabels[symbAddr] = lineInd-1;
-	}
-}
-uint16_t ABB::utils::AsmViewer::generateAddrFromLine(const char* start, const char* end) {
-	if (start + 8 > end || *start != ' ' || start[8] != ':') {
-		if (*start == '0' && start[8] == ' ' && isValidHexAddr(start,start+8))
-			return Addrs_symbolLabel;
-		else
-			return Addrs_notAnAddr;
-	}
-
-	if(!isValidHexAddr(start,start+8))
-		return Addrs_notAnAddr;
-
-	return (uint16_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
-}
-bool ABB::utils::AsmViewer::isValidHexAddr(const char* start, const char* end) {
-	static constexpr char validHexDigits[] = {' ','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-	for(const char* it = start; it < end; it++) {
-		char c = *it;
-		if(c >= 'A' && c <= 'Z') {
-			c += ('a'-'A');
-		}
-		for(int i = 0; i<17;i++){
-			if(c == validHexDigits[i])
-				goto continue_outer;
-		}
-		return false;
-	continue_outer:
-		;
-	}
-	if(*(end-1) == ' ')
-		return false;
-	return true;
-}
-size_t ABB::utils::AsmViewer::findCharInLine(const char* start, const char* end, const char chr){
-	for(const char* i = start; i<end; i++){
-		if(*i == chr)
-			return i-start;
-	}
-	return -1;
 }
 
-size_t ABB::utils::AsmViewer::getLineIndFromAddr(uint16_t Addr){
-	if(isFileEmpty())
-		return -1;
-
-	size_t from = 0;
-	size_t to = fileStrLines.size()-1;
-	while ((fileStrAddrs[to] == Addrs_notAnAddr || fileStrAddrs[to] == Addrs_symbolLabel) && to > 0)
-		to--;
-	if (fileStrAddrs[to] < Addr || to == 0)
-		return 0;
-
-	while(from != to){
-		size_t mid = from + ((to-from)/2);
-
-		uint16_t lineAddr;
-		while((lineAddr = fileStrAddrs[mid]) == Addrs_notAnAddr || lineAddr == Addrs_symbolLabel)
-			mid++;
-		
-		if(lineAddr == Addr){
-			return mid;
-		}
-		else {
-			if (lineAddr < Addr) {
-				if(mid == from)
-					break;
-				from = mid;
-			}else{
-				if(mid == to)
-					break;
-				to = mid;
-			}
-		}
-	}
-	return from;
-}
 
 void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
-	if (isFileEmpty())
+	if (file.isEmpty())
 		return;
 
-	scrollSet = (float)line/(float)fileStrLines.size();
+	scrollSet = (float)line/(float)file.getNumLines();
 	if (select)
 		selectedLine = line;
-}
-
-bool ABB::utils::AsmViewer::isFileEmpty() const {
-    return file.content.size() == 0;
-}
-size_t ABB::utils::AsmViewer::numLines() const {
-    return fileStrLines.size();
-}
-bool ABB::utils::AsmViewer::isSelfDisassembled() const {
-	return file.getDisasmData() != nullptr;
 }
 
 void ABB::utils::AsmViewer::pushFileStyle(){

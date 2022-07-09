@@ -1,6 +1,6 @@
 #include "bintools.h"
 
-#if defined(_MSC_VER) || true
+#if defined(_MSC_VER) && true
 #define EXTERNAL_
 #endif
 
@@ -228,4 +228,9 @@ std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
 #else
 
 #endif
+}
+
+
+std::string BinTools::generateSrcMix(const uint8_t* elfData, size_t elfDataLen) {
+	return "";
 }

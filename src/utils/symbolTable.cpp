@@ -26,7 +26,7 @@ ABB::utils::SymbolTable::Symbol::Section::Section(const std::string& name) : nam
 bool ABB::utils::SymbolTable::Symbol::operator<(const Symbol& rhs) const {
 	return this->value < rhs.value;
 }
-void ABB::utils::SymbolTable::Symbol::draw(size_t addr, const uint8_t* data) const {
+void ABB::utils::SymbolTable::Symbol::draw(symb_size_t addr, const uint8_t* data) const {
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
 	if (hasDemangledName) {
@@ -221,6 +221,9 @@ ABB::utils::SymbolTable::Symbol::Flags ABB::utils::SymbolTable::generateSymbolFl
 	return flags;
 }
 ABB::utils::SymbolTable::Symbol::Section* ABB::utils::SymbolTable::generateSymbolSection(const char* str, const char* strEnd, size_t* sectStrLen) {
+	if (!strEnd)
+		strEnd = str + std::strlen(str);
+
 	size_t sectLen;
 	{
 		const char* strPtr = str;
@@ -232,7 +235,7 @@ ABB::utils::SymbolTable::Symbol::Section* ABB::utils::SymbolTable::generateSymbo
 	}
 	
 	std::string sectStr = std::string(str, str + sectLen);
-	if (sections.count(sectStr) == 0) {
+	if (sections.find(sectStr) == sections.end()) {
 		sections[sectStr] = Symbol::Section(sectStr);
 	}
 	
@@ -246,8 +249,9 @@ void ABB::utils::SymbolTable::init() {
 	const char* path = "resources/device/regSymbs.txt";
 	bool success = true;
 	std::string fileStr = StringUtils::loadFileIntoString(path, &success); // (std::string("Cannot Open device symbol table dump File: ") + path).c_str()
-	if (!success) // loading didnt work
+	if (!success) {// loading didnt work
 		return;
+	}
 
 	deviceSpecSymbolStorage.clear();
 	parseList(&deviceSpecSymbolStorage,fileStr.c_str(),fileStr.size());
@@ -302,10 +306,6 @@ ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* s
 	}
 	symbol.hasDemangledName = symbol.name != symbol.demangled;
 
-	ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8f, 1, 1};
-	ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
-	symbol.col.w = col.w;
-
 	return symbol;
 }
 
@@ -328,16 +328,12 @@ void ABB::utils::SymbolTable::parseList(std::vector<Symbol>* vec, const char* st
 	}
 }
 
-bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
-	bool success = true;
-	std::string fileStr = StringUtils::loadFileIntoString(path, &success); //(std::string("Cannot Open symbol table dump File: ") + path).c_str()
-	if (!success) // loading didnt work
-		return false;
-
-	return loadFromDumpString(fileStr.c_str(), fileStr.size());
-}
-bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
-	parseList(&symbolStorage,str,size);
+void ABB::utils::SymbolTable::setupConnections() {
+	for (auto& symbol : symbolStorage) {
+		ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8f, 1, 1};
+		ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
+		symbol.col.w = col.w;
+	}
 
 	std::sort(symbolStorage.begin(), symbolStorage.end());
 
@@ -349,10 +345,10 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 		for (auto& s : symbolStorage) {
 			symbsNameMap[s.name] = &s;
 
-			if (s.section == bssSection)
+			if (s.section == bssSection || s.section == dataSection)
 				symbolsRam.push_back(&s);
 
-			if (s.section == textSection || s.section == dataSection)
+			if (s.section == textSection)
 				symbolsRom.push_back(&s);
 		}
 
@@ -362,7 +358,7 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 		}
 	}
 
-	if (BinTools::canDemangle()) {
+	if (BinTools::canDemangle() && symbolStorage.size() > 0) {
 		const char** strs = new const char*[symbolStorage.size()];
 		for (size_t i = 0; i < symbolStorage.size();i++) {
 			strs[i] = symbolStorage[i].name.c_str();
@@ -379,13 +375,108 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 			}
 			LogBackend::log(LogBackend::LogLevel_Warning, "an error occured while trying to generate demangled list");
 		}
-		
-		delete strs; // dont use delete[] bc theres nothing to delete there
+
+		delete[] strs; // dont use delete[] bc theres nothing to delete there
 	}
-	
+}
+bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
+	bool success = false;
+	std::string fileStr = StringUtils::loadFileIntoString(path, &success);
+	if (!success) { // loading didnt work
+		LogBackend::logf(LogBackend::LogLevel_Error, "Cannot Open symbol table dump File: %s", path);
+		return false;
+	}
+
+	return loadFromDumpString(fileStr.c_str(), fileStr.size());
+}
+bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
+	resetAll();
+	parseList(&symbolStorage,str,size);
+
+	setupConnections();
+
 	doesHaveSymbols = true;
 	return true;
 }
+
+bool ABB::utils::SymbolTable::loadFromELF(const ELF::ELFFile& elf) {
+	resetAll();
+
+	for (size_t i = 0; i < elf.symbolTableEntrys.size(); i++) {
+		auto& symb = elf.symbolTableEntrys[i];
+		Symbol symbol;
+		symbol.name = elf.stringTableStr + symb.name;
+		symbol.value = symb.value & 0xffff; // theres a 8 in the high bits that we need to mask out, idk why its there
+		symbol.size = symb.size;
+		if (symb.shndx != ELF::ELFFile::SymbolTableEntry::SpecialSectionInd_SHN_UNDEF && symb.shndx < ELF::ELFFile::SymbolTableEntry::SpecialSectionInd_SHN_LORESERVE) {
+			symbol.section = generateSymbolSection(elf.shstringTableStr + elf.sectionHeaders[symb.shndx].name);
+		}
+		else {
+			const char* str = "";
+			switch (symb.shndx) {
+				case ELF::ELFFile::SymbolTableEntry::SpecialSectionInd_SHN_UNDEF:
+					str = "UNDEF";
+					break;
+				case ELF::ELFFile::SymbolTableEntry::SpecialSectionInd_SHN_ABS:
+					str = "ABS";
+					break;
+				case ELF::ELFFile::SymbolTableEntry::SpecialSectionInd_SHN_COMMON:
+					str = "COMMON";
+					break;
+			}
+			symbol.section = generateSymbolSection(str);
+		}
+		
+
+		{
+			auto bind = symb.getInfoBinding();
+			//                                       LOCAL                      GLOBAL                      WEAK
+			constexpr uint8_t infoToBindFlagLUT[] = {Symbol::Flags_Scope_Local, Symbol::Flags_Scope_Global, Symbol::Flags_Scope_Global};
+			symbol.flags.scope = bind <= 2 ? infoToBindFlagLUT[bind] : Symbol::Flags_Scope_None;
+
+			symbol.flags.isWeak = bind == ELF::ELFFile::SymbolTableEntry::SymbolInfoBinding_Weak;
+		}
+		{
+			auto type = symb.getInfoType();
+			constexpr uint8_t infoToTypeFlagLUT[] = {Symbol::Flags_FuncFileObj_Normal, Symbol::Flags_FuncFileObj_Obj, Symbol::Flags_FuncFileObj_Function, Symbol::Flags_FuncFileObj_File, Symbol::Flags_FuncFileObj_Section};
+			symbol.flags.funcFileObjectFlags = type <= 4 ? infoToTypeFlagLUT[type] : Symbol::Flags_FuncFileObj_Normal;
+		}
+
+		symbol.flags.debugDynamicFlags = Symbol::Flags_DebDyn_Normal;
+		symbol.flags.indirectFlags = Symbol::Flags_Indirect_Normal;
+
+		symbol.flags.isConstuctor = false;
+		symbol.flags.isWarning = false;
+		
+		symbol.isHidden = false; // idk how to read that???
+		symbol.flagStr = "";
+
+		symbolStorage.push_back(symbol);
+	}
+
+	setupConnections();
+
+	doesHaveSymbols = true;
+
+	return true;
+}
+
+void ABB::utils::SymbolTable::resetAll() {
+	deviceSpecSymbolStorage.clear();
+
+	symbolStorage.clear();
+	symbsNameMap.clear();
+	sections.clear();
+
+	symbolsRam.clear();
+	symbolsRamExp.clear();
+	symbolsRom.clear();
+
+	maxRamAddrEnd = 0;
+
+	doesHaveSymbols = false;
+}
+
 
 bool ABB::utils::SymbolTable::hasSymbols() const {
 	return doesHaveSymbols;
@@ -402,12 +493,12 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByName(
 	return symbsNameMap.at(name);
 }
 
-const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByValue(const size_t value) const {
+const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByValue(const symb_size_t value) const {
 	size_t from = 0;
 	size_t to = symbolStorage.size() - 1;
 	while (from != to) {
 		size_t mid = from + (to - from) / 2;
-		size_t val = symbolStorage[mid].value;
+		symb_size_t val = symbolStorage[mid].value;
 		if (val == value) {
 			return &symbolStorage[mid];
 		}
@@ -445,11 +536,11 @@ ABB::utils::SymbolTable::SymbolListPtr ABB::utils::SymbolTable::getSymbolsRom() 
 	return (SymbolTable::SymbolListPtr)&symbolsRom;
 }
 
-size_t ABB::utils::SymbolTable::getMaxRamAddrEnd() const {
+ABB::utils::SymbolTable::symb_size_t ABB::utils::SymbolTable::getMaxRamAddrEnd() const {
 	return maxRamAddrEnd;
 }
 
-const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymbol(size_t Addr) const {
+const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymbol(symb_size_t Addr) const {
 	constexpr size_t AddrDigits = 4;
 	char texBuf[AddrDigits];
 
@@ -469,7 +560,7 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 	return symbol;
 }
 
-void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
+void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, symb_size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
 	if (size.x == 0)
 		size.x = ImGui::GetContentRegionAvail().x;
 	if (size.y == 0)
@@ -487,7 +578,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
-	uint64_t lastSymbEnd = 0;
+	symb_size_t lastSymbEnd = 0;
 	for (size_t i = 0; i < list->size(); i++) {
 		const Symbol* symbol = list->operator[](i);
 		if (symbol->size == 0)
@@ -498,7 +589,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 			if (i != 0)
 				ImGui::SameLine();
 
-			uint32_t fillAmt = symbol->value - lastSymbEnd;
+			symb_size_t fillAmt = symbol->value - lastSymbEnd;
 			ImGuiExt::Rect(ImGuiID(symbol->value * i), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 			if (ImGui::IsItemHovered()) {
 				ImGui::PopStyleVar();
@@ -514,7 +605,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 		if (i != 0 || symbol->value > lastSymbEnd)
 			ImGui::SameLine();
 		float width = ((float)symbol->size / listByteLen) * size.x * (*scale);
-		ImGuiExt::Rect(symbol->value * i, symbol->col, {width, size.y});
+		ImGuiExt::Rect((ImGuiID)(symbol->value * i), symbol->col, {width, size.y});
 
 		if (ImGui::IsItemHovered()) {
 			ImGui::PopStyleVar();
@@ -532,14 +623,14 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, siz
 	}
 
 	if (lastSymbEnd < totalSize) {
-		uint32_t fillAmt = totalSize - lastSymbEnd;
+		symb_size_t fillAmt = totalSize - lastSymbEnd;
 		ImGui::SameLine();
 		ImGuiExt::Rect(ImGuiID(totalSize * lastSymbEnd), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 		if (ImGui::IsItemHovered()) {
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 
-			ImGui::SetTooltip("Space Without Symbol: %" PRIu32 " bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
+			ImGui::SetTooltip("Space Without Symbol: %" PRIu64 " bytes (%f%%)", fillAmt, ((float)fillAmt / listByteLen)*100);
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });

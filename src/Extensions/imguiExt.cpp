@@ -191,3 +191,21 @@ void ImGuiExt::Rect(ImGuiID id, const ImVec4& col, ImVec2 size) {
     ImGui::RenderNavHighlight(bb, id);
     ImGui::RenderFrame(bb.Min, bb.Max, ImColor(col), true, style.FrameRounding);
 }
+
+
+
+static int TextCallBack(ImGuiInputTextCallbackData* data) {
+    std::string* str = (std::string*)data->UserData;
+
+    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
+        str->resize(data->BufTextLen+1);
+        data->Buf = (char*)str->c_str();
+    }
+    return 0;
+}
+bool ImGuiExt::InputTextString(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags, const ImVec2& size) {
+    return ImGui::InputTextEx(
+        label, hint, (char*)str->c_str(), str->capacity(), 
+        size, flags | ImGuiInputTextFlags_CallbackResize, TextCallBack, str
+    );
+}
