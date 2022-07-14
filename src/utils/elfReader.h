@@ -13,7 +13,7 @@ namespace ABB {
 				typedef uint16_t HalfWord;
 				typedef uint32_t Word;
 
-				// these would both be a uint32_t on 32bit files, but here 64bit is always chosen for compatibility
+				// these would both be a uint32_t on 32bit elf files, but here 64bit is always chosen for compatibility
 				typedef uint64_t Address;
 				typedef uint64_t Offset;
 
@@ -164,6 +164,75 @@ namespace ABB {
 					uint8_t getInfoType() const;
 				};
 
+				struct DWARF {
+					/*
+						code somewhat inspired by the following sources:
+						http://metastatic.org/source/dwarf2-java.html
+						https://wiki.osdev.org/DWARF
+					*/
+					enum {
+						DW_LNS_extended_op      = 0,
+						DW_LNS_copy             = 1,
+						DW_LNS_advance_pc       = 2,
+						DW_LNS_advance_line     = 3,
+						DW_LNS_set_file         = 4,
+						DW_LNS_set_column       = 5,
+						DW_LNS_negate_stmt      = 6,
+						DW_LNS_set_basic_block  = 7,
+						DW_LNS_const_add_pc     = 8,
+						DW_LNS_fixed_advance_pc = 9,
+					};
+
+					enum {
+						DW_LNE_end_sequence = 1,
+						DW_LNE_set_address  = 2,
+						DW_LNE_define_file  = 3
+					};
+
+					struct _debug_line {
+						bool couldFind = false;
+
+						struct CU {
+							struct Header {
+								uint32_t length;
+								uint16_t version;
+								uint32_t header_length;
+								uint8_t min_instruction_length;
+								uint8_t default_is_stmt;
+								int8_t line_base;
+								uint8_t line_range;
+								uint8_t opcode_base;
+								uint8_t std_opcode_lengths[9];
+
+								static constexpr size_t byteSize = 4 + 2 + 4 + 1 + 1 + 1 + 1 + 9;
+							} header;
+
+							std::vector<std::string> dirs;
+							struct File {
+								std::string name;
+								uint8_t dir;
+								uint8_t time;
+								uint8_t size;
+							};
+							std::vector<File> files;
+							std::pair<size_t, size_t> section;
+
+							struct Entry {
+								uint64_t from;
+								uint64_t to;
+							};
+							std::vector<Entry> entrys;
+						};
+
+						std::vector<CU> cus;
+
+						static CU::Header parseCUHeader(const uint8_t* data, size_t dataLen, const ELFHeader::Ident& ident);
+						static uint64_t getUleb128(const uint8_t* data, size_t* off);
+						static int64_t getSleb128(const uint8_t* data, size_t* off);
+					} debug_line;
+					static _debug_line parse_debug_line(const uint8_t* data, size_t dataLen, const ELFHeader::Ident& ident);
+				} dwarf;
+
 				std::vector<uint8_t> data;
 				size_t dataLen;
 
@@ -183,12 +252,15 @@ namespace ABB {
 
 		private:
 			static uint64_t intFromByteArr(const uint8_t* data, uint8_t byteLen, bool lsb = false);
+			static uint64_t intFromByteArrAdv(const uint8_t** data, uint8_t byteLen, bool lsb = false);
 
 			static ELFFile::ELFHeader::Ident parseELFHeaderIdentification(const uint8_t* data);
 			static ELFFile::ELFHeader parseELFHeader(const uint8_t* data, size_t dataLen, size_t* size);
 			static ELFFile::ProgramHeader parseELFProgramHeader(const uint8_t* data, size_t dataLen, size_t off, const ELFFile::ELFHeader::Ident& ident);
 			static ELFFile::SectionHeader parseELFSectionHeader(const uint8_t* data, size_t dataLen, size_t off, const ELFFile::ELFHeader::Ident& ident);
 			static ELFFile::SymbolTableEntry parseELFSymbol(const uint8_t* data, size_t dataLen, size_t off, const ELFFile::ELFHeader::Ident& ident);
+
+			static ELFFile::DWARF parseDWARF(const ELFFile& elf);
 		public:
 
 			static ELFFile parseELFFile(const uint8_t* data, size_t dataLen);
