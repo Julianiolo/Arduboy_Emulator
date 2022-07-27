@@ -20,7 +20,7 @@ void ABB::LogBackend::draw() {
         }
         if(ImGui::BeginChild((winName+" logWin").c_str(), {0,0},true)){
             ImGuiListClipper clipper;
-            clipper.Begin(logs.size());
+            clipper.Begin((int)logs.size());
             while (clipper.Step()) {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
                     auto& line = logs[line_no];

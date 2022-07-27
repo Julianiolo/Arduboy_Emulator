@@ -141,7 +141,7 @@ void ABB::ArduboyBackend::drawExecMenu() {
 	if (!execMenuOpen)
 		return;
 
-	if (ImGui::Begin((name + " Exec Menu").c_str())) {
+	if (ImGui::Begin((name + " Exec Menu").c_str(), &execMenuOpen)) {
 		bool debug = (ab.execFlags & A32u4::ATmega32u4::ExecFlags_Debug) != 0;
 		if (ImGui::Checkbox("Debug", &debug))
 			ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Debug;
@@ -154,7 +154,7 @@ void ABB::ArduboyBackend::drawExecMenu() {
 }
 
 void ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
-	utils::ELF::ELFFile elf = utils::ELF::parseELFFile(data, dataLen);
+	elf = utils::ELF::parseELFFile(data, dataLen);
 
 	symbolTable.loadFromELF(elf);
 
@@ -179,6 +179,10 @@ void ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
 }
 
 void ABB::ArduboyBackend::loadFromELFFile(const char* path) {
-	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path);
+	bool success = true;
+	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
+	if (!success)
+		return;
+
 	loadFromELF(&content[0], content.size());
 }

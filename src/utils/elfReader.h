@@ -190,8 +190,9 @@ namespace ABB {
 					};
 
 					struct _debug_line {
-						bool couldFind = false;
+						friend DWARF;
 
+						bool couldFind = false;
 						struct CU {
 							struct Header {
 								uint32_t length;
@@ -207,30 +208,53 @@ namespace ABB {
 								static constexpr size_t byteSize = 4 + 2 + 4 + 1 + 1 + 1 + 1 + 9;
 							} header;
 
-							std::vector<std::string> dirs;
-							struct File {
-								std::string name;
-								uint8_t dir;
-								uint8_t time;
-								uint8_t size;
-							};
-							std::vector<File> files;
 							std::pair<size_t, size_t> section;
 
+							std::vector<size_t> dirs;
+							std::vector<size_t> files;
+
 							struct Entry {
-								uint64_t from;
-								uint64_t to;
+								uint64_t addr;
+								uint32_t file;
+								uint32_t line;
+								uint32_t column;
 							};
 							std::vector<Entry> entrys;
 						};
-
 						std::vector<CU> cus;
 
+						std::vector<std::string> dirs;
+						struct File {
+							std::string name;
+							uint32_t dir;
+							uint32_t time;
+							uint32_t size;
+
+							bool couldFind;
+							std::string content;
+							std::vector<size_t> lines;
+
+							bool operator==(const File& f);
+						};
+
+					private:
+						std::vector<std::pair<uint32_t,size_t>> entrys;
+					public:
+						std::vector<File> files;
+						
+
 						static CU::Header parseCUHeader(const uint8_t* data, size_t dataLen, const ELFHeader::Ident& ident);
-						static uint64_t getUleb128(const uint8_t* data, size_t* off);
-						static int64_t getSleb128(const uint8_t* data, size_t* off);
+						static std::vector<CU::Entry> parseLineByteCode(const uint8_t* data, size_t* off_, size_t end, CU* cu, _debug_line* dl, bool lsb);
+
+						CU::Entry* getEntry(size_t ind);
+						const CU::Entry* getEntry(size_t ind) const;
+						size_t getNumEntrys() const;
+
+						size_t getEntryIndByAddr(uint64_t addr);
 					} debug_line;
 					static _debug_line parse_debug_line(const uint8_t* data, size_t dataLen, const ELFHeader::Ident& ident);
+					static uint64_t getUleb128(const uint8_t* data, size_t* off);
+					static int64_t getSleb128(const uint8_t* data, size_t* off);
 				} dwarf;
 
 				std::vector<uint8_t> data;
@@ -246,7 +270,8 @@ namespace ABB {
 				const char* stringTableStr;
 				const char* shstringTableStr;
 
-				size_t getIndOfSectionWithName(const char* name);
+				size_t getIndOfSectionWithName(const char* name) const;
+				bool hasInfosLoaded() const;
 			};
 
 

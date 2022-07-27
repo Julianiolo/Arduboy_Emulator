@@ -1,10 +1,12 @@
-/.vscode/*
+.vscode/*
 
-/build/*
-/dependencies/build/*
+build/*
+dependencies/build/*
 
-/projects/VS2019/Arduboy_Emulator/.vs/*
-/projects/VS2019/Arduboy_Emulator/build/*
+projects/VS2019/Arduboy_Emulator/.vs/*
+projects/VS2019/Arduboy_Emulator/build/*
+
+test/*
 
 *.vcxproj.user
 

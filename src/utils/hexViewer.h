@@ -13,7 +13,7 @@ namespace ABB {
 	namespace utils {
 		class HexViewer {
 		public:
-			typedef void (*SetValueCallB)(at_addr_t addr, reg_t val, void* userData);
+			typedef void (*SetValueCallB)(addrmcu_t addr, reg_t val, void* userData);
 
 			struct Settings {
 				bool showTex = true;
@@ -26,6 +26,55 @@ namespace ABB {
 				bool showDiagram = true;
 				float diagramScale = 1;
 			} settings;
+
+			struct EditBytes {
+				enum {
+					EditBase_2 = 0,
+					EditBase_10,
+					EditBase_16,
+					EditBase_COUNT
+				};
+				enum {
+					EditType_8bit = 0,
+					EditType_16bit,
+					EditType_32bit,
+					EditType_64bit,
+					EditType_float,
+					EditType_double,
+					EditType_string,
+					EditType_bytestream,
+					EditType_COUNT
+				};
+				enum {
+					EditEndian_Little = 0,
+					EditEndian_Big,
+					EditEndian_COUNT
+				};
+
+
+				size_t editAddr = -1;
+				uint64_t editValTemp = 0;
+
+				uint8_t editType = EditType_8bit;
+				uint8_t editEndian = EditEndian_Little;
+				uint8_t editBase = EditBase_10;
+				bool editSigned = false;
+				bool editStringTerm = true;
+				std::string editStr;
+
+				SetValueCallB setValueCallB = nullptr;
+				void* setValueUserData = nullptr;
+				std::string editErrorStr;
+
+				void openEditPopup(addrmcu_t addr);
+				void editPopupError(const char* msg);
+
+				void draw();
+				void drawTypeChoose();
+
+				static uint64_t readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian=EditEndian_Little);
+				void writeValue(uint64_t val);
+			};
 
 		private:
 			const A32u4::ATmega32u4* mcu = nullptr;
@@ -49,39 +98,10 @@ namespace ABB {
 			size_t popupAddr = -1; // symbol popup address
 			const SymbolTable::Symbol* popupSymbol = nullptr;
 
-			size_t editAddr = -1;
-			uint64_t editValTemp = 0;
 			
-			enum {
-				EditBase_2 = 0,
-				EditBase_10,
-				EditBase_16,
-				EditBase_COUNT
-			};
-			enum {
-				EditType_8bit = 0,
-				EditType_16bit,
-				EditType_32bit,
-				EditType_64bit,
-				EditType_float,
-				EditType_double,
-				EditType_string,
-				EditType_bytestream,
-				EditType_COUNT
-			};
-			enum {
-				EditEndian_Little = 0,
-				EditEndian_Big,
-				EditEndian_COUNT
-			};
-			uint8_t editType = EditType_8bit;
-			uint8_t editEndian = EditEndian_Little;
-			uint8_t editBase = EditBase_10;
-			bool editSigned = false;
-			std::string editStr;
-			SetValueCallB setValueCallB = nullptr;
-			void* setValueUserData = nullptr;
-			std::string editErrorStr;
+			EditBytes eb;
+			
+			
 
 			ImRect getNextByteRect(const ImVec2& charSize) const;
 			size_t getBytesPerRow(float widthAvail, const ImVec2& charSize);
@@ -89,8 +109,7 @@ namespace ABB {
 
 			void drawSettings();
 			void drawHoverInfo(size_t addr, const SymbolTable::Symbol* symbol);
-			void openEditPopup(at_addr_t addr);
-			void editPopupError(const char* msg);
+			
 			void drawEditPopup();
 		public:
 			HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu = nullptr);

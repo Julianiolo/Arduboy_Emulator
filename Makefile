@@ -3,24 +3,39 @@
 BUILD_MODE ?=DEBUG
 PLATFORM:=PLATFORM_DESKTOP
 
-CC:=g++
+ifeq ($(PLATFORM),PLATFORM_DESKTOP)
+    CC?=gcc
+    CXX?=g++
+endif
+ifeq ($(PLATFORM),PLATFORM_WEB)
+    CC:=emcc
+    CXX:=em++
+endif
 CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing
 CSTD:=-std=c++17
-RELEASE_OPTIM?= -Ofast
+RELEASE_OPTIM?= -O2
 
 ROOT_DIR:=./
 SRC_DIR:=$(ROOT_DIR)src/
-BUILD_DIR:=$(ROOT_DIR)build/make/$(BUILD_MODE)/
+BUILD_DIR:=$(ROOT_DIR)build/make/$(PLATFORM)_$(BUILD_MODE)/
 OBJ_DIR:=$(BUILD_DIR)objs/
 DEPENDENCIES_DIR:=$(ROOT_DIR)dependencies/
 
+SHELL_HTML:=$(SRC_DIR)index.html
 
-OUT_NAME:=ABemu
+OUT_EXT:=
+ifeq ($(PLATFORM),PLATFORM_WEB)
+	OUT_EXT:=.html
+else
+	ifeq ($(OS),Windows_NT)
+		OUT_EXT:=.exe
+	endif
+endif
+
+OUT_NAME:=ABemu$(OUT_EXT)
 OUT_DIR:=$(BUILD_DIR)ABemu/
 
-ifeq ($(OS),Windows_NT)
-	OUT_NAME+=.exe
-endif
+
 
 # you dont need to worry about this stuff:
 
@@ -54,25 +69,31 @@ DEP_FILES:=$(patsubst %.o,%.d,$(OBJ_FILES))
 DEPENDENCIES_INCLUDE_PATHS:=$(addprefix $(ROOT_DIR)dependencies/,Arduboy_Emulator_HL/src Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui ImGuiFD)
 DEPENDENCIES_LIBS_DIR:=$(BUILD_DIR)dependencies/libs
 
-DEP_LIBS:=libraylib.a imgui.a Arduboy_Emulator_HL.a ATmega32u4_Emulator.a ImGuiFD.a
+DEP_LIBS:=raylib imgui Arduboy_Emulator_HL ATmega32u4_Emulator ImGuiFD
 DEP_LIBS_PATH:=$(addprefix $(DEPENDENCIES_LIBS_DIR)/,$(DEP_LIBS))
 
 DEP_LIBS_INCLUDE_FLAGS:=$(addprefix -I,$(DEPENDENCIES_INCLUDE_PATHS))
 DEP_LIBS_DIR_FLAGS:=$(addprefix -L,$(DEPENDENCIES_LIBS_DIR))
-DEP_LIBS_FLAGS:=$(addprefix -l:,$(DEP_LIBS))
+
+DEP_LIBS_FLAGS:=$(addprefix -l,$(DEP_LIBS))
 
 DEP_LIBS_BUILD_DIR:=$(current_dir)$(BUILD_DIR)dependencies/
 
 DEP_LIBS_DEPS:=dependencies/Makefile $(shell find $(ROOT_DIR)dependencies/ -name '*h' -o -name '*.c' -o -name '*.cpp')
 
-ifeq ($(detected_OS),Windows)
-	EXTRA_FLAGS:=-lopengl32 -lgdi32 -lwinmm -static -static-libgcc -static-libstdc++
-	
-	ifeq ($(BUILD_MODE), RELEASE)
-#		EXTRA_FLAGS += -Wl,--subsystem,windows
+ifeq ($(PLATFORM),PLATFORM_DESKTOP)
+	ifeq ($(detected_OS),Windows)
+		EXTRA_FLAGS:=-lopengl32 -lgdi32 -lwinmm -static -static-libgcc -static-libstdc++
+		
+		ifeq ($(BUILD_MODE), RELEASE)
+	#		EXTRA_FLAGS += -Wl,--subsystem,windows
+		endif
+	else
+		EXTRA_FLAGS:= -no-pie -Wl,--no-as-needed -ldl -lpthread
 	endif
-else
-	EXTRA_FLAGS:= -no-pie -Wl,--no-as-needed -ldl -lpthread
+endif
+ifeq ($(PLATFORM),PLATFORM_WEB)
+	EXTRA_FLAGS:= -s USE_GLFW=3 --shell-file $(SHELL_HTML)
 endif
 
 # rules:
@@ -82,9 +103,8 @@ endif
 all: $(OUT_PATH)
 
 $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)depFile.dep $(OBJ_FILES)
-	# LOL 
 	mkdir -p $(OUT_DIR)
-	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(DEP_LIBS_DIR_FLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(CDEPFLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
+	$(CXX) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(DEP_LIBS_DIR_FLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
 	mkdir -p $(OUT_DIR)resources
 	mkdir -p $(OUT_DIR)resources/binutils
 	mkdir -p $(OUT_DIR)resources/device
@@ -92,15 +112,14 @@ $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)depFile.dep $(OBJ_FILES)
 	cp $(ROOT_DIR)resources/device/regSymbs.txt  $(OUT_DIR)resources/device/
 
 $(OBJ_DIR)%.o:%.cpp
-	# OBJ LOL 
 	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(CDEFS) $(DEP_LIBS_INCLUDE_FLAGS) -c $< -o $@ $(CDEPFLAGS)
+	$(CXX) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(CDEFS) $(DEP_LIBS_INCLUDE_FLAGS) -c $< -o $@ $(CDEPFLAGS)
 
 -include $(DEP_FILES)
 
 # dependencies
 $(DEP_LIBS_BUILD_DIR)depFile.dep:$(DEP_LIBS_DEPS)
-	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) BUILD_MODE=$(BUILD_MODE) CC=$(CC) CFLAGS="$(CFLAGS)" CSTD=$(CSTD) BUILD_DIR=$(DEP_LIBS_BUILD_DIR)
+	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) PLATFORM=$(PLATFORM) BUILD_MODE=$(BUILD_MODE) CSTD=$(CSTD) BUILD_DIR=$(DEP_LIBS_BUILD_DIR)
 
 clean:
 	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) clean BUILD_DIR=$(DEP_LIBS_BUILD_DIR)

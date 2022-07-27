@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 #include "raylib.h"
 #include "imgui.h"
@@ -6,6 +7,10 @@
 #include "oneHeaderLibs/VectorOperators.h"
 
 #include "ArdEmu.h"
+
+#if defined(PLATFORM_WEB)
+    #include "emscripten.h"
+#endif
 
 #ifdef _MSC_VER
 #define ROOTDIR "./"
@@ -25,15 +30,37 @@ Vector2 mouseDelta;
 
 
 int main(void) {
+#if 1
     setup();
 
+#if defined(PLATFORM_WEB)
+    emscripten_set_main_loop(draw, 0, 1);
+#else
     while (!WindowShouldClose()) {
         draw();
     }
+#endif
 
     destroy();
 
     return 0;
+#else
+    Arduboy ab;
+    ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
+    ab.mcu.powerOn();
+    ab.updateButtons();
+
+    float secs = 100;
+
+    uint8_t flags = A32u4::ATmega32u4::ExecFlags_None;
+    //flags |= A32u4::ATmega32u4::ExecFlags_Analyse;
+    //flags |= A32u4::ATmega32u4::ExecFlags_Debug;
+    auto start = std::chrono::high_resolution_clock::now();
+    ab.mcu.execute(A32u4::CPU::ClockFreq*secs, flags);
+    auto end = std::chrono::high_resolution_clock::now();
+    uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    printf("took: %llums => %f%%\n", ms, (ms/1000.f)/secs*100);
+#endif
 }
 
 void setup() {
@@ -41,7 +68,7 @@ void setup() {
     InitWindow(1200, 800, "ABemu");
 
     SetWindowResizeDrawCallback(draw);
-    SetTargetFPS(60);
+    //SetTargetFPS(60);
 
     lastMousePos = GetMousePosition();
     mouseDelta = { 0,0 };
@@ -57,9 +84,9 @@ void setup() {
 
     ArduEmu::init();
 
-#if 0
-    ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
-    abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
+#if 1
+    //ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
+    //abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
 #if 0
@@ -74,9 +101,10 @@ void setup() {
 #elif 0
     abb.ab.load(ROOTDIR "resources/games/ardynia.hex");
 #elif 1
-    abb.loadFromELFFile(ROOTDIR "resources/games/Hollow/hollow.ino.elf");
+    //abb.loadFromELFFile(ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.elf");
+    //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
     //abb.ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
-    StringUtils::writeBytesToFile(abb.ab.mcu.flash.getData(), abb.ab.mcu.flash.size(), "hex2.bin");
+    //StringUtils::writeBytesToFile(abb.ab.mcu.flash.getData(), abb.ab.mcu.flash.size(), "hex2.bin");
 #elif 1
 //#define GAME_NAME "almostPong"
 //#define GAME_NAME "PixelPortal"
@@ -109,7 +137,7 @@ void setup() {
     
     */
 
-    abb.ab.mcu.powerOn();
+    //abb.ab.mcu.powerOn();
 #endif
 }
 void draw() {

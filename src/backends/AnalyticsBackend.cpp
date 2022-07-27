@@ -24,8 +24,8 @@ void ABB::AnalyticsBackend::draw(){
     if(ImGui::Begin(winName.c_str(), open)){
         winFocused = ImGui::IsWindowFocused();
 
-        at_addr_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
-        at_addr_t max = (at_addr_t)(A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd());
+        addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
+        addrmcu_t max = (addrmcu_t)(A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd());
         ImGui::Text("%.2f%% of Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
         uint64_t usedSum = 0;
         for (size_t i = 0; i < StackSizeBuf.size(); i++) {
@@ -34,12 +34,12 @@ void ABB::AnalyticsBackend::draw(){
         float avg = (float)usedSum / StackSizeBuf.size();
         ImGui::Text("Average: %.2f%% of Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
         ImGui::PlotHistogram("Stack Size",
-            &getStackSizeBuf, &StackSizeBuf, StackSizeBuf.size(), 
+            &getStackSizeBuf, &StackSizeBuf, (int)StackSizeBuf.size(), 
             0, NULL, 0, (float)max, {0,70}
         );
 
         ImGui::PlotHistogram("Sleep Cycles",
-            &getSleepCycsBuf, &sleepCycsBuf, sleepCycsBuf.size(), 
+            &getSleepCycsBuf, &sleepCycsBuf, (int)sleepCycsBuf.size(), 
             0, NULL, 0, (float)ab->cycsPerFrame(), {0,70}
         );
 

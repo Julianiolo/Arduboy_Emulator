@@ -71,7 +71,7 @@ void ABB::McuInfoBackend::draw() {
 				if (ImGui::BeginChild("Ram_strs", {0,200})) {
 					for (size_t i = 0; i < ramStrings.size(); i++) {
 						auto& entry = ramStrings[i];
-						ImGui::Text("0x%04x: %s", (at_addr_t)entry.first, entry.second.c_str());
+						ImGui::Text("0x%04x: %s", (addrmcu_t)entry.first, entry.second.c_str());
 					}
 				}
 				ImGui::EndChild();
@@ -83,7 +83,7 @@ void ABB::McuInfoBackend::draw() {
 				if (ImGui::BeginChild("Eeprom_strs", {0,200})) {
 					for (size_t i = 0; i < eepromStrings.size(); i++) {
 						auto& entry = eepromStrings[i];
-						ImGui::Text("0x%04x: %s", (at_addr_t)entry.first, entry.second.c_str());
+						ImGui::Text("0x%04x: %s", (addrmcu_t)entry.first, entry.second.c_str());
 					}
 				}
 				ImGui::EndChild();
@@ -95,7 +95,7 @@ void ABB::McuInfoBackend::draw() {
 				if (ImGui::BeginChild("Rom_strs", {0,200})) {
 					for (size_t i = 0; i < romStrings.size(); i++) {
 						auto& entry = romStrings[i];
-						ImGui::Text("0x%04x: %s", (at_addr_t)entry.first, entry.second.c_str());
+						ImGui::Text("0x%04x: %s", (addrmcu_t)entry.first, entry.second.c_str());
 					}
 				}
 				ImGui::EndChild();
@@ -119,15 +119,15 @@ bool ABB::McuInfoBackend::isWinFocused() const {
 	return winFocused;
 }
 
-void ABB::McuInfoBackend::setRamValue(at_addr_t addr, reg_t val, void* userData) {
+void ABB::McuInfoBackend::setRamValue(addrmcu_t addr, reg_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
 	info->ab->mcu.dataspace.setDataByte(addr, val);
 }
-void ABB::McuInfoBackend::setEepromValue(at_addr_t addr, reg_t val, void* userData) {
+void ABB::McuInfoBackend::setEepromValue(addrmcu_t addr, reg_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
 	info->ab->mcu.dataspace.getEEPROM()[addr] = val;
 }
-void ABB::McuInfoBackend::setRomValue(at_addr_t addr, reg_t val, void* userData) {
+void ABB::McuInfoBackend::setRomValue(addrmcu_t addr, reg_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
 	// TODO: edit data
 }

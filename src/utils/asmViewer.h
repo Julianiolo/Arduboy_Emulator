@@ -18,6 +18,7 @@ namespace ABB{
     namespace utils{
         class AsmViewer{
         public:
+            std::string title;
             A32u4::Disassembler::DisasmFile file;
 
         private:
@@ -54,10 +55,11 @@ namespace ABB{
             bool showLineHeat = true;
             size_t selectedLine = -1;
 
-            void loadSrcFile(const char* path);
-            void generateDisasmFile(const A32u4::Flash* data);
+            void loadSrc(const char* str, const char* strEnd = NULL);
+            bool loadSrcFile(const char* path);
+            void generateDisasmFile(const A32u4::Flash* data, const A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo& info = A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo());
             void drawHeader();
-            void drawFile(const std::string& winName, uint16_t PCAddr);
+            void drawFile(uint16_t PCAddr);
             void scrollToLine(size_t line, bool select = false);
 
             void setSymbolTable(const SymbolTable* table);

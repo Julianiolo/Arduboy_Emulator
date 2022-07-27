@@ -35,7 +35,7 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 		float lineHeight = lineRect.GetHeight();
 		float extraPadding = 3;
 
-		ImGuiExt::Rect(lineAddr + (size_t)lineStart + 20375324, ImVec4{ 0,0,0,0 }, {lineHeight+extraPadding*2, lineHeight});
+		ImGuiExt::Rect((ImGuiID)(lineAddr + (size_t)lineStart + 20375324), ImVec4{ 0,0,0,0 }, {lineHeight+extraPadding*2, lineHeight});
 		if (isAddr && ImGui::IsItemClicked()) {
 			if (!mcu->debugger.getBreakpoints()[linePC])
 				mcu->debugger.setBreakpoint(linePC);
@@ -324,16 +324,16 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 			std::string symbolName = std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff);
 			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
 			if (symbol) {
-				if (file.labels.find((at_addr_t)symbol->value) != file.labels.end()) {
+				if (file.labels.find((addrmcu_t)symbol->value) != file.labels.end()) {
 					if (io.KeyShift && hasOffset) {
 						size_t off = (size_t)StringUtils::numStrToUInt<size_t>(lineStart + symbolNameEndOff + 1, lineStart + symbolEndOff - 1);
 						if(off != (size_t)-1)
-							selectedLine = file.getLineIndFromAddr((at_addr_t)( symbol->value + off ));
+							selectedLine = file.getLineIndFromAddr((addrmcu_t)( symbol->value + off ));
 						else
-							selectedLine = file.labels.at((at_addr_t)symbol->value);
+							selectedLine = file.labels.at((addrmcu_t)symbol->value);
 					}
 					else {
-						selectedLine = file.labels.at((at_addr_t)symbol->value);
+						selectedLine = file.labels.at((addrmcu_t)symbol->value);
 					}
 					
 					scrollToLine(selectedLine);
@@ -385,20 +385,20 @@ void ABB::utils::AsmViewer::drawHeader(){
 		ImGui::Text("Disassembled %" PRId64 " lines", file.getDisasmData()->lines.size());
 		ImGui::SameLine();
 		if(ImGui::Button("Update with analytics data")){
-			file.disassembleBinFileWithAnalytics(&mcu->flash, &mcu->analytics);
+			file.disassembleBinFile(&mcu->flash);
 		}
 	}
 }
-void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr) {
+void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr) {
 	if(file.content.size() == 0)
 		return;
 
-	if (ImGui::BeginChild("asmViewer_box")) {
+	if (ImGui::BeginChild(title.c_str())) {
 		drawHeader();
 
 		pushFileStyle();
 
-		if(ImGui::BeginChild((winName+" srcWin").c_str(), {0,0},true)){
+		if(ImGui::BeginChild(title.c_str(), {0,0}, true)) {
 			if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 				selectedLine = -1;
 
@@ -408,7 +408,7 @@ void ABB::utils::AsmViewer::drawFile(const std::string& winName, uint16_t PCAddr
 			bool hasAlreadyClicked = false;
 
 			ImGuiListClipper clipper;
-			clipper.Begin(file.lines.size());
+			clipper.Begin((int)file.lines.size());
 			while (clipper.Step()) {
 				const float contentWidth = ImGui::GetContentRegionAvail().x;
 				const ImVec2 charSize = ImGui::CalcTextSize(" ");
@@ -479,7 +479,7 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 			constexpr size_t chunks = 300;
 			size_t lastChunkEnd = 0;
 			for(size_t i = 0; i< chunks;i++){
-				uint32_t chunkEnd = (uint32_t)std::ceil(((float) file.getNumLines()/ chunks) * (i+1));
+				size_t chunkEnd = (size_t)std::ceil(((float) file.getNumLines()/ chunks) * (i+1));
 				if(chunkEnd >= file.getNumLines())
 					chunkEnd = file.getNumLines()-1;
 				uint16_t startAddr,endAddr;
@@ -523,13 +523,17 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 	}
 }
 
-void ABB::utils::AsmViewer::loadSrcFile(const char* path) {
+void ABB::utils::AsmViewer::loadSrc(const char* str, const char* strEnd) {
+	file.loadSrc(str, strEnd);
+}
+bool ABB::utils::AsmViewer::loadSrcFile(const char* path) {
 	bool res = file.loadSrcFile(path);
 	if(!res)
 		LogBackend::log(A32u4::ATmega32u4::LogLevel_Error, (std::string("Cannot Open Source File: ") + path).c_str());
+	return res;
 }
-void ABB::utils::AsmViewer::generateDisasmFile(const A32u4::Flash* data) {
-	file.disassembleBinFile(data);
+void ABB::utils::AsmViewer::generateDisasmFile(const A32u4::Flash* data, const A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo& info) {
+	file.disassembleBinFile(data, info);
 }
 
 

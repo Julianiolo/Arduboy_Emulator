@@ -6,10 +6,12 @@
 
 #include "imgui.h"
 #include <chrono>
+#ifndef __EMSCRIPTEN__
 #ifdef _WIN32
 	#include <intrin.h> // for __rdtsc()
 #else
 	#include <x86intrin.h>
+#endif
 #endif
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
@@ -68,14 +70,22 @@ void ArduEmu::drawBenchmark(){
 					execFlags |= A32u4::ATmega32u4::ExecFlags_Analyse;
 
 				auto start = std::chrono::high_resolution_clock::now();
+				#ifndef __EMSCRIPTEN__
 				uint64_t cpu_start = __rdtsc();
+				#endif
 				mcu.execute(benchCycls, execFlags);
+				#ifndef __EMSCRIPTEN__
 				uint64_t cpu_end = __rdtsc();
+				#endif
 				auto end = std::chrono::high_resolution_clock::now();
 
 				auto time = end - start;
 
+				#ifndef __EMSCRIPTEN__
 				uint64_t cycles = cpu_end - cpu_start;
+				#else
+				uint64_t cycles = 0;
+				#endif
 				double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
 				double frames = (double)benchCycls/(A32u4::CPU::ClockFreq/60);
 				double fps = 1000/(ms/frames);

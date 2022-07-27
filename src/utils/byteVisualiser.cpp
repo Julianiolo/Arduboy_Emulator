@@ -16,7 +16,7 @@ void ABB::utils::ByteVisualiser::init() {
 		colData[i*3 + 9*tex.width] = i&(1<<7) ? WHITE : BLACK;
 		
 		for (size_t b = 0; b < 8; b++) {
-			Color c = (i & (1 << b)) ? WHITE : BLACK;
+			Color c = (i & ((uint64_t)1 << b)) ? WHITE : BLACK;
 			size_t off = i * 3 + (b + 1) * texImg.width;
 			colData[off] = c;
 			colData[off+1] = c;

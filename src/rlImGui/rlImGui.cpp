@@ -236,7 +236,7 @@ static void rlImGuiEvents()
         io.AddInputCharacter(pressed);
 }
 
-static void rlImGuiTriangleVert(ImDrawVert& idx_vert)
+static void rlImGuiTriangleVert(const ImDrawVert& idx_vert)
 {
     Color* c;
     c = (Color*)&idx_vert.col;
@@ -247,6 +247,9 @@ static void rlImGuiTriangleVert(ImDrawVert& idx_vert)
 
 static void rlImGuiRenderTriangles(unsigned int count, int indexStart, const ImVector<ImDrawIdx>& indexBuffer, const ImVector<ImDrawVert>& vertBuffer, void* texturePtr)
 {
+    if(count == 0)
+        return;
+
     Texture* texture = (Texture*)texturePtr;
 
     unsigned int textureId = (texture == nullptr) ? 0 : texture->id;
@@ -262,17 +265,9 @@ static void rlImGuiRenderTriangles(unsigned int count, int indexStart, const ImV
             rlSetTexture(textureId);
         }
 
-        ImDrawIdx indexA = indexBuffer[indexStart + i];
-        ImDrawIdx indexB = indexBuffer[indexStart + i + 1];
-        ImDrawIdx indexC = indexBuffer[indexStart + i + 2];
-
-        ImDrawVert vertexA = vertBuffer[indexA];
-        ImDrawVert vertexB = vertBuffer[indexB];
-        ImDrawVert vertexC = vertBuffer[indexC];
-
-        rlImGuiTriangleVert(vertexA);
-        rlImGuiTriangleVert(vertexB);
-        rlImGuiTriangleVert(vertexC);
+        rlImGuiTriangleVert(vertBuffer[indexBuffer[indexStart + i]]);
+        rlImGuiTriangleVert(vertBuffer[indexBuffer[indexStart + i + 1]]);
+        rlImGuiTriangleVert(vertBuffer[indexBuffer[indexStart + i + 2]]);
     }
     rlEnd();
 }

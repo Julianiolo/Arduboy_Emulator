@@ -27,6 +27,7 @@ namespace ABB {
 		McuInfoBackend mcuInfoBackend;
 		AnalyticsBackend analyticsBackend;
 		utils::SymbolTable symbolTable;
+		utils::ELF::ELFFile elf;
 
 		bool open = true;
 	private:

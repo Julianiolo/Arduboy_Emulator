@@ -24,9 +24,9 @@ namespace ABB {
 		std::vector<std::pair<size_t,std::string>> eepromStrings;
 		std::vector<std::pair<size_t,std::string>> romStrings;
 
-		static void setRamValue(at_addr_t addr, reg_t val, void* userData);
-		static void setEepromValue(at_addr_t addr, reg_t val, void* userData);
-		static void setRomValue(at_addr_t addr, reg_t val, void* userData);
+		static void setRamValue(addrmcu_t addr, reg_t val, void* userData);
+		static void setEepromValue(addrmcu_t addr, reg_t val, void* userData);
+		static void setRomValue(addrmcu_t addr, reg_t val, void* userData);
 	public:
 		const std::string winName;
 		bool* open;

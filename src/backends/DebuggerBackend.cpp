@@ -1,9 +1,13 @@
 #include "DebuggerBackend.h"
 
+#include <inttypes.h> // for PRIx64 etc.
+
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "../Extensions/imguiExt.h"
+
+#include "ImGuiFD.h"
 
 #include "utils/StringUtils.h"
 
@@ -11,12 +15,11 @@
 
 #include "components/Disassembler.h"
 
-#include <inttypes.h> // for PRIx64 etc.
+
 
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open, const utils::SymbolTable* symbolTable) 
-	: abb(abb), open(open), winName(winName), symbolTable(symbolTable){
-	srcMix.setSymbolTable(symbolTable);
-	srcMix.setMcu(&abb->ab.mcu);
+	: abb(abb), open(open), winName(winName), symbolTable(symbolTable), loadSrcMixFileDialogTitle(std::string(winName) + "srcMixFD") {
+	
 }
 
 void ABB::DebuggerBackend::drawControls(){
@@ -64,9 +67,9 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::BeginDisabled();
 
 	if(ImGui::Button("Jump to PC")) {
-		if(!srcMix.file.isEmpty()) {
-			size_t line = srcMix.file.getLineIndFromAddr(abb->ab.mcu.cpu.getPCAddr());
-			srcMix.scrollToLine(line);
+		if(srcMixs.size() > 0 && srcMixs[selectedSrcMix].file.isEmpty()) {
+			size_t line = srcMixs[selectedSrcMix].file.getLineIndFromAddr(abb->ab.mcu.cpu.getPCAddr());
+			srcMixs[selectedSrcMix].scrollToLine(line);
 		}
 	}
 
@@ -89,17 +92,17 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				
 				if(symbolTable->hasSymbols()){
 					uint16_t Addr = abb->ab.mcu.debugger.getPCAt(i)*2;
-					const utils::SymbolTable::Symbol* symbol = symbolTable->drawAddrWithSymbol(Addr);
+					const utils::SymbolTable::Symbol* symbol = symbolTable->drawAddrWithSymbol(Addr, symbolTable->getSymbolsRom());
 
 					if (symbol && ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
 						symbol->draw();
 						ImGui::EndTooltip();
 					}
-					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.file.getLineIndFromAddr(Addr);
+					if (ImGui::IsItemClicked() && srcMixs.size() > 0) {
+						size_t line = srcMixs[selectedSrcMix].file.getLineIndFromAddr(Addr);
 						if(line != (size_t)-1)
-							srcMix.scrollToLine(line, true);
+							srcMixs[selectedSrcMix].scrollToLine(line, true);
 					}
 				}
 				else{
@@ -107,10 +110,10 @@ void ABB::DebuggerBackend::drawDebugStack() {
 
 					ImGui::Text("%04x",Addr);
 
-					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.file.getLineIndFromAddr(Addr);
+					if (ImGui::IsItemClicked() && srcMixs.size() > 0) {
+						size_t line = srcMixs[selectedSrcMix].file.getLineIndFromAddr(Addr);
 						if(line != (size_t)-1)
-							srcMix.scrollToLine(line, true);
+							srcMixs[selectedSrcMix].scrollToLine(line, true);
 					}
 				}
 					
@@ -123,27 +126,27 @@ void ABB::DebuggerBackend::drawDebugStack() {
 					
 				if(symbolTable->hasSymbols()){
 					uint16_t fromAddr = abb->ab.mcu.debugger.getFromPCAt(i) * 2;
-					const utils::SymbolTable::Symbol* fromSymbol = symbolTable->drawAddrWithSymbol(fromAddr);
+					const utils::SymbolTable::Symbol* fromSymbol = symbolTable->drawAddrWithSymbol(fromAddr, symbolTable->getSymbolsRom());
 
 					if (fromSymbol && ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
 						fromSymbol->draw();
 						ImGui::EndTooltip();
 					}
-					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.file.getLineIndFromAddr(fromAddr);
+					if (ImGui::IsItemClicked() && srcMixs.size() > 0) {
+						size_t line = srcMixs[selectedSrcMix].file.getLineIndFromAddr(fromAddr);
 						if(line != (size_t)-1)
-							srcMix.scrollToLine(line, true);
+							srcMixs[selectedSrcMix].scrollToLine(line, true);
 					}
 				}else{
 					uint16_t fromAddr = abb->ab.mcu.debugger.getFromPCAt(i) * 2;
 
 					ImGui::Text("%04x",fromAddr);
 
-					if (ImGui::IsItemClicked()) {
-						size_t line = srcMix.file.getLineIndFromAddr(fromAddr);
+					if (ImGui::IsItemClicked() && srcMixs.size() > 0) {
+						size_t line = srcMixs[selectedSrcMix].file.getLineIndFromAddr(fromAddr);
 						if(line != (size_t)-1)
-							srcMix.scrollToLine(line, true);
+							srcMixs[selectedSrcMix].scrollToLine(line, true);
 					}
 				}
 					
@@ -230,10 +233,10 @@ void ABB::DebuggerBackend::drawGPRegisters() {
 				static uint8_t size = 1;
 				char buf[2]; // 2 should be enough, since we only ever need one digit and a null terminator
 				buf[1] = 0;
-				StringUtils::uIntToNumBaseBuf(1 << size, 1, buf);
+				StringUtils::uIntToNumBaseBuf((uint64_t)1 << size, 1, buf);
 				if (ImGui::BeginCombo("Size", buf)) {
 					for (int i = 0; i < 4; i++) {
-						StringUtils::uIntToNumBaseBuf(1 << i, 1, buf);
+						StringUtils::uIntToNumBaseBuf((uint64_t)1 << i, 1, buf);
 						if (ImGui::Selectable(buf, i == size))
 							size = i;
 					}
@@ -289,6 +292,33 @@ void ABB::DebuggerBackend::drawGPRegisters() {
 	ImGui::SameLine();
 }
 
+bool ABB::DebuggerBackend::drawLoadGenerateButtons() {
+	bool pressed = false;
+	
+	if(ImGui::Button("Load")){
+		pressed = true;
+		ImGuiFD::OpenFileDialog(loadSrcMixFileDialogTitle.c_str(), NULL, ".", ImGuiFD::ImGuiFDDialogFlags_Modal);
+	}
+
+	bool programLoaded = abb->ab.mcu.flash.isProgramLoaded();
+	if (!programLoaded)
+		ImGui::BeginDisabled();
+
+	if(ImGui::Button("Generate")){
+		pressed = true;
+		generateSrc();
+	}
+
+	if (!programLoaded) {
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+			ImGui::SetTooltip("Cannot generate assembly because there is no program present in flash memory!");
+		}
+		ImGui::EndDisabled();
+	}
+
+	return pressed;
+}
+
 void ABB::DebuggerBackend::draw() {
 	if (ImGui::Begin(winName.c_str(),open)) {
 		winFocused = ImGui::IsWindowFocused();
@@ -311,36 +341,66 @@ void ABB::DebuggerBackend::draw() {
 		if (showGPRegs) {
 			drawGPRegisters();
 		}
-		
-		if(!srcMix.file.isEmpty()){
-			srcMix.drawFile(winName, abb->ab.mcu.cpu.getPCAddr());
-		}
-		else{
-			ImGui::TextUnformatted("Couldnt generate disassembly, load or generate?");
-			if(ImGui::Button("Load")){
 
-			}
+		if (ImGui::BeginChild("srcMix")) {
+			if (ImGui::BeginTabBar("srcMixTabBar")) {
 
-			bool programLoaded = abb->ab.mcu.flash.isProgramLoaded();
-			if (!programLoaded)
-				ImGui::BeginDisabled();
-
-			if(ImGui::Button("Generate")){
-				srcMix.generateDisasmFile(&abb->ab.mcu.flash);
-			}
-
-			if (!programLoaded) {
-				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-					ImGui::SetTooltip("Cannot generate assembly because there is no program present in flash memory!");
+				if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+					ImGui::OpenPopup("AddSrcMixPopup");
 				}
-				ImGui::EndDisabled();
+
+				if (ImGui::BeginPopup("AddSrcMixPopup")) {
+					ImGui::TextUnformatted("Add a Source Mix");
+					if (drawLoadGenerateButtons())
+						ImGui::CloseCurrentPopup();
+
+					ImGui::EndPopup();
+				}
+
+				for (size_t i = 0; i < srcMixs.size();) {
+					bool open = true;
+					if (ImGui::BeginTabItem(srcMixs[i].title.c_str(), &open)) {
+						selectedSrcMix = i;
+						ImGui::EndTabItem();
+					}
+
+					if (!open) {
+						srcMixs.erase(srcMixs.begin() + i);
+						if (selectedSrcMix >= srcMixs.size())
+							selectedSrcMix = srcMixs.size() - 1;
+					}
+					else {
+						i++;
+					}
+				}
+
+				ImGui::EndTabBar();
+			}
+
+			if(srcMixs.size() > 0){
+				srcMixs[selectedSrcMix].drawFile(abb->ab.mcu.cpu.getPCAddr());
+			}
+			else{
+				ImGui::TextUnformatted("Couldnt generate disassembly, load or generate?");
+				drawLoadGenerateButtons();
 			}
 		}
+		ImGui::EndChild();
 	}
 	else {
 		winFocused = false;
 	}
 	ImGui::End();
+
+	if (ImGuiFD::BeginDialog(loadSrcMixFileDialogTitle.c_str())) {
+		if (ImGuiFD::ActionDone()) {
+			if (ImGuiFD::SelectionMade()) {
+				addSrcFile(ImGuiFD::GetSelectionPathString(0));
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+		ImGuiFD::EndDialog();
+	}
 }
 
 const char* ABB::DebuggerBackend::getWinName() const {
@@ -348,6 +408,82 @@ const char* ABB::DebuggerBackend::getWinName() const {
 }
 bool ABB::DebuggerBackend::isWinFocused() const {
 	return winFocused;
+}
+
+
+ABB::utils::AsmViewer& ABB::DebuggerBackend::addSrcMix() {
+	srcMixs.push_back(utils::AsmViewer());
+
+	utils::AsmViewer& srcMix = srcMixs.back();
+	selectedSrcMix = srcMixs.size() - 1;
+
+	srcMix.setSymbolTable(symbolTable);
+	srcMix.setMcu(&abb->ab.mcu);
+	return srcMix;
+}
+
+void ABB::DebuggerBackend::generateSrc() {
+	A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo info;
+	info.analytics = &abb->ab.mcu.analytics;
+	bool (*funcLine)(addrmcu_t,std::string*,void*) = [](addrmcu_t addr, std::string* out, void* userData) {
+		utils::ELF::ELFFile* elf = (utils::ELF::ELFFile*)userData;
+		size_t entryInd = elf->dwarf.debug_line.getEntryIndByAddr(addr);
+		auto entry = entryInd != (size_t)-1 ? elf->dwarf.debug_line.getEntry(entryInd) : nullptr;
+
+		if (entry && entry->file != (uint32_t)-1) {
+			const auto& file = elf->dwarf.debug_line.files[entry->file];
+			if (file.couldFind && entry->line < file.lines.size()) {
+				size_t lineFrom = entry->line;
+
+				if (entryInd > 0) {
+					auto lastEntry = elf->dwarf.debug_line.getEntry(entryInd - 1);
+					if (lastEntry->file == entry->file && lastEntry->line+1 < entry->line) {
+						lineFrom = lastEntry->line+1;
+					}
+				}
+
+				*out = /*file.name + ":" + std::to_string(entry->line) +*/ std::string(
+					file.content.c_str() + file.lines[lineFrom], 
+					file.content.c_str() + ((entry->line + 1 < file.lines.size()) ? file.lines[entry->line+1]-1 : file.content.size())
+				);
+				return true;
+			}
+		}
+		return false;
+	};
+	info.getLineInfoFromAddr = abb->elf.hasInfosLoaded() ? funcLine : NULL;
+	info.lineUserData = &abb->elf;
+
+	bool (*funcSymb)(addrmcu_t,bool,std::string*,void*) = [](addrmcu_t addr, bool ramNotRom, std::string* out, void* userData) {
+		const utils::SymbolTable* symbolTable = (utils::SymbolTable*)userData;
+		const utils::SymbolTable::Symbol* symb = utils::SymbolTable::getSymbolByValue(addr, ramNotRom ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
+		if (symb != NULL) {
+			*out = symb->name;
+			return true;
+		}
+		return false;
+	};
+	info.getSymbolNameFromAddr = funcSymb;
+	info.symbolUserData = (void*)symbolTable;
+
+	utils::AsmViewer& srcMix = addSrcMix();
+	
+	srcMix.title = "Generated";
+	srcMix.generateDisasmFile(&abb->ab.mcu.flash, info);
+}
+
+void ABB::DebuggerBackend::addSrc(const char* str, const char* title) {
+	utils::AsmViewer& srcMix = addSrcMix();
+
+	srcMix.title = title ? title : std::string("Loaded #") + std::to_string(loadedSrcFileInc++);
+	srcMix.loadSrc(str);
+}
+bool ABB::DebuggerBackend::addSrcFile(const char* path) {
+	utils::AsmViewer& srcMix = addSrcMix();
+
+	srcMix.title = StringUtils::getFileName(path);
+
+	return srcMix.loadSrcFile(path);
 }
 
 /*

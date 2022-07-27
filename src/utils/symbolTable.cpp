@@ -250,6 +250,7 @@ void ABB::utils::SymbolTable::init() {
 	bool success = true;
 	std::string fileStr = StringUtils::loadFileIntoString(path, &success); // (std::string("Cannot Open device symbol table dump File: ") + path).c_str()
 	if (!success) {// loading didnt work
+		LogBackend::logf(A32u4::ATmega32u4::LogLevel_Warning, "Cannot Open device symbol table dump file: %s", path);
 		return;
 	}
 
@@ -359,11 +360,12 @@ void ABB::utils::SymbolTable::setupConnections() {
 	}
 
 	if (BinTools::canDemangle() && symbolStorage.size() > 0) {
-		const char** strs = new const char*[symbolStorage.size()];
-		for (size_t i = 0; i < symbolStorage.size();i++) {
+		size_t num = symbolStorage.size();
+		const char** strs = new const char*[num];
+		for (size_t i = 0; i < num;i++) {
 			strs[i] = symbolStorage[i].name.c_str();
 		}
-		std::vector<std::string> demList = BinTools::demangleList(strs, symbolStorage.size());
+		std::vector<std::string> demList = BinTools::demangleList(strs, num);
 		if (demList.size() == symbolStorage.size()) {
 			for (size_t i = 0; i < symbolStorage.size();i++) {
 				symbolStorage[i].demangled = demList[i];
@@ -493,14 +495,17 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByName(
 	return symbsNameMap.at(name);
 }
 
-const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByValue(const symb_size_t value) const {
+const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByValue(const symb_size_t value, SymbolListPtr list) {
+	if (list->size() == 0)
+		return nullptr;
+
 	size_t from = 0;
-	size_t to = symbolStorage.size() - 1;
+	size_t to = list->size() - 1;
 	while (from != to) {
 		size_t mid = from + (to - from) / 2;
-		symb_size_t val = symbolStorage[mid].value;
+		symb_size_t val = (*list)[mid]->value;
 		if (val == value) {
-			return &symbolStorage[mid];
+			return (*list)[mid];
 		}
 		else {
 			if (val > value) {
@@ -516,9 +521,9 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::getSymbolByValue
 				
 		}
 	}
-	const Symbol& s = symbolStorage[from];
-	if (value >= s.value && value <= s.value + s.size)
-		return &s;
+	const Symbol* s = (*list)[from];
+	if (value >= s->value && value <= s->value + s->size)
+		return s;
 	return nullptr;
 }
 
@@ -540,7 +545,7 @@ ABB::utils::SymbolTable::symb_size_t ABB::utils::SymbolTable::getMaxRamAddrEnd()
 	return maxRamAddrEnd;
 }
 
-const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymbol(symb_size_t Addr) const {
+const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymbol(symb_size_t Addr, SymbolListPtr list) const {
 	constexpr size_t AddrDigits = 4;
 	char texBuf[AddrDigits];
 
@@ -549,7 +554,7 @@ const ABB::utils::SymbolTable::Symbol* ABB::utils::SymbolTable::drawAddrWithSymb
 	ImGui::BeginGroup();
 	ImGui::TextUnformatted(texBuf, texBuf+AddrDigits);
 
-	const utils::SymbolTable::Symbol* symbol = getSymbolByValue(Addr);
+	const utils::SymbolTable::Symbol* symbol = getSymbolByValue(Addr, list);
 	if (symbol) {
 		ImGui::SameLine();
 		ImGuiExt::TextColored(symbol->col, symbol->demangled.c_str());
@@ -572,7 +577,7 @@ void ABB::utils::SymbolTable::drawSymbolListSizeDiagramm(SymbolListPtr list, sym
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
 	
 	
-	ImGui::BeginChild((size_t)list, size, true, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::BeginChild((ImGuiID)(size_t)list, size, true, ImGuiWindowFlags_HorizontalScrollbar);
 
 	ImGui::BeginGroup();
 

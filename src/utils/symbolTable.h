@@ -112,7 +112,7 @@ namespace ABB {
 
 			const Symbol::Section* getSection(const std::string& name) const;
 			const Symbol* getSymbolByName(const std::string& name) const;
-			const Symbol* getSymbolByValue(const symb_size_t value) const;
+			static const Symbol* getSymbolByValue(const symb_size_t value, SymbolListPtr list);
 
 			const std::vector<Symbol>& getSymbols() const;
 			SymbolListPtr getSymbolsRam() const;
@@ -121,7 +121,7 @@ namespace ABB {
 
 			symb_size_t getMaxRamAddrEnd() const;
 
-			const Symbol* drawAddrWithSymbol(symb_size_t Addr) const;
+			const Symbol* drawAddrWithSymbol(symb_size_t Addr, SymbolListPtr list) const;
 			static void drawSymbolListSizeDiagramm(SymbolListPtr list, symb_size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});
 		};
 	}

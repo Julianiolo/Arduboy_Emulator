@@ -163,7 +163,7 @@ static std::string exec(const char* cmd) {
 	if (!pipe)
 		throw std::runtime_error("popen() failed");
 
-	while (std::fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+	while (std::fgets(buffer.data(), (int)buffer.size(), pipe.get()) != nullptr)
 		out += buffer.data();
 
 	return out;
@@ -185,7 +185,7 @@ const char* get_cwd_(){
 std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
 #ifdef EXTERNAL_
 	std::string list = "";
-	std::string placeHolder = "0__________apoisfbapisubfaoisfboadfubsodfbsodfiubasoidzaubsopfabusfpaoisn";
+	std::string placeHolder = "0______";
 	for (size_t i = 0; i < num; i++) {
 		list += " ";
 		if (strlen(strs[i]) > 0)

@@ -33,9 +33,17 @@ namespace ABB{
         };
         std::vector<GPRWatch> gprWatches;
         uint8_t gprWatchAddAt = 0;
+
+        uint32_t loadedSrcFileInc = 0;
+        utils::AsmViewer& addSrcMix();
+        void generateSrc();
+
+        std::string loadSrcMixFileDialogTitle;
+        bool drawLoadGenerateButtons(); // return true if a button was pressed
     public:
         std::string winName;
-        utils::AsmViewer srcMix;
+        std::vector<utils::AsmViewer> srcMixs;
+        size_t selectedSrcMix = -1;
         bool stepFrame = false;
         bool haltOnReset = false;
 
@@ -45,6 +53,11 @@ namespace ABB{
         
         const char* getWinName() const;
         bool isWinFocused() const;
+
+        
+
+        void addSrc(const char* str, const char* title = NULL);
+        bool addSrcFile(const char* path);
     };
 }
 

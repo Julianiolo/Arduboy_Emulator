@@ -1,6 +1,10 @@
 #include "elfReader.h"
 
 #include <cstring>
+#include <algorithm>
+
+#include "utils/StringUtils.h"
+#include "utils/DataUtils.h"
 
 uint8_t ABB::utils::ELF::ELFFile::SymbolTableEntry::getInfoBinding() const {
 	return info >> 4;
@@ -9,6 +13,9 @@ uint8_t ABB::utils::ELF::ELFFile::SymbolTableEntry::getInfoType() const {
 	return info & 0xf;
 }
 
+bool ABB::utils::ELF::ELFFile::DWARF::_debug_line::File::operator==(const File& f) {
+	return name == f.name && dir == f.dir && time == f.time && size == f.size;
+}
 
 ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Header ABB::utils::ELF::ELFFile::DWARF::_debug_line::parseCUHeader(const uint8_t* data, size_t dataLen, const ELFHeader::Ident& ident) {
 	CU::Header header;
@@ -28,12 +35,209 @@ ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Header ABB::utils::ELF::ELFFil
 
 	return header;
 }
+std::vector<ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Entry> ABB::utils::ELF::ELFFile::DWARF::_debug_line::parseLineByteCode(const uint8_t* data, size_t* off_, size_t end, CU* cu, _debug_line* dl, bool lsb) {
+	size_t& off = *off_;
+	std::vector<CU::Entry> entrys;
+	
+	// state machine vars
+	uint64_t address = 0;
+	uint32_t file = 1;
+	uint32_t line = 1;
+	uint32_t column = 0; // starts at 1
+	bool is_stmt = cu->header.default_is_stmt;
+	bool basic_block = false;
+	bool end_sequence = false;
+	
+
+	const uint32_t const_pc_add = 245 / cu->header.line_range;
+
+	while (off < end) {
+		uint8_t opcode = data[off++];
+		if (opcode < cu->header.opcode_base) {
+			switch (opcode) {
+				case DW_LNS_extended_op: 
+				{
+					uint64_t insn_len = getUleb128(data, &off);
+					opcode = data[off++];
+					switch (opcode) {
+						case DW_LNE_end_sequence:
+							end_sequence = true;
+							entrys.push_back(CU::Entry{ address, file, line-1, column });
+							address = 0;
+							file = 1;
+							line = 1;
+							column = 0; // starts at 1
+							is_stmt = cu->header.default_is_stmt;
+							basic_block = false;
+							end_sequence = false;
+							break;
+						case DW_LNE_set_address:
+							address = intFromByteArr(data + off, 4, lsb);
+							off += 4;
+							break;
+
+						case DW_LNE_define_file:
+						{
+							File filedef;
+							filedef.name = std::string((const char*)data + off);
+							off += filedef.name.size() + 1;
+							uint32_t dir = getUleb128(data, &off) - 1;
+							filedef.time = getUleb128(data, &off);
+							filedef.size = getUleb128(data, &off);
+
+							filedef.dir = dir != (uint32_t)-1 ? cu->dirs[dir] : -1;
+
+							size_t pos = -1;
+							for (size_t i = 0; i < dl->files.size(); i++) {
+								if (filedef == dl->files[i]) {
+									pos = i;
+									break;
+								}
+							}
+
+							if (pos == (size_t)-1) {
+								dl->files.push_back(filedef);
+								pos = dl->files.size() - 1;
+							}
+
+							cu->files.push_back(pos);
+							break;
+						}
+							
+						default:
+							off += insn_len;
+							break;
+					}
+					break; //???
+				}
+
+				case DW_LNS_copy:
+				{
+					entrys.push_back(CU::Entry{ address, file, line-1, column });
+					basic_block = false;
+					break;
+				}
+
+
+				case DW_LNS_advance_pc:
+				{
+					uint64_t amt = getUleb128(data, &off);
+					address += amt * cu->header.min_instruction_length;
+					break;
+				}
+
+
+				case DW_LNS_advance_line:
+				{
+					int64_t amt = getSleb128(data, &off);
+					line += amt;
+					break;
+				}
+
+				case DW_LNS_set_file:
+					file = getUleb128(data, &off) - 1;
+					break;
+
+				case DW_LNS_set_column:
+					column = getUleb128(data, &off);
+					break;
+
+				case DW_LNS_negate_stmt:
+					is_stmt = !is_stmt;
+					break;
+
+				case DW_LNS_set_basic_block:
+					basic_block = true;
+					break;
+
+				case DW_LNS_const_add_pc:
+					address += const_pc_add;
+					break;
+
+				case DW_LNS_fixed_advance_pc:
+				{
+					uint16_t amt = intFromByteArr(data + off, 2, lsb);
+					off += 2;
+					address += amt;
+					break;
+				}
+			}
+
+		}
+		else {
+			// special opcodes
+			int adj = opcode - cu->header.opcode_base;
+			int addr_adv = adj / cu->header.line_range;
+			int line_adv = cu->header.line_base + (adj % cu->header.line_range);
+
+			addr_adv &= 0xff;
+			line_adv &= 0xff;
+
+			address += addr_adv;
+			line += line_adv;
+			basic_block = false;
+
+			entrys.push_back(CU::Entry{ address, file, line-1, column });
+		}
+	}
+
+	return entrys;
+}
+
+ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Entry* ABB::utils::ELF::ELFFile::DWARF::_debug_line::getEntry(size_t ind) {
+	const auto& indexes = entrys[ind];
+	return &cus[indexes.first].entrys[indexes.second];
+}
+const ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Entry* ABB::utils::ELF::ELFFile::DWARF::_debug_line::getEntry(size_t ind) const {
+	const auto& indexes = entrys[ind];
+	return &cus[indexes.first].entrys[indexes.second];
+}
+
+size_t ABB::utils::ELF::ELFFile::DWARF::_debug_line::getNumEntrys() const {
+	return entrys.size();
+}
+
+size_t ABB::utils::ELF::ELFFile::DWARF::_debug_line::getEntryIndByAddr(uint64_t addr) {
+	if (entrys.size() == 0)
+		return -1;
+	
+	size_t from = 0;
+	size_t to = entrys.size() - 1;
+	while (from != to) {
+		size_t mid = from + (to-from) / 2;
+
+		CU::Entry* entry = getEntry(mid);
+
+		if (entry->addr == addr) {
+			return mid;
+		}
+		else if (entry->addr > addr) {
+			if (mid == to)
+				goto fail;
+			to = mid;
+		}
+		else {
+			if (mid == from)
+				goto fail;
+			from = mid;
+		}
+	}
+
+	if (getEntry(from)->addr == addr)
+		return from;
+
+fail:
+	return -1;
+}
 
 ABB::utils::ELF::ELFFile::DWARF::_debug_line ABB::utils::ELF::ELFFile::DWARF::parse_debug_line(const uint8_t* data, size_t dataLen, const ELFHeader::Ident& ident) {
 	_debug_line lines;
 	lines.couldFind = true;
 
 	bool lsb = ident.dataEncoding == ELFFile::ELFHeader::Ident::DataEncoding_LSB;
+
+	lines.dirs.clear();
+	lines.files.clear();
 
 	size_t off = 0;
 
@@ -54,187 +258,80 @@ ABB::utils::ELF::ELFFile::DWARF::_debug_line ABB::utils::ELF::ELFFile::DWARF::pa
 		while (off < prologueEnd && data[off]) {
 			std::string s((const char*)data + off);
 			off += s.size() + 1;
-			cu.dirs.push_back(s);
+			size_t pos = -1;
+			for (size_t i = 0; i < lines.dirs.size(); i++) {
+				if (lines.dirs[i] == s) {
+					pos = i;
+					break;
+				}
+			}
+			if (pos == (size_t)-1) {
+				lines.dirs.push_back(s);
+				pos = lines.dirs.size() - 1;
+			}
+			cu.dirs.push_back(pos);
 		}
 		off++;
 
-		cu.files.clear();
+		
 		while (off < prologueEnd && data[off]) {
-			_debug_line::CU::File file;
+			_debug_line::File file;
 			file.name = std::string((const char*)data + off);
 			off += file.name.size() + 1;
 
-			file.dir = data[off++];
-			file.time = data[off++];
-			file.size = data[off++];
+			uint32_t dir = getUleb128(data, &off) - 1;
+			file.time = getUleb128(data, &off);
+			file.size = getUleb128(data, &off);
 
-			cu.files.push_back(file);
+			file.dir = cu.dirs[dir]; // convert to global merged dir index
+
+			size_t pos = -1;
+
+			for (size_t i = 0; i < lines.files.size(); i++) {
+				if (file == lines.files[i]) {
+					pos = i;
+					break;
+				}
+			}
+
+			if(pos == (size_t)-1){
+				lines.files.push_back(file);
+				pos = lines.files.size() - 1;
+			}
+			cu.files.push_back(pos);
 		}
 		off++;
 
 		cu.section = {prologueEnd+1, end-off};
 
-		{
-			uint64_t address = 0;
-			uint64_t base_address = 0;
-			uint64_t fileno = 0, lineno = 1;
-			uint64_t prev_fileno = 0, prev_lineno = 1;
-			std::string define_file = "";
-			uint64_t min_address = -1, max_address = 0;
-
-			const uint32_t const_pc_add = 245 / cu.header.line_range;
-
-			while (off < end) {
-				uint8_t opcode = data[off++];
-				if (opcode < cu.header.opcode_base) {
-					switch (opcode) {
-						case DW_LNS_extended_op: 
-						{
-							uint64_t insn_len = _debug_line::getUleb128(data, &off);
-							opcode = data[off++];
-							switch (opcode) {
-								case DW_LNE_end_sequence:
-									if (min_address != (size_t)-1 && max_address != 0) {
-										_debug_line::CU::Entry e;
-										e.from = min_address;
-										e.to = max_address;
-										cu.entrys.push_back(e);
-
-										min_address = -1;
-										max_address = 0;
-									}
-
-									prev_lineno = lineno = 0;
-									prev_fileno = fileno = 0;
-									base_address = address = 0;
-									break;
-								case DW_LNE_set_address:
-									base_address = intFromByteArr(data + off, 4, lsb);
-									address = base_address;
-									off += 4;
-									break;
-
-								case DW_LNE_define_file:
-									define_file = std::string((const char*)data + off);
-									off += define_file.size() + 1;
-									_debug_line::getUleb128(data, &off);
-									_debug_line::getUleb128(data, &off);
-									_debug_line::getUleb128(data, &off);
-									break;
-								default:
-									off += insn_len;
-									break;
-							}
-							break; //???
-						}
-
-						case DW_LNS_copy:
-						{
-							_debug_line::CU::Entry e;
-							e.from = base_address;
-							e.to = address;
-							cu.entrys.push_back(e);
-
-							prev_fileno = fileno;
-							prev_lineno = lineno;
-							break;
-						}
-							
-
-						case DW_LNS_advance_pc:
-						{
-							uint64_t amt = _debug_line::getUleb128(data, &off);
-							address += amt * cu.header.min_instruction_length;
-							if (min_address > address)
-								min_address = address;
-							if (max_address < address)
-								max_address = address;
-							break;
-						}
-							
-
-						case DW_LNS_advance_line:
-						{
-							int64_t amt = _debug_line::getSleb128(data, &off);
-							prev_lineno = lineno;
-							lineno += amt;
-							break;
-						}
-
-						case DW_LNS_set_file:
-							prev_fileno = fileno;
-							fileno = _debug_line::getUleb128(data, &off) - 1;
-							break;
-
-						case DW_LNS_set_column:
-							_debug_line::getUleb128(data, &off);
-							break;
-
-						case DW_LNS_negate_stmt:
-							break;
-
-						case DW_LNS_set_basic_block:
-							break;
-
-						case DW_LNS_const_add_pc:
-							address += const_pc_add;
-							if (min_address > address)
-								min_address = address;
-							if (max_address < 0)
-								max_address = address;
-							break;
-
-						case DW_LNS_fixed_advance_pc:
-						{
-							uint16_t amt = intFromByteArr(data + off, 2, lsb);
-							off += 2;
-							address += amt;
-							break;
-						}
-					}
-					
-				}
-				else {
-					int adj = (opcode & 0xFF) - cu.header.opcode_base;
-					int addr_adv = adj / cu.header.line_range;
-					int line_adv = cu.header.line_base + (adj % cu.header.line_range);
-					uint64_t new_addr = address + addr_adv;
-					int new_line = lineno + line_adv;
-
-					_debug_line::CU::Entry e;
-					e.from = base_address;
-					e.to = new_addr;
-					cu.entrys.push_back(e);
-
-					prev_lineno = lineno;
-					prev_fileno = fileno;
-					lineno = new_line;
-					address = new_addr;
-					if (min_address > address)
-						min_address = address;
-					if (max_address < address)
-						max_address = address;
-				}
-			}
-
-			if (min_address != (uint64_t)-1 && max_address != 0) {
-				_debug_line::CU::Entry e;
-				e.from = min_address;
-				e.to = max_address;
-				cu.entrys.push_back(e);
-			}
-		}
+		cu.entrys = _debug_line::parseLineByteCode(data, &off, end, &cu, &lines, lsb);
 		
+		// add Entrys to global Entrys
+		for (size_t i = 0; i < cu.entrys.size(); i++) {
+			lines.entrys.push_back({ lines.cus.size(), i });
+		}
 
 		off = end;
 
 		lines.cus.push_back(cu);
 	}
 
+	std::sort(lines.entrys.begin(), lines.entrys.end(), [&](const std::pair<uint32_t, size_t>& a, const std::pair<uint32_t, size_t>& b) {
+		return lines.cus[a.first].entrys[a.second].addr < lines.cus[b.first].entrys[b.second].addr;
+	});
+
+	for (size_t i = 0; i < lines.files.size(); i++) {
+		_debug_line::File& file = lines.files[i];
+		std::string path = lines.dirs[file.dir] + "/" + file.name;
+		file.content = StringUtils::loadFileIntoString(path.c_str(), &file.couldFind);
+		if(file.couldFind)
+			file.lines = StringUtils::generateLineIndexArr(file.content.c_str());
+	}
+
 	return lines;
 }
 
-uint64_t ABB::utils::ELF::ELFFile::DWARF::_debug_line::getUleb128(const uint8_t* data, size_t* off) {
+uint64_t ABB::utils::ELF::ELFFile::DWARF::getUleb128(const uint8_t* data, size_t* off) {
 	uint64_t val = 0;
 	uint8_t shift = 0;
 
@@ -248,7 +345,7 @@ uint64_t ABB::utils::ELF::ELFFile::DWARF::_debug_line::getUleb128(const uint8_t*
 
 	return val;
 }
-int64_t ABB::utils::ELF::ELFFile::DWARF::_debug_line::getSleb128(const uint8_t* data, size_t* off) {
+int64_t ABB::utils::ELF::ELFFile::DWARF::getSleb128(const uint8_t* data, size_t* off) {
 	int64_t val = 0;
 	uint8_t shift = 0;
 	uint32_t size = 8 << 3;
@@ -492,7 +589,7 @@ ABB::utils::ELF::ELFFile ABB::utils::ELF::parseELFFile(const uint8_t* data, size
 	return file;
 }
 
-size_t ABB::utils::ELF::ELFFile::getIndOfSectionWithName(const char* name) {
+size_t ABB::utils::ELF::ELFFile::getIndOfSectionWithName(const char* name) const {
 	for (size_t i = 0; i < sectionHeaders.size(); i++) {
 		if (strcmp(shstringTableStr + sectionHeaders[i].name, name) == 0) {
 			return i;
@@ -500,3 +597,26 @@ size_t ABB::utils::ELF::ELFFile::getIndOfSectionWithName(const char* name) {
 	}
 	return -1;
 }
+
+bool ABB::utils::ELF::ELFFile::hasInfosLoaded() const {
+	return data.size() > 0;
+}
+
+
+
+
+
+/*
+
+
+
+uint64_t base_address = 0;
+uint64_t fileno = 0, lineno = 1;
+uint64_t prev_fileno = 0, prev_lineno = 1;
+std::string define_file = "";
+uint64_t min_address = -1, max_address = 0;
+
+
+
+
+*/
