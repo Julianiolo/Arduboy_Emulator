@@ -30,7 +30,7 @@ Vector2 mouseDelta;
 
 
 int main(void) {
-#if 1
+#if 0
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -46,11 +46,11 @@ int main(void) {
     return 0;
 #else
     Arduboy ab;
-    ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
+    ab.loadFromHexFile(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
     ab.mcu.powerOn();
     ab.updateButtons();
 
-    float secs = 100;
+    float secs = 500;
 
     uint8_t flags = A32u4::ATmega32u4::ExecFlags_None;
     //flags |= A32u4::ATmega32u4::ExecFlags_Analyse;
@@ -60,6 +60,11 @@ int main(void) {
     auto end = std::chrono::high_resolution_clock::now();
     uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     printf("took: %llums => %f%%\n", ms, (ms/1000.f)/secs*100);
+
+    Arduboy ab2;
+    ab.mcu.execute(1, 0);
+
+    return 0;
 #endif
 }
 

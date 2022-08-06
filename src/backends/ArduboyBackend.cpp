@@ -63,7 +63,7 @@ void ABB::ArduboyBackend::draw() {
 	}
 
 	
-
+	ImGui::SetNextWindowSize({ 800,450 }, ImGuiCond_FirstUseEver);
 	bool isWinOpen = false;
 	if (ImGui::Begin(name.c_str(), &open, ImGuiWindowFlags_MenuBar)) {
 		isWinOpen = true;
@@ -122,7 +122,10 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 
 	ImGuiID node = ImGui::DockBuilderAddNode();
 	ImGui::DockBuilderSetNodePos(node, debugWin->Pos);
-	ImGui::DockBuilderSetNodeSize(node, {debugWin->Size.x*2, debugWin->Size.y}); // resize node bc if not window will shrink on split docking
+	ImVec2 size;
+	//size = { debugWin->Size.x * 2, debugWin->Size.y }; // resize node bc if not, window will shrink on split docking
+	size = {700,600};
+	ImGui::DockBuilderSetNodeSize(node, size); 
 
 	ImGuiID l, r;
 	ImGui::DockBuilderSplitNode(node, ImGuiDir_Left, 0.5, &l, &r);
@@ -153,6 +156,20 @@ void ABB::ArduboyBackend::drawExecMenu() {
 	ImGui::End();
 }
 
+void ABB::ArduboyBackend::load(const char* path) {
+	const char* ext = StringUtils::getFileExtension(path);
+
+	if (std::strcmp(ext, "hex") == 0) {
+		ab.loadFromHexFile(path);
+	}
+	else if (std::strcmp(ext, "elf") == 0) {
+		loadFromELFFile(path);
+	}
+	else {
+		LogBackend::logf(LogBackend::LogLevel_Error, "Cant load file with extension %s! Trying to load: %s", ext, path);
+	}
+}
+
 void ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
 	elf = utils::ELF::parseELFFile(data, dataLen);
 
@@ -181,8 +198,11 @@ void ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
 void ABB::ArduboyBackend::loadFromELFFile(const char* path) {
 	bool success = true;
 	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
-	if (!success)
+	if (!success) {
+		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't load ELF file: %s", path);
 		return;
+	}
+		
 
 	loadFromELF(&content[0], content.size());
 }

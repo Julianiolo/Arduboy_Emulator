@@ -111,7 +111,7 @@ void ArduEmu::drawMenu() {
 					std::string name = ImGuiFD::GetSelectionNameString(0);
 
 					ABB::ArduboyBackend& abb = addEmulator(name.c_str());
-					abb.ab.load(path.c_str());
+					abb.load(path.c_str());
 					abb.ab.mcu.powerOn();
 				}
 				ImGuiFD::CloseCurrentDialog();

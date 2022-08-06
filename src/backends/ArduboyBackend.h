@@ -52,6 +52,8 @@ namespace ABB {
 
 		void buildDefaultLayout();
 
+		void load(const char* path);
+
 		void loadFromELF(const uint8_t* data, size_t dataLen);
 		void loadFromELFFile(const char* path);
 	};

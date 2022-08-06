@@ -67,7 +67,7 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::BeginDisabled();
 
 	if(ImGui::Button("Jump to PC")) {
-		if(srcMixs.size() > 0 && srcMixs[selectedSrcMix].file.isEmpty()) {
+		if(srcMixs.size() > 0 && !srcMixs[selectedSrcMix].file.isEmpty()) {
 			size_t line = srcMixs[selectedSrcMix].file.getLineIndFromAddr(abb->ab.mcu.cpu.getPCAddr());
 			srcMixs[selectedSrcMix].scrollToLine(line);
 		}
