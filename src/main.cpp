@@ -12,7 +12,7 @@
     #include "emscripten.h"
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || 1
 #define ROOTDIR "./"
 #else
 #define ROOTDIR "../../../../"
@@ -46,7 +46,10 @@ int main(void) {
     return 0;
 #else
     Arduboy ab;
-    ab.loadFromHexFile(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
+    if (!ab.loadFromHexFile(ROOTDIR "resources/games/Hollow/hollow.ino.hex")) {
+        printf("couldnt load file!\n");
+        return 1;
+    }
     ab.mcu.powerOn();
     ab.updateButtons();
 

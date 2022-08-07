@@ -89,7 +89,7 @@ void ArduEmu::drawBenchmark(){
 				double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
 				double frames = (double)benchCycls/(A32u4::CPU::ClockFreq/60);
 				double fps = 1000/(ms/frames);
-				res = StringUtils::format("%s/%s cycles run in %.4f ms => %.2f frames => %.4ffps; %s cycles\n", std::to_string(mcu.cpu.getTotalCycles()).c_str(), std::to_string(benchCycls).c_str(), ms, frames, fps, std::to_string(cycles).c_str()).get() + res;
+				res = StringUtils::format("%s/%s cycles run in %.4f ms => %.2f frames => %.4ffps; %s cycles\n", std::to_string(mcu.cpu.getTotalCycles()).c_str(), std::to_string(benchCycls).c_str(), ms, frames, fps, std::to_string(cycles).c_str()) + res;
 			}
 
 			ImGui::TextUnformatted(res.c_str());

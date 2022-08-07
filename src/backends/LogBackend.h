@@ -40,7 +40,7 @@ namespace ABB {
         static void log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg);
         template<typename ... Args>
         static void logf(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, Args ... args) {
-            log(logLevel, StringUtils::format(msg, args ...).get());
+            log(logLevel, StringUtils::format(msg, args ...).c_str());
         }
 
         bool isWinFocused() const;
