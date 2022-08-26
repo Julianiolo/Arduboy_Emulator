@@ -81,11 +81,11 @@ std::vector<ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Entry> ABB::utils:
 							File filedef;
 							filedef.name = std::string((const char*)data + off);
 							off += filedef.name.size() + 1;
-							uint32_t dir = getUleb128(data, &off) - 1;
-							filedef.time = getUleb128(data, &off);
-							filedef.size = getUleb128(data, &off);
+							uint32_t dir = (uint32_t)getUleb128(data, &off) - 1;
+							filedef.time = (uint32_t)getUleb128(data, &off);
+							filedef.size = (uint32_t)getUleb128(data, &off);
 
-							filedef.dir = dir != (uint32_t)-1 ? cu->dirs[dir] : -1;
+							filedef.dir = dir != (uint32_t)-1 ? (uint32_t)cu->dirs[dir] : -1;
 
 							size_t pos = -1;
 							for (size_t i = 0; i < dl->files.size(); i++) {
@@ -130,16 +130,16 @@ std::vector<ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Entry> ABB::utils:
 				case DW_LNS_advance_line:
 				{
 					int64_t amt = getSleb128(data, &off);
-					line += amt;
+					line += (int32_t)amt;
 					break;
 				}
 
 				case DW_LNS_set_file:
-					file = getUleb128(data, &off) - 1;
+					file = (uint32_t)(getUleb128(data, &off) - 1);
 					break;
 
 				case DW_LNS_set_column:
-					column = getUleb128(data, &off);
+					column = (uint32_t)getUleb128(data, &off);
 					break;
 
 				case DW_LNS_negate_stmt:
@@ -156,7 +156,7 @@ std::vector<ABB::utils::ELF::ELFFile::DWARF::_debug_line::CU::Entry> ABB::utils:
 
 				case DW_LNS_fixed_advance_pc:
 				{
-					uint16_t amt = intFromByteArr(data + off, 2, lsb);
+					uint16_t amt = (uint16_t)intFromByteArr(data + off, 2, lsb);
 					off += 2;
 					address += amt;
 					break;
@@ -279,11 +279,11 @@ ABB::utils::ELF::ELFFile::DWARF::_debug_line ABB::utils::ELF::ELFFile::DWARF::pa
 			file.name = std::string((const char*)data + off);
 			off += file.name.size() + 1;
 
-			uint32_t dir = getUleb128(data, &off) - 1;
-			file.time = getUleb128(data, &off);
-			file.size = getUleb128(data, &off);
+			uint32_t dir = (uint32_t)getUleb128(data, &off) - 1; // index
+			file.time    = (uint32_t)getUleb128(data, &off);
+			file.size    = (uint32_t)getUleb128(data, &off);
 
-			file.dir = cu.dirs[dir]; // convert to global merged dir index
+			file.dir = (uint32_t)cu.dirs[dir]; // convert to global merged dir index
 
 			size_t pos = -1;
 

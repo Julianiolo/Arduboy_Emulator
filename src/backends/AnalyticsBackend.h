@@ -9,7 +9,7 @@ namespace ABB{
     class AnalyticsBackend{
     private:
         Arduboy* ab = nullptr;
-        bool* open;
+        
         const utils::SymbolTable* symbolTable;
         
         RingBuffer<uint16_t> StackSizeBuf;
@@ -18,6 +18,7 @@ namespace ABB{
         bool winFocused = false;
     public:
         const std::string winName;
+        bool* open;
 
         AnalyticsBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable);
 

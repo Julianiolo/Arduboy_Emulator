@@ -71,8 +71,18 @@ void ABB::DisplayBackend::draw(const ImVec2& size) {
 	}
 
 	const ImVec2 pos = ImGui::GetCursorScreenPos();
-	RLImGuiImageRect(&displayTex,(int)size.x,(int)size.y, getTexSrcRect());
 
+
+	bool flipDims = rotation == 1 || rotation == 3;
+
+	Rectangle rec = getTexSrcRect();
+
+	ImVec2 uv0(1.0f/displayTex.width, 1.0f/displayTex.height), uv1((1.0f + AB::Display::WIDTH)/displayTex.width, (1.0f + AB::Display::HEIGHT)/displayTex.height);
+
+
+	ImGui::Image(&displayTex, ImVec2(!flipDims ? size.x : size.y, !flipDims ? size.y : size.x), uv0, uv1);
+
+	// draw Magnification
 	if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		ImGui::BeginTooltip();
 		ImGuiIO& io = ImGui::GetIO();
@@ -121,4 +131,13 @@ void ABB::DisplayBackend::draw(const ImVec2& size) {
 
 bool ABB::DisplayBackend::isWinFocused() const {
 	return lastWinFocused == ImGui::GetCurrentContext()->FrameCount || lastWinFocused == ImGui::GetCurrentContext()->FrameCount-1;
+}
+
+
+void ABB::DisplayBackend::rotateCW() {
+	rotation = (rotation + 1) % 4;
+}
+
+void ABB::DisplayBackend::rotateCCW() {
+	rotation = (rotation + 4 - 1) % 4;
 }

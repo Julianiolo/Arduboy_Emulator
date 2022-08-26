@@ -28,8 +28,16 @@ void ArduEmu::destroy() {
 }
 
 void ArduEmu::draw() {
-	for (auto& i : instances) {
-		i->draw();
+	for (auto it = instances.begin(); it != instances.end();) {
+		auto& i = *it;
+		if (i->_wantsToBeClosed()) {
+			delete i;
+			it = instances.erase(it);
+		}
+		else {
+			i->draw();
+			it++;
+		}
 	}
 	drawBenchmark();
 	drawMenu();

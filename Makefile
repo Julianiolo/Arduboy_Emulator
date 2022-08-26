@@ -13,7 +13,7 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
 endif
 CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing
 CSTD:=-std=c++17
-RELEASE_OPTIM?= -O2
+RELEASE_OPTIM?= -O3 -flto
 
 ROOT_DIR:=./
 SRC_DIR:=$(ROOT_DIR)src/

@@ -183,6 +183,8 @@ const char* get_cwd_(){
 }
 
 std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
+	std::vector<std::string> out;
+
 #ifdef EXTERNAL_
 	std::string list = "";
 	std::string placeHolder = "0______";
@@ -208,7 +210,7 @@ std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
 	std::string ret = exec(cmd.c_str());
 	std::cout << ret << std::endl;
 
-	std::vector<std::string> out;
+	
 	size_t lastI = 0;
 	for (size_t i = 0; i < ret.size(); i++) {
 		if (ret[i] == '\n') {
@@ -223,11 +225,11 @@ std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
 	}
 	if (lastI < ret.size() - 1)
 		out.push_back(std::string(ret.c_str()+lastI, ret.c_str()+ret.size()));
-
-	return out;
 #else
 
 #endif
+
+	return out;
 }
 
 

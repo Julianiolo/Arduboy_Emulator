@@ -5,8 +5,8 @@
 #include "../rlImGui/rlImGui.h"
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n) 
-: name(n), devWinName(std::string(n) + "devtools"), displayBackend(&ab.display), debuggerBackend(this, (name + " - Debugger").c_str(), &open, &symbolTable), logBackend((name + " - Log").c_str(), &open),
-	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &open, &symbolTable), analyticsBackend(&ab, name.c_str(), &open, &symbolTable)
+: name(n), devWinName(std::string(n) + "devtools"), displayBackend(&ab.display), debuggerBackend(this, (name + " - Debugger").c_str(), &devToolsOpen, &symbolTable), logBackend((name + " - Log").c_str(), &devToolsOpen),
+	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &devToolsOpen, &symbolTable), analyticsBackend(&ab, name.c_str(), &devToolsOpen, &symbolTable)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	ab.setLogCallBSimple(LogBackend::log);
@@ -37,7 +37,7 @@ void ABB::ArduboyBackend::update() {
 		ab.buttonState = Arduboy::Button_None;
 	}
 
-	uint64_t lastCycs = ab.mcu.cpu.getTotalCycles();
+	//uint64_t lastCycs = ab.mcu.cpu.getTotalCycles();
 	ab.newFrame();
 	//uint64_t stopAmt = 42500000;
 	//if(ab.mcu.cpu.getTotalCycles() > stopAmt && lastCycs <= stopAmt)
@@ -48,6 +48,9 @@ void ABB::ArduboyBackend::update() {
 }
 
 void ABB::ArduboyBackend::draw() {
+	if (!open)
+		return;
+
 	ab.activateLog();
 	logBackend.activate();
 
@@ -64,9 +67,7 @@ void ABB::ArduboyBackend::draw() {
 
 	
 	ImGui::SetNextWindowSize({ 800,450 }, ImGuiCond_FirstUseEver);
-	bool isWinOpen = false;
-	if (ImGui::Begin(name.c_str(), &open, ImGuiWindowFlags_MenuBar)) {
-		isWinOpen = true;
+	if (ImGui::Begin(name.c_str(), &open_try, ImGuiWindowFlags_MenuBar)) {
 
 		if (ImGui::BeginMenuBar()) {
 			if (ImGui::BeginMenu("Menu")) {
@@ -76,6 +77,13 @@ void ABB::ArduboyBackend::draw() {
 			}
 			if (ImGui::BeginMenu("Display")) {
 				if (ImGui::BeginMenu("Rotate")) {
+					if (ImGui::Button("CCW")) {
+
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("CW")) {
+
+					}
 					
 					ImGui::EndMenu();
 				}
@@ -109,6 +117,10 @@ void ABB::ArduboyBackend::draw() {
 
 	if (firstFrame)
 		firstFrame = false;
+
+	if (!open_try) {
+		tryClose();
+	}
 }
 
 void ABB::ArduboyBackend::resetMachine() {
@@ -154,6 +166,13 @@ void ABB::ArduboyBackend::drawExecMenu() {
 			ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Analyse;
 	}
 	ImGui::End();
+}
+
+void ABB::ArduboyBackend::tryClose() {
+	open = false;
+}
+bool ABB::ArduboyBackend::_wantsToBeClosed() {
+	return !open;
 }
 
 void ABB::ArduboyBackend::load(const char* path) {

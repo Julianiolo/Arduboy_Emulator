@@ -30,7 +30,7 @@ Vector2 mouseDelta;
 
 
 int main(void) {
-#if 0
+#if 1
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -59,10 +59,10 @@ int main(void) {
     //flags |= A32u4::ATmega32u4::ExecFlags_Analyse;
     //flags |= A32u4::ATmega32u4::ExecFlags_Debug;
     auto start = std::chrono::high_resolution_clock::now();
-    ab.mcu.execute(A32u4::CPU::ClockFreq*secs, flags);
+    ab.mcu.execute((uint64_t)(A32u4::CPU::ClockFreq*secs), flags);
     auto end = std::chrono::high_resolution_clock::now();
     uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    printf("took: %llums => %f%%\n", ms, (ms/1000.f)/secs*100);
+    printf("took: %" PRIu64 "ms => %f%%\n", ms, (ms/1000.f)/secs*100);
 
     Arduboy ab2;
     ab.mcu.execute(1, 0);

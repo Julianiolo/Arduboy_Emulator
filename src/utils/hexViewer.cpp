@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <string>
+#include <cinttypes>
 
 #include <algorithm>
 
@@ -552,7 +553,7 @@ void ABB::utils::HexViewer::EditBytes::draw() {
 		return;
 
 	if (ImGui::BeginPopup("hexViewEdit")) {
-		ImGui::Text("Edit Value at 0x%04x", editAddr);
+		ImGui::Text("Edit Value at 0x%" MCU_PRIxSIZE, editAddr);
 		ImGui::Separator();
 
 		drawTypeChoose();

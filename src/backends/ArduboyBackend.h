@@ -16,6 +16,7 @@
 namespace ABB {
 	class ArduboyBackend {
 	public:
+
 		Arduboy ab;
 
 		std::string name;
@@ -29,8 +30,9 @@ namespace ABB {
 		utils::SymbolTable symbolTable;
 		utils::ELF::ELFFile elf;
 
-		bool open = true;
+		
 	private:
+		bool open = true;
 		bool open_try = true;
 
 		bool winActive = false;
@@ -47,6 +49,8 @@ namespace ABB {
 
 		ArduboyBackend(const char* n);
 
+		void tryClose();
+
 		void draw();
 		void resetMachine();
 
@@ -56,6 +60,8 @@ namespace ABB {
 
 		void loadFromELF(const uint8_t* data, size_t dataLen);
 		void loadFromELFFile(const char* path);
+
+		bool _wantsToBeClosed();
 	};
 }
 

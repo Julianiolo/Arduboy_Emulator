@@ -23,7 +23,9 @@ namespace ABB {
 		Rectangle getTexSrcRect();
 		bool getPixelOfImage(uint8_t x, uint8_t y);
 
-		uint64_t lastWinFocused = -1;
+		int lastWinFocused = -1;
+
+		uint8_t rotation = 0;
 	public:
 
 		DisplayBackend(AB::Display* display);
@@ -34,6 +36,9 @@ namespace ABB {
 		void draw(const ImVec2& size);
 
 		bool isWinFocused() const;
+
+		void rotateCW();
+		void rotateCCW();
 	};
 }
 
