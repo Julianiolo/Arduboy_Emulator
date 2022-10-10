@@ -66,10 +66,10 @@ SRC_FILES:=$(shell find $(SRC_DIR) -name '*.cpp')
 OBJ_FILES:=$(addprefix $(OBJ_DIR),${SRC_FILES:.cpp=.o})
 DEP_FILES:=$(patsubst %.o,%.d,$(OBJ_FILES))
 
-DEPENDENCIES_INCLUDE_PATHS:=$(addprefix $(ROOT_DIR)dependencies/,Arduboy_Emulator_HL/src Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui ImGuiFD)
+DEPENDENCIES_INCLUDE_PATHS:=$(addprefix $(ROOT_DIR)dependencies/,Arduboy_Emulator_HL/src Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui ImGuiFD Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/dependencies/CPP_Utils/src)
 DEPENDENCIES_LIBS_DIR:=$(BUILD_DIR)dependencies/libs
 
-DEP_LIBS:=raylib imgui Arduboy_Emulator_HL ATmega32u4_Emulator ImGuiFD
+DEP_LIBS:=raylib imgui Arduboy_Emulator_HL ATmega32u4_Emulator ImGuiFD CPP_UTILS
 DEP_LIBS_PATH:=$(addprefix $(DEPENDENCIES_LIBS_DIR)/,$(DEP_LIBS))
 
 DEP_LIBS_INCLUDE_FLAGS:=$(addprefix -I,$(DEPENDENCIES_INCLUDE_PATHS))
@@ -102,7 +102,7 @@ endif
 
 all: $(OUT_PATH)
 
-$(OUT_PATH): $(DEP_LIBS_BUILD_DIR)depFile.dep $(OBJ_FILES)
+$(OUT_PATH): $(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)depFile.dep $(OBJ_FILES)
 	mkdir -p $(OUT_DIR)
 	$(CXX) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(DEP_LIBS_DIR_FLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
 	mkdir -p $(OUT_DIR)resources
@@ -118,7 +118,7 @@ $(OBJ_DIR)%.o:%.cpp
 -include $(DEP_FILES)
 
 # dependencies
-$(DEP_LIBS_BUILD_DIR)depFile.dep:$(DEP_LIBS_DEPS)
+$(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)depFile.dep:$(DEP_LIBS_DEPS)
 	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) PLATFORM=$(PLATFORM) BUILD_MODE=$(BUILD_MODE) CSTD=$(CSTD) BUILD_DIR=$(DEP_LIBS_BUILD_DIR)
 
 clean:

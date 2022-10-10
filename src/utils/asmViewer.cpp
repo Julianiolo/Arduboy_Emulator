@@ -8,7 +8,7 @@
 
 #include "../backends/LogBackend.h"
 #include "../Extensions/imguiExt.h"
-#include "utils/StringUtils.h"
+#include "StringUtils.h"
 #include "components/Disassembler.h"
 
 #include <inttypes.h> // for printf

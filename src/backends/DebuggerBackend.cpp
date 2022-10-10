@@ -9,7 +9,7 @@
 
 #include "ImGuiFD.h"
 
-#include "utils/StringUtils.h"
+#include "StringUtils.h"
 
 #include "ArduboyBackend.h"
 

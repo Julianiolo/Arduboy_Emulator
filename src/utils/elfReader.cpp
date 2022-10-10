@@ -3,8 +3,8 @@
 #include <cstring>
 #include <algorithm>
 
-#include "utils/StringUtils.h"
-#include "utils/DataUtils.h"
+#include "StringUtils.h"
+#include "DataUtils.h"
 
 uint8_t ABB::utils::ELF::ELFFile::SymbolTableEntry::getInfoBinding() const {
 	return info >> 4;

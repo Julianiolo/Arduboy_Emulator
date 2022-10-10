@@ -5,7 +5,7 @@
 #include <string>
 #include "ATmega32u4.h"
 #include "imgui.h"
-#include "utils/StringUtils.h"
+#include "StringUtils.h"
 
 namespace ABB {
     class LogBackend{

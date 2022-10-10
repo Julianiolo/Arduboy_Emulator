@@ -1,5 +1,5 @@
 #include "mcuInfoBackend.h"
-#include "utils/StringUtils.h"
+#include "StringUtils.h"
 
 #include <cmath>
 #include <cctype>

@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "../Extensions/imguiExt.h"
-#include "utils/StringUtils.h"
+#include "StringUtils.h"
 #include "byteVisualiser.h"
 
 ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { 

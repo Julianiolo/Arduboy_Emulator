@@ -102,7 +102,7 @@ IMGUIFD_DEP_FILES:=$(patsubst %.o,%.d,$(IMGUIFD_OBJ_FILES))
 .PHONY:all clean
 
 all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH) $(IMGUIFD_OUTPATH)
-	touch $(BUILD_DIR)depFile.dep
+	touch $(BUILD_DIR)Arduboy_EmulatordepFile.dep
 
 # raylib:
 $(RAYLIB_OUTPATH):$(RAYLIB_DEPS)
