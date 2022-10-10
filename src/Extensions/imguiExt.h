@@ -2,6 +2,7 @@
 #define _IMGUI_EXT
 
 #include "imgui.h"
+#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui_internal.h"
 #include "raylib.h"
 #include <string>
@@ -27,6 +28,9 @@ namespace ImGuiExt {
 	void Rect(ImGuiID id, const ImVec4& col, ImVec2 size = {0,0});
 
 	bool InputTextString(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags = 0, const ImVec2& size = { 0,0 });
+
+	void Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0});
+	void ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0});
 }
 
 #endif

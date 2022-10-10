@@ -3,10 +3,15 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
+#include "../utils/icons.h"
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n) 
-: name(n), devWinName(std::string(n) + "devtools"), displayBackend(&ab.display), debuggerBackend(this, (name + " - Debugger").c_str(), &devToolsOpen, &symbolTable), logBackend((name + " - Log").c_str(), &devToolsOpen),
-	mcuInfoBackend(&ab, (name + " - Mcu Info").c_str(), &devToolsOpen, &symbolTable), analyticsBackend(&ab, name.c_str(), &devToolsOpen, &symbolTable)
+: name(n), devWinName(std::string(n) + "devtools"), 
+	displayBackend  (      (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
+	debuggerBackend (this, (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen, &symbolTable),
+	logBackend      (      (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen              ),
+	mcuInfoBackend  (&ab,  (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen, &symbolTable),
+	analyticsBackend(&ab,  (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen, &symbolTable)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	ab.setLogCallBSimple(LogBackend::log);
@@ -65,27 +70,33 @@ void ABB::ArduboyBackend::draw() {
 		analyticsBackend.draw();
 	}
 
+	displayBackend.drawSetColorWin();
+
 	
 	ImGui::SetNextWindowSize({ 800,450 }, ImGuiCond_FirstUseEver);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
 	if (ImGui::Begin(name.c_str(), &open_try, ImGuiWindowFlags_MenuBar)) {
-
 		if (ImGui::BeginMenuBar()) {
-			if (ImGui::BeginMenu("Menu")) {
-				if(ImGui::MenuItem("Exec Menu", NULL, &execMenuOpen)) {}
-				if (ImGui::MenuItem("Dev Tools", NULL, &devToolsOpen)) {}
+			if (ImGui::BeginMenu(ADD_ICON(ICON_FA_BARS) "Menu")) {
+				if(ImGui::MenuItem(ADD_ICON(ICON_FA_WRENCH) "Exec Menu", NULL, &execMenuOpen)) {}
+				if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("Display")) {
-				if (ImGui::BeginMenu("Rotate")) {
-					if (ImGui::Button("CCW")) {
-
+			if (ImGui::BeginMenu(ADD_ICON(ICON_FA_TV) "Display")) {
+				if (ImGui::BeginMenu("Rotate Display")) {
+					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_UNDO,"CCW"))) {
+						displayBackend.rotateCCW();
 					}
 					ImGui::SameLine();
-					if (ImGui::Button("CW")) {
-
+					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_REDO,"CW"))) {
+						displayBackend.rotateCW();
 					}
 					
 					ImGui::EndMenu();
+				}
+				if (ImGui::MenuItem("Set Colors")) {
+					displayBackend.openSetColorWin();
 				}
 				ImGui::EndMenu();
 			}
@@ -94,22 +105,12 @@ void ABB::ArduboyBackend::draw() {
 
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 		//contentSize.y = ImMax(contentSize.y - devToolSpace, 0.0f);
-		constexpr float ratio = (float)AB::Display::WIDTH / (float)AB::Display::HEIGHT;
-		ImVec2 size;
-		ImVec2 pos;
-		if (contentSize.x < contentSize.y * ratio) {
-			size = { contentSize.x, contentSize.x / ratio };
-			pos = { 0, (contentSize.y - size.y) / 2 };
-		}
-		else {
-			size = { contentSize.y * ratio,contentSize.y };
-			pos = { (contentSize.x - size.x) / 2, 0 };
-		}
-		ImVec2 cursor = ImGui::GetCursorPos();
-		ImGui::SetCursorPos({ cursor.x + pos.x, cursor.y + pos.y });
-		displayBackend.draw(size);
+		
+		displayBackend.draw(contentSize);
 	}
 	ImGui::End();
+	ImGui::PopStyleVar();
+	ImGui::PopStyleVar();
 	
 	if (firstFrame) {
 		buildDefaultLayout();

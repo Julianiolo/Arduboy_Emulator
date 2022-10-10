@@ -1,9 +1,8 @@
+#ifndef __IMGUI_OPERATORS_H__
+#define __IMGUI_OPERATORS_H__
 #include "imgui.h"
 
-inline ImVec2 operator+(const ImVec2& a, const ImVec2& b){
-    return { a.x + b.x, a.y + b.y};
-}
+static inline ImVec4 operator*(const ImVec4& lhs, float f)            { return ImVec4(lhs.x * f, lhs.y * f, lhs.z * f, lhs.w * f); }
+static inline ImVec4 operator/(const ImVec4& lhs, float f)            { return ImVec4(lhs.x / f, lhs.y / f, lhs.z / f, lhs.w / f); }
 
-inline ImVec2 operator*(const ImVec2& a, const ImVec2& b){
-    return { a.x * b.x, a.y * b.y};
-}
+#endif

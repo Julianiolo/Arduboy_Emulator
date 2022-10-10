@@ -8,6 +8,7 @@
 namespace ABB {
 	class DisplayBackend {
 	private:
+		std::string name;
 		AB::Display* display;
 
 		Texture2D displayTex;
@@ -17,6 +18,9 @@ namespace ABB {
 			uint8_t r;
 			uint8_t g;
 			uint8_t b;
+
+			ImVec4 toImGuiCol() const;
+			static Color3 fromImGuiCol(const ImVec4& col);
 		};
 
 		Texture& getTex();
@@ -26,19 +30,28 @@ namespace ABB {
 		int lastWinFocused = -1;
 
 		uint8_t rotation = 0;
+
+		Color3 darkColor = { 0,0,0 };
+		Color3 lightColor = { 255,255,255 };
+		bool setColorWinOpen = false;
 	public:
 
-		DisplayBackend(AB::Display* display);
+		DisplayBackend(const char* name, AB::Display* display);
 		~DisplayBackend();
 
 		void update();
 		
 		void draw(const ImVec2& size);
+		void drawSetColorWin();
+		void openSetColorWin();
 
 		bool isWinFocused() const;
 
 		void rotateCW();
 		void rotateCCW();
+
+		void setDarkColor(const Color3& color);
+		void setLightColor(const Color3& color);
 	};
 }
 

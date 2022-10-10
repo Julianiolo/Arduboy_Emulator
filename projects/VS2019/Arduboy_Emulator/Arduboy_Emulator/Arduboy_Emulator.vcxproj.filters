@@ -152,5 +152,11 @@
     <ClInclude Include="..\..\..\..\src\utils\elfReader.h">
       <Filter>Source Files\utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\icons.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\Extensions\imguiOperators.h">
+      <Filter>Source Files\Extensions</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

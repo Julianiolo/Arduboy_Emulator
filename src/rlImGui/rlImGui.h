@@ -29,13 +29,35 @@
 **********************************************************************************************/
 
 #pragma once
-#include "raylib.h"
 
+#include "raylib.h"
+#include "imgui.h"
+#include "IconsForkAwesome.h"
+#include "IconsFontAwesome5.h"
+
+namespace ImGuiColors
+{
+    inline ImVec4 Convert(::Color color)
+    {
+        return ImVec4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+    }
+}
+
+// basic API
 void SetupRLImGui(bool dark);
 void BeginRLImGui();
 void EndRLImGui();
 void ShutdownRLImGui();
 
-void RLImGuiImage(Texture *image);
-void RLImGuiImageSize(Texture *image, int width, int height);
-void RLImGuiImageRect(Texture* image, int destWidth, int destHeight, Rectangle sourceRect);
+// Advanced StartupAPI
+void InitRLGLImGui();
+void FinishRLGLImguSetup();
+void ReloadImGuiFonts();
+
+// image API
+void RLImGuiImage(const Texture *image);
+void RLImGuiImageSize(const Texture *image, int width, int height);
+void RLImGuiImageRect(const Texture* image, int destWidth, int destHeight, Rectangle sourceRect);
+
+// Icon Fonts
+void AddRLImGuiIconFonts(float size = 12.0f, bool awesome = false);

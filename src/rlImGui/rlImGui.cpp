@@ -28,6 +28,9 @@
 *
 **********************************************************************************************/
 #include "rlImGui.h"
+#include "ForkAwesomeFontData.h"
+#include "FA5FreeRegularFontData.h"
+#include "FA5FreeSolidFontData.h"
 
 #include "imgui.h"
 #include "raylib.h"
@@ -42,6 +45,31 @@ static Texture2D FontTexture;
 
 static ImGuiMouseCursor CurrentMouseCursor = ImGuiMouseCursor_COUNT;
 static std::map<ImGuiMouseCursor, MouseCursor> MouseCursorMap;
+
+void AddRLImGuiIconFonts(float size, bool awesome)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontDefault();
+
+    // merge in icons from Fontk Awesome
+    if (awesome)
+    { 
+        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+        ImFontConfig icons_config;
+        icons_config.MergeMode = true;
+        icons_config.PixelSnapH = true;
+        io.Fonts->AddFontFromMemoryTTF(FA5Free_Solid_900_otf, FA5Free_Solid_900_otf_len, size, &icons_config, icons_ranges);
+    }
+    else
+    {
+        // merge in icons from Fork Awesome
+        static const ImWchar icons_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
+        ImFontConfig icons_config;
+        icons_config.MergeMode = true;
+        icons_config.PixelSnapH = true;
+        io.Fonts->AddFontFromMemoryTTF(forkawesome_webfont_ttf, forkawesome_webfont_ttf_len, size, &icons_config, icons_ranges);
+    }
+}
 
 static const char* rlImGuiGetClipText(void*)
 {
@@ -99,7 +127,6 @@ static void rlImGuiNewFrame()
             else
             {
                 ShowCursor();
-                ImGuiIO& io = ImGui::GetIO();
 
                 if (!(io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange))
                 {
@@ -247,7 +274,7 @@ static void rlImGuiTriangleVert(const ImDrawVert& idx_vert)
 
 static void rlImGuiRenderTriangles(unsigned int count, int indexStart, const ImVector<ImDrawIdx>& indexBuffer, const ImVector<ImDrawVert>& vertBuffer, void* texturePtr)
 {
-    if(count == 0)
+    if (count == 0)
         return;
 
     Texture* texture = (Texture*)texturePtr;
@@ -265,9 +292,17 @@ static void rlImGuiRenderTriangles(unsigned int count, int indexStart, const ImV
             rlSetTexture(textureId);
         }
 
-        rlImGuiTriangleVert(vertBuffer[indexBuffer[indexStart + i]]);
-        rlImGuiTriangleVert(vertBuffer[indexBuffer[indexStart + i + 1]]);
-        rlImGuiTriangleVert(vertBuffer[indexBuffer[indexStart + i + 2]]);
+        ImDrawIdx indexA = indexBuffer[indexStart + i];
+        ImDrawIdx indexB = indexBuffer[indexStart + i + 1];
+        ImDrawIdx indexC = indexBuffer[indexStart + i + 2];
+
+        const ImDrawVert& vertexA = vertBuffer[indexA];
+        const ImDrawVert& vertexB = vertBuffer[indexB];
+        const ImDrawVert& vertexC = vertBuffer[indexC];
+
+        rlImGuiTriangleVert(vertexA);
+        rlImGuiTriangleVert(vertexB);
+        rlImGuiTriangleVert(vertexC);
     }
     rlEnd();
 }
@@ -325,17 +360,14 @@ void SetupMouseCursors()
     MouseCursorMap[ImGuiMouseCursor_NotAllowed] = MOUSE_CURSOR_NOT_ALLOWED;
 }
 
-void SetupRLImGui(bool dark)
+void InitRLGLImGui()
 {
     ImGui::CreateContext(nullptr);
-    if (dark)
-        ImGui::StyleColorsDark();
-    else
-        ImGui::StyleColorsLight();
+}
 
+void FinishRLGLImguSetup()
+{
     SetupMouseCursors();
-
-    //rlEnableScissorTest();
 
     ImGuiIO& io = ImGui::GetIO();
     io.BackendPlatformName = "imgui_impl_raylib";
@@ -369,9 +401,28 @@ void SetupRLImGui(bool dark)
 
     io.SetClipboardTextFn = rlImGuiSetClipText;
     io.GetClipboardTextFn = rlImGuiGetClipText;
-    
+
     io.ClipboardUserData = nullptr;
 
+
+    ReloadImGuiFonts();
+}
+
+void SetupRLImGui(bool dark)
+{
+    InitRLGLImGui();
+
+    if (dark)
+        ImGui::StyleColorsDark();
+    else
+        ImGui::StyleColorsLight();
+
+    FinishRLGLImguSetup();
+}
+
+void ReloadImGuiFonts()
+{
+    ImGuiIO& io = ImGui::GetIO();
     unsigned char* pixels = nullptr;
 
     int width;
@@ -379,6 +430,7 @@ void SetupRLImGui(bool dark)
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, nullptr);
     Image image = GenImageColor(width, height, BLANK);
     memcpy(image.data, pixels, width * height * 4);
+
     if (FontTexture.id != 0)
         UnloadTexture(FontTexture);
 
@@ -409,17 +461,17 @@ void ShutdownRLImGui()
     LoadedTextures.clear();
 }
 
-void RLImGuiImage(Texture *image)
+void RLImGuiImage(const Texture *image)
 {
-    ImGui::Image(image, ImVec2(float(image->width), float(image->height)));
+    ImGui::Image((ImTextureID)image, ImVec2(float(image->width), float(image->height)));
 }
 
-void RLImGuiImageSize(Texture *image, int width, int height)
+void RLImGuiImageSize(const Texture *image, int width, int height)
 {
-    ImGui::Image(image, ImVec2(float(width), float(height)));
+    ImGui::Image((ImTextureID)image, ImVec2(float(width), float(height)));
 }
 
-void RLImGuiImageRect(Texture* image, int destWidth, int destHeight, Rectangle sourceRect)
+void RLImGuiImageRect(const Texture* image, int destWidth, int destHeight, Rectangle sourceRect)
 {
     ImVec2 uv0;
     ImVec2 uv1;
@@ -446,5 +498,5 @@ void RLImGuiImageRect(Texture* image, int destWidth, int destHeight, Rectangle s
         uv1.y = uv0.y + (float)(sourceRect.height / image->height);
     }
 
-    ImGui::Image(image, ImVec2(float(destWidth), float(destHeight)),uv0,uv1);
+    ImGui::Image((ImTextureID)image, ImVec2(float(destWidth), float(destHeight)),uv0,uv1);
 }

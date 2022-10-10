@@ -15,6 +15,7 @@
 
 #include "components/Disassembler.h"
 
+#include "../utils/icons.h"
 
 
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open, const utils::SymbolTable* symbolTable) 
@@ -28,43 +29,53 @@ void ABB::DebuggerBackend::drawControls(){
 		abb->ab.mcu.debugger.halt();
 	}
 
-	bool isHalted = abb->ab.mcu.debugger.isHalted();
+	bool isHalted = abb->ab.mcu.debugger.isHalted(); // caching, but also so it cant change while something is disabled, not reenabling it as a result
 
 	if (!isHalted) ImGui::BeginDisabled();
-		if (ImGui::Button("Step")) {
+		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_STEP_FORWARD,"Step"))) {
 			abb->ab.mcu.debugger.step();
 		}
+		if (USE_ICONS && ImGui::IsItemHovered())
+			ImGui::SetTooltip("Step");
+
 		ImGui::SameLine();
-		if (ImGui::Button("Step Frame")) {
+		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_FAST_FORWARD,"Step Frame"))) {
 			stepFrame = true;
 			abb->ab.mcu.debugger.continue_();
 		}
+		if (USE_ICONS && ImGui::IsItemHovered())
+			ImGui::SetTooltip("Step Frame");
+
 		ImGui::SameLine();
-		if (ImGui::Button("Continue")) {
+		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_PLAY,"Continue"))) {
 			abb->ab.mcu.debugger.continue_();
 		}
+		if (USE_ICONS && ImGui::IsItemHovered())
+			ImGui::SetTooltip("Continue");
+
 	if (!isHalted) ImGui::EndDisabled();
 
 	ImGui::SameLine();
 	if (isHalted) ImGui::BeginDisabled();
-		if (ImGui::Button("Force Stop")) {
+		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_PAUSE,"Force Stop"))) {
 			abb->ab.mcu.debugger.halt();
 		}
+		if (USE_ICONS && ImGui::IsItemHovered())
+			ImGui::SetTooltip("Force Stop");
 	if (isHalted) ImGui::EndDisabled();
 
 	ImGui::SameLine();
-	if (ImGui::Button("Reset")) {
+	if (ImGui::Button(ICON_OR_TEXT(ICON_FA_UNDO,"Reset"))) {
 		abb->resetMachine();
 		if(haltOnReset)
 			abb->ab.mcu.debugger.halt();
 	}
+	if (USE_ICONS && ImGui::IsItemHovered())
+		ImGui::SetTooltip("Reset");
 	ImGui::SameLine();
 	ImGui::Checkbox("Halt on Reset", &haltOnReset);
 
 	// ## Line 2 ##
-
-	if (!isHalted)
-		ImGui::BeginDisabled();
 
 	if(ImGui::Button("Jump to PC")) {
 		if(srcMixs.size() > 0 && !srcMixs[selectedSrcMix].file.isEmpty()) {
@@ -73,12 +84,11 @@ void ABB::DebuggerBackend::drawControls(){
 		}
 	}
 
-	if (!isHalted)
-		ImGui::EndDisabled();
-
 	ImGui::SameLine();
 	double totalSeconds = (double)abb->ab.mcu.cpu.getTotalCycles() / A32u4::CPU::ClockFreq;
-	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %" PRId64 " (%.6fs)", abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr(), abb->ab.mcu.cpu.getTotalCycles(), totalSeconds);
+	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s (%.6fs)", 
+		abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr(), 
+		StringUtils::addThousandsSeperator(std::to_string(abb->ab.mcu.cpu.getTotalCycles()).c_str()).c_str(), totalSeconds);
 }
 
 void ABB::DebuggerBackend::drawDebugStack() {
@@ -468,20 +478,20 @@ void ABB::DebuggerBackend::generateSrc() {
 
 	utils::AsmViewer& srcMix = addSrcMix();
 	
-	srcMix.title = "Generated";
+	srcMix.title = ADD_ICON(ICON_FA_FILE_CODE) "Generated";
 	srcMix.generateDisasmFile(&abb->ab.mcu.flash, info);
 }
 
 void ABB::DebuggerBackend::addSrc(const char* str, const char* title) {
 	utils::AsmViewer& srcMix = addSrcMix();
 
-	srcMix.title = title ? title : std::string("Loaded #") + std::to_string(loadedSrcFileInc++);
+	srcMix.title = title ? title : std::string(ADD_ICON(ICON_FA_FILE_CODE) "Loaded #") + std::to_string(loadedSrcFileInc++);
 	srcMix.loadSrc(str);
 }
 bool ABB::DebuggerBackend::addSrcFile(const char* path) {
 	utils::AsmViewer& srcMix = addSrcMix();
 
-	srcMix.title = StringUtils::getFileName(path);
+	srcMix.title = std::string(ADD_ICON(ICON_FA_FILE_CODE)) + StringUtils::getFileName(path);
 
 	return srcMix.loadSrcFile(path);
 }

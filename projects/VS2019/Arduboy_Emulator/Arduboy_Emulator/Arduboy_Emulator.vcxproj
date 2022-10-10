@@ -31,7 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
-    <EnableASAN>false</EnableASAN>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -45,7 +45,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
-    <EnableASAN>false</EnableASAN>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -210,12 +210,14 @@
     <ClInclude Include="..\..\..\..\src\backends\mcuInfoBackend.h" />
     <ClInclude Include="..\..\..\..\src\bintools\bintools.h" />
     <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h" />
+    <ClInclude Include="..\..\..\..\src\Extensions\imguiOperators.h" />
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h" />
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h" />
     <ClInclude Include="..\..\..\..\src\utils\asmViewer.h" />
     <ClInclude Include="..\..\..\..\src\utils\byteVisualiser.h" />
     <ClInclude Include="..\..\..\..\src\utils\elfReader.h" />
     <ClInclude Include="..\..\..\..\src\utils\hexViewer.h" />
+    <ClInclude Include="..\..\..\..\src\utils\icons.h" />
     <ClInclude Include="..\..\..\..\src\utils\mathUtils.h" />
     <ClInclude Include="..\..\..\..\src\utils\ringBuffer.h" />
     <ClInclude Include="..\..\..\..\src\utils\symbolTable.h" />

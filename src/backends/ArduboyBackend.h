@@ -52,6 +52,7 @@ namespace ABB {
 		void tryClose();
 
 		void draw();
+
 		void resetMachine();
 
 		void buildDefaultLayout();

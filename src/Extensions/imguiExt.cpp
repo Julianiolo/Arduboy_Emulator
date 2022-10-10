@@ -1,7 +1,5 @@
 #include "imguiExt.h"
-#include "imgui.h"
-#include "imgui_internal.h"
-#include "imguiOperators.h"
+
 
 
 void ImGuiExt::TextColored(const ImVec4& col, const char* text_start, const char* text_end) {
@@ -208,4 +206,68 @@ bool ImGuiExt::InputTextString(const char* label, const char* hint, std::string*
         label, hint, (char*)str->c_str(), (int)str->capacity(), 
         size, flags | ImGuiInputTextFlags_CallbackResize, TextCallBack, str
     );
+}
+
+void ImGuiExt::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col, const ImVec4& border_col) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+    if (border_col.w > 0.0f)
+        bb.Max += ImVec2(2, 2);
+    ImGui::ItemSize(bb);
+    if (!ImGui::ItemAdd(bb, 0))
+        return;
+
+    if (border_col.w > 0.0f)
+    {
+        window->DrawList->AddRect(bb.Min, bb.Max, ImGui::GetColorU32(border_col), 0.0f);
+        window->DrawList->AddImageQuad(user_texture_id, 
+            bb.GetTL() + ImVec2( 1, 1), bb.GetTR() + ImVec2(-1, 1), bb.GetBR() + ImVec2(-1,-1), bb.GetBL() + ImVec2( 1,-1), 
+            uv0, uv1, uv2, uv3, 
+            ImGui::GetColorU32(tint_col)
+        );
+    }
+    else
+    {
+        window->DrawList->AddImageQuad(user_texture_id, 
+            bb.GetTL(), bb.GetTR(), bb.GetBR(), bb.GetBL(), 
+            uv0, uv1, uv2, uv3, 
+            ImGui::GetColorU32(tint_col)
+        );
+    }
+}
+
+void ImGuiExt::ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& tint_col, const ImVec4& border_col) {
+    ImVec2 uv0,uv1,uv2,uv3;
+
+    switch (rotation) {
+    case 0:
+        uv0 = { uvMin.x, uvMin.y };
+        uv1 = { uvMax.x, uvMin.y };
+        uv2 = { uvMax.x, uvMax.y };
+        uv3 = { uvMin.x, uvMax.y };
+        break;
+    case 1:
+        uv0 = { uvMin.x, uvMax.y };
+        uv1 = { uvMin.x, uvMin.y };
+        uv2 = { uvMax.x, uvMin.y };
+        uv3 = { uvMax.x, uvMax.y };
+        break;
+    case 2:
+        uv0 = { uvMax.x, uvMax.y };
+        uv1 = { uvMin.x, uvMax.y };
+        uv2 = { uvMin.x, uvMin.y };
+        uv3 = { uvMax.x, uvMin.y };
+        break;
+    case 3:
+        uv0 = { uvMax.x, uvMin.y };
+        uv1 = { uvMax.x, uvMax.y };
+        uv2 = { uvMin.x, uvMax.y };
+        uv3 = { uvMin.x, uvMin.y };
+        break;
+    }
+
+    ImGuiExt::Image(user_texture_id, size, uv0, uv1, uv2, uv3, tint_col, border_col);
 }

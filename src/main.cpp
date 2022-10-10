@@ -81,20 +81,27 @@ void setup() {
     lastMousePos = GetMousePosition();
     mouseDelta = { 0,0 };
 
-    SetupRLImGui(true);
+    //SetupRLImGui(true);
+    InitRLGLImGui();
+    ImGui::StyleColorsDark();
+    AddRLImGuiIconFonts(12,true);
+    FinishRLGLImguSetup();
+    
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigWindowsResizeFromEdges = true;
     io.WantSaveIniSettings = false;
     io.ConfigWindowsMoveFromTitleBarOnly = true;
+
     
-    printf("%s\n", GetWorkingDirectory());
+    
+    //printf("%s\n", GetWorkingDirectory());
 
     ArduEmu::init();
 
 #if 1
-    //ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
-    //abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
+    ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
+    abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
 #if 0
@@ -108,17 +115,17 @@ void setup() {
 
 #elif 0
     abb.ab.load(ROOTDIR "resources/games/ardynia.hex");
-#elif 1
+#elif 0
     //abb.loadFromELFFile(ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.elf");
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
     //abb.ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
     //StringUtils::writeBytesToFile(abb.ab.mcu.flash.getData(), abb.ab.mcu.flash.size(), "hex2.bin");
 #elif 1
-//#define GAME_NAME "almostPong"
+#define GAME_NAME "almostPong"
 //#define GAME_NAME "PixelPortal"
-#define GAME_NAME "longcat"
-    abb.ab.load(ROOTDIR "resources/games/" GAME_NAME "/" GAME_NAME ".ino.hex");
-    abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR "resources/games/" GAME_NAME "/srcMix.asm");
+//#define GAME_NAME "longcat"
+    abb.load(ROOTDIR "resources/games/" GAME_NAME "/" GAME_NAME ".ino.hex");
+    abb.debuggerBackend.addSrcFile(ROOTDIR "resources/games/" GAME_NAME "/srcMix.asm");
     abb.symbolTable.loadFromDumpFile(ROOTDIR "resources/games/" GAME_NAME "/symbs.asm");
 #elif 0
     //abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hopper_v0.22.hex");
@@ -145,7 +152,7 @@ void setup() {
     
     */
 
-    //abb.ab.mcu.powerOn();
+    abb.ab.mcu.powerOn();
 #endif
 }
 void draw() {
