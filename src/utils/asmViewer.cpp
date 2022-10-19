@@ -12,6 +12,7 @@
 #include <inttypes.h> // for printf
 
 #include <iostream>
+#include <set>
 
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 	{1,0.5f,0,1}, {1,1,0,1}, {0.2f,0.2f,0.7f,1}, {0.2f,0.4f,0.7f,1}, {0.4f,0.6f,0.4f,1}, {0.3f,0.4f,0.7f,1}, {0.5f,0.5f,0.7f,1}, {0.4f,0.4f,0.6f,1},
@@ -31,9 +32,9 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 		bool hasBreakpoint = isAddr && mcu->debugger.getBreakpoints()[linePC];
 
 		float lineHeight = lineRect.GetHeight();
-		float extraPadding = 3;
+		
 
-		ImGuiExt::Rect((ImGuiID)(lineAddr + (size_t)lineStart + 20375324), ImVec4{ 0,0,0,0 }, {lineHeight+extraPadding*2, lineHeight});
+		ImGuiExt::Rect((ImGuiID)(lineAddr + (size_t)lineStart + 20375324), ImVec4{ 0,0,0,0 }, {lineHeight+breakpointExtraPadding*2, lineHeight});
 		if (isAddr && ImGui::IsItemClicked()) {
 			if (!mcu->debugger.getBreakpoints()[linePC])
 				mcu->debugger.setBreakpoint(linePC);
@@ -47,18 +48,12 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 
 			ImVec2 cursor = ImGui::GetCursorScreenPos();
 			drawList->AddCircleFilled(
-				{cursor.x - lineHeight/2 - extraPadding, cursor.y + lineHeight/2}, lineHeight/2 - spacing,
+				{cursor.x - lineHeight/2 - breakpointExtraPadding, cursor.y + lineHeight/2}, lineHeight/2 - spacing,
 				IM_COL32(255,0,0,255)
 			);
 		}
 
-		drawList->AddLine(
-			{ImGui::GetCursorScreenPos().x, lineRect.Min.y},
-			{ImGui::GetCursorScreenPos().x, lineRect.Max.y},
-			ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator))
-		);
-
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + extraPadding);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + breakpointExtraPadding);
 
 		lineRect.Min = ImGui::GetCursorScreenPos();
 	}
@@ -375,6 +370,102 @@ void ABB::utils::AsmViewer::drawData(const char* lineStart, const char* lineEnd)
 	ImGuiExt::TextColored(syntaxColors.dataBlockText, lineStart+dataEnd,   lineEnd);
 }
 
+void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, const ImVec2& winStartPos, const ImVec2& winSize, float lineXOff, float lineHeight, float firstLineY) {
+	ImDrawList* drawlist =  ImGui::GetWindowDrawList();
+
+	// seperation line to breakpoints
+	drawlist->AddLine(
+		{winStartPos.x+lineXOff, winStartPos.y},
+		{winStartPos.x+lineXOff, winStartPos.y+winSize.y},
+		ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator))
+	);
+
+	std::set<size_t> branchRootInds;
+	for (int line_no = lineStart; line_no < lineEnd; line_no++) {
+		for (size_t i = 0; i < file.passingBranches[line_no].size(); i++) {
+			branchRootInds.insert(file.passingBranches[line_no][i]);
+		}
+	}
+
+	for (auto& b : branchRootInds) {
+		auto& branchRoot = file.branchRoots[b];
+		float baseX = winStartPos.x + lineXOff;
+		float x;
+		if (branchRoot.displayFully) {
+			x = baseX - branchArrowSpace - branchRoot.displayDepth * branchSpacing - branchSpacing / 2;
+		}
+		else {
+			x = winStartPos.x;
+		}
+
+
+		float start;
+		if (branchRoot.startLine < lineStart) { // too far up
+			start = winStartPos.y;
+		}
+		else if (branchRoot.startLine > lineEnd) { // too far down
+			start = winStartPos.y + winSize.y;
+		}
+		else {
+			float lineY = firstLineY + (branchRoot.startLine - lineStart) * lineHeight;
+			start = lineY + 0.5f * lineHeight;
+			{ // draw start line thingy
+				drawlist->AddLine(
+					{x,start},
+					{baseX,start},
+					IM_COL32(255, 0, 0, 255)
+				);
+
+				drawlist->AddLine(
+					{baseX-branchArrowSpace,start},
+					{baseX-branchArrowSpace*0.66f,start-branchArrowSpace*0.33f},
+					IM_COL32(255, 0, 0, 255)
+				);
+				drawlist->AddLine(
+					{baseX-branchArrowSpace,start},
+					{baseX-branchArrowSpace*0.66f,start+branchArrowSpace*0.33f},
+					IM_COL32(255, 0, 0, 255)
+				);
+			}
+		}
+
+		float end;
+		if (branchRoot.destLine < lineStart) { // too far up
+			end = winStartPos.y;
+		}
+		else if (branchRoot.destLine > lineEnd) { // too far down
+			end = winStartPos.y + winSize.y;
+		}
+		else {
+			float lineY = firstLineY + (branchRoot.destLine - lineStart) * lineHeight;
+			end = lineY + 0.5*lineHeight;
+			{ // draw start line thingy
+				drawlist->AddLine(
+					{x,end},
+					{baseX-branchArrowSpace*0.25f,end},
+					IM_COL32(255, 0, 0, 255)
+				);
+
+				// arrow
+				drawlist->AddTriangleFilled(
+					{baseX-branchArrowSpace/2, end-branchArrowSpace/2},
+					{baseX, end},
+					{baseX-branchArrowSpace/2, end+branchArrowSpace/2},
+					IM_COL32(255, 0, 0, 255)
+				);
+			}
+		}
+
+		
+
+		drawlist->AddLine(
+			{x,start},
+			{x,end},
+			IM_COL32(255, 0, 0, 255)
+		);
+	}
+}
+
 void ABB::utils::AsmViewer::drawHeader(){
 	if(file.content.size() == 0)
 		return;
@@ -397,38 +488,75 @@ void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr) {
 
 		pushFileStyle();
 
+		ImVec2 winStartPos = ImGui::GetCursorScreenPos() + ImGui::GetStyle().WindowPadding;
 		if(ImGui::BeginChild(title.c_str(), {0,0}, true)) {
+			ImVec2 winSize = ImGui::GetContentRegionAvail();
+			
+
 			if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 				selectedLine = -1;
 
 			if (showScollBarHints)
 				decorateScrollBar(PCAddr);
 
+			
+			const float lineXOff = file.maxBranchDisplayDepth * branchSpacing + branchArrowSpace;
+			const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
+
+			if (breakpointsEnabled) {
+				float extraOff = lineHeight + breakpointExtraPadding * 2; // amount of extra offset due to the space for the breakpoint
+				// add border line that seperates breakpoints and lines
+				ImGui::GetWindowDrawList()->AddLine(
+					{winStartPos.x+lineXOff+extraOff, winStartPos.y},
+					{winStartPos.x+lineXOff+extraOff, winStartPos.y+winSize.y},
+					ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator))
+				);
+			}
+			
+
 			bool hasAlreadyClicked = false;
 
-			ImGuiListClipper clipper;
-			clipper.Begin((int)file.lines.size());
-			while (clipper.Step()) {
-				const float contentWidth = ImGui::GetContentRegionAvail().x;
-				const ImVec2 charSize = ImGui::CalcTextSize(" ");
+			size_t lineStart = -1, lineEnd = -1;
+			float firstLineY = -1;
+			{
+				ImGuiListClipper clipper;
+				clipper.Begin((int)file.lines.size(), lineHeight);
+				while (clipper.Step()) {
+					const float contentWidth = ImGui::GetContentRegionAvail().x;
+					const ImVec2 charSize = ImGui::CalcTextSize(" ");
 
-				for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-					const char* lineStart = file.content.c_str() + file.lines[line_no];
-					const char* lineEnd;
-					if(((size_t)line_no+1) < file.lines.size())
-						lineEnd = file.content.c_str() + file.lines[line_no+1];
-					else
-						lineEnd = file.content.c_str() + file.content.size();
+					lineStart = clipper.DisplayStart;
+					lineEnd = clipper.DisplayEnd;
+					firstLineY = ImGui::GetCursorScreenPos().y;
+					for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
+						const char* lineStart = file.content.c_str() + file.lines[line_no];
+						const char* lineEnd;
+						if(((size_t)line_no+1) < file.lines.size())
+							lineEnd = file.content.c_str() + file.lines[line_no+1];
+						else
+							lineEnd = file.content.c_str() + file.content.size();
 
-					ImRect lineRect = ImRect(
-						ImGui::GetCursorScreenPos(),
-						{ImGui::GetCursorScreenPos().x + contentWidth, ImGui::GetCursorScreenPos().y + charSize.y}
-					);
+						if (showBranches) {
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + lineXOff);
+						}
 
-					drawLine(lineStart, lineEnd, line_no, PCAddr, lineRect, &hasAlreadyClicked);
+						ImRect lineRect = ImRect(
+							ImGui::GetCursorScreenPos(),
+							{ImGui::GetCursorScreenPos().x + contentWidth, ImGui::GetCursorScreenPos().y + charSize.y}
+						);
+
+						drawLine(lineStart, lineEnd, line_no, PCAddr, lineRect, &hasAlreadyClicked);
+					}
 				}
+				clipper.End();
 			}
-			clipper.End();
+			
+			
+
+			if (showBranches) {
+				drawBranchVis(lineStart, lineEnd, winStartPos, winSize, lineXOff, lineHeight, firstLineY);
+			}
+			
 
 			if(scrollSet != -1){
 				ImGuiExt::SetScrollNormY(scrollSet);

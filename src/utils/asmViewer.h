@@ -24,6 +24,11 @@ namespace ABB{
         private:
             A32u4::ATmega32u4* mcu = nullptr;
             float scrollSet = -1;
+
+            static constexpr float breakpointExtraPadding = 3;
+
+            static constexpr float branchSpacing = 2;
+            static constexpr float branchArrowSpace = 10;
             
         public:
             bool breakpointsEnabled = true;
@@ -55,6 +60,8 @@ namespace ABB{
             bool showLineHeat = true;
             size_t selectedLine = -1;
 
+            bool showBranches = true;
+
             void loadSrc(const char* str, const char* strEnd = NULL);
             bool loadSrcFile(const char* path);
             void generateDisasmFile(const A32u4::Flash* data, const A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo& info = A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo());
@@ -71,6 +78,8 @@ namespace ABB{
             void drawSymbolComment(const char* lineStart, const char* lineEnd, const size_t symbolStartOff, const size_t symbolEndOff, bool* hasAlreadyClicked);
             void drawData(const char* lineStart, const char* lineEnd);
             void drawSymbolLabel(const char* lineStart, const char* lineEnd);
+
+            void drawBranchVis(size_t lineStart, size_t lineEnd, const ImVec2& winStartPos, const ImVec2& winSize, float lineXOff, float lineHeight, float firstLineY);
 
             void decorateScrollBar(uint16_t PCAddr);
 
