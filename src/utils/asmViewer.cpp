@@ -1,7 +1,5 @@
 #include "asmViewer.h"
 
-
-
 #include <fstream>
 #include <streambuf>
 #include <iostream>
@@ -136,8 +134,9 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	}
 }
 void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked) {
-	constexpr size_t instBytesStart = 10;
-	constexpr size_t instBytesEnd = 21;
+	constexpr size_t instBytesStart = A32u4::Disassembler::DisasmFile::FileConsts::instBytesStart;
+	constexpr size_t instBytesEnd = A32u4::Disassembler::DisasmFile::FileConsts::instBytesEnd;
+
 	constexpr size_t instNameStart = 23;
 	const size_t paramTabOff = StringUtils::findCharInStr('\t', lineStart + instNameStart, lineEnd);
 	const bool hasParams = paramTabOff != (size_t)-1;
@@ -145,12 +144,12 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 	const size_t paramStart = instNameEnd;
 
 	// raw instruction bytes
-	ImGuiExt::TextColored(syntaxColors.rawInstBytes, lineStart+instBytesStart, lineStart+instBytesEnd);
+	ImGuiExt::TextColored(syntaxColors.rawInstBytes, lineStart + instBytesStart, lineStart + instBytesEnd);
 	if(ImGui::IsItemHovered()){
 		uint16_t word = (	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart,   2)) |
 						(	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3, 2) << 8);
 		uint16_t word2 = 0;
-		if(instBytesEnd - instBytesStart > 6){
+		if(*(lineStart+instBytesStart+3+3) != ' ') {
 			word2 = (	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3,   2)) |
 					(	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3+3, 2) << 8);
 		}
