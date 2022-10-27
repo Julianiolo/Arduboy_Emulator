@@ -74,6 +74,7 @@ int main(void) {
 void setup() {
     SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );
     InitWindow(1200, 800, "ABemu");
+    printf("Inited window\n");
 
     SetWindowResizeDrawCallback(draw);
     //SetTargetFPS(60);
@@ -154,6 +155,7 @@ void setup() {
 
     abb.ab.mcu.powerOn();
 #endif
+    std::cout << "Completed Setup" << std::endl;
 }
 void draw() {
     BeginDrawing();

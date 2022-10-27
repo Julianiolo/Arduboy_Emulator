@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <cmath>
+#define __STDC_FORMAT_MACROS 1
 #include <inttypes.h> // for printing uint64_t
 #include "StringUtils.h"
 #include "../Extensions/imguiExt.h"
@@ -254,6 +255,8 @@ void ABB::utils::SymbolTable::init() {
 		return;
 	}
 
+	StringUtils::writeStringToFile(fileStr, "text.txt");
+
 	deviceSpecSymbolStorage.clear();
 	parseList(&deviceSpecSymbolStorage,fileStr.c_str(),fileStr.size());
 	
@@ -318,6 +321,8 @@ void ABB::utils::SymbolTable::parseList(std::vector<Symbol>* vec, const char* st
 
 	if (size == (size_t)-1)
 		size = std::strlen(str);
+
+	size_t actual = std::strlen(str);
 
 	size_t lastLineStart = strOff;
 	for (size_t i = strOff; i < size; i++) {
