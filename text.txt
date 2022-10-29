@@ -135,6 +135,4 @@
 000000f2:         .bss	00000001 UEBCLX	BYCT7:0
 000000f3:         .bss	00000001 UEBCHX	- - - - - BYCT10:8
 000000f4:         .bss	00000001 UEINT	- EPINT6:0
-ss	00000001 UEBCLX	BYCT7:0
-000000f3:         .bss	00000001 UEBCHX	- - - - - BYCT10:8
-000000f4:         .bss	00000001 UEINT	- EPINT6:0
+                                                                                                                                         

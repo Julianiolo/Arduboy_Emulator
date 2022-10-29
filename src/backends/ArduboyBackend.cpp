@@ -4,14 +4,16 @@
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
 #include "../utils/icons.h"
+#include "../ArdEmu.h"
 
-ABB::ArduboyBackend::ArduboyBackend(const char* n) 
+ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) 
 : name(n), devWinName(std::string(n) + "devtools"), 
 	displayBackend  (      (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
 	debuggerBackend (this, (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen, &symbolTable),
 	logBackend      (      (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen              ),
 	mcuInfoBackend  (&ab,  (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen, &symbolTable),
-	analyticsBackend(&ab,  (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen, &symbolTable)
+	analyticsBackend(&ab,  (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen, &symbolTable),
+	id(id)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	ab.setLogCallBSimple(LogBackend::log);
@@ -76,9 +78,22 @@ void ABB::ArduboyBackend::draw() {
 	ImGui::SetNextWindowSize({ 800,450 }, ImGuiCond_FirstUseEver);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
-	if (ImGui::Begin(name.c_str(), &open_try, ImGuiWindowFlags_MenuBar)) {
+
+	const char* addToTitle = "";
+	if (!ab.mcu.flash.isProgramLoaded())
+		addToTitle = " - NO PROGRAM LOADED!";
+	char nameBuf[256];
+	snprintf(nameBuf, sizeof(nameBuf), "%s%s##%s", name.c_str(), addToTitle, name.c_str());
+	if (ImGui::Begin(nameBuf, &open_try, ImGuiWindowFlags_MenuBar)) {
 		if (ImGui::BeginMenuBar()) {
 			if (ImGui::BeginMenu(ADD_ICON(ICON_FA_BARS) "Menu")) {
+				if (!ab.mcu.flash.isProgramLoaded()) {
+					if (ImGui::MenuItem(ADD_ICON(ICON_FA_FILE) "Load Program")) {
+						ArduEmu::openLoadProgramDialog(id);
+					}
+				}
+					
+
 				if(ImGui::MenuItem(ADD_ICON(ICON_FA_WRENCH) "Exec Menu", NULL, &execMenuOpen)) {}
 				if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
 				ImGui::EndMenu();
@@ -103,10 +118,48 @@ void ABB::ArduboyBackend::draw() {
 			ImGui::EndMenuBar();
 		}
 
+		ImVec2 initialPos = ImGui::GetCursorScreenPos();
+
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 		//contentSize.y = ImMax(contentSize.y - devToolSpace, 0.0f);
-		
+
+		bool loaded = ab.mcu.flash.isProgramLoaded();
+
+		if (!loaded) ImGui::BeginDisabled();
+
 		displayBackend.draw(contentSize);
+
+		if (!loaded) ImGui::EndDisabled();
+
+		if (!loaded) {
+			ImGuiStyle& style = ImGui::GetStyle();
+			ImDrawList* drawlist = ImGui::GetWindowDrawList();
+			/*
+			ImGui::GetWindowDrawList()->AddRectFilled(
+				initialPos - style.WindowPadding, initialPos + contentSize + style.WindowPadding,
+				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ModalWindowDimBg))
+			);
+			*/
+
+			constexpr float h = 50;
+			float off = contentSize.y / 2 - h / 2;
+			drawlist->AddRectFilled(
+				initialPos + ImVec2{ 0,off }, initialPos + contentSize + ImVec2{ 0,-off },
+				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ModalWindowDimBg))
+			);
+
+			const char* text = "No Program Loaded!";
+			const ImVec2 textSize = ImGui::CalcTextSize(text);
+			drawlist->AddRectFilled(
+				initialPos + (contentSize/2) - (textSize/2) - style.FramePadding, initialPos + (contentSize/2) + (textSize/2) + style.FramePadding,
+				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_WindowBg))
+			);
+			drawlist->AddText(
+				initialPos + (contentSize/2) - (textSize/2),
+				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)),
+				text
+			);
+		}
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();
@@ -176,7 +229,24 @@ bool ABB::ArduboyBackend::_wantsToBeClosed() {
 	return !open;
 }
 
-void ABB::ArduboyBackend::load(const char* path) {
+void ABB::ArduboyBackend::load(const uint8_t* data, size_t dataLen){
+	bool isElf = false;
+	if(dataLen >= 4 && std::memcmp(data, "\x7f" "ELF", 4) == 0){ // check for magic number
+		isElf = true;
+	}
+
+	bool success = false;
+	if(isElf){
+		loadFromELF(data, dataLen);
+	}else{
+		success = ab.loadFromHexString((const char*)data);
+	}
+
+	if(!success){
+		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't load program from data");
+	}
+}
+void ABB::ArduboyBackend::loadFile(const char* path) {
 	const char* ext = StringUtils::getFileExtension(path);
 
 	if (std::strcmp(ext, "hex") == 0) {
@@ -223,6 +293,5 @@ void ABB::ArduboyBackend::loadFromELFFile(const char* path) {
 		return;
 	}
 		
-
 	loadFromELF(&content[0], content.size());
 }

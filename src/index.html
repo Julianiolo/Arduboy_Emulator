@@ -78,5 +78,53 @@
             };
         </script>
         {{{ SCRIPT }}}
+
+        <script>
+            var preventStuff = false;
+
+            var SendArrToMCU = null;
+
+            const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')
+
+            function loadProgram() {
+                if(SendArrToMCU == null) {
+                    SendArrToMCU = Module.cwrap("ArduEmu_loadFile", null, ["string","array","number"]);
+                }
+
+                let url = document.getElementById("LoadProgramDialog").value;
+                console.log(url);
+                fetch(url)
+                .then((response) => {
+                    return response.arrayBuffer();
+                })
+                .then(buffer => {
+                    let arr = new Uint8Array(buffer);
+                    let name = genRanHex(10);
+                    console.log(name);
+                    SendArrToMCU(name, arr, arr.length);
+                })
+            }
+
+            function keyStuff(event) {
+                if(!preventStuff) return;
+                event.stopImmediatePropagation();
+            }
+
+            window.addEventListener('keypress', function(event){
+                keyStuff(event);
+            }, true);
+            window.addEventListener('keydown', function(event){
+                keyStuff(event);
+            }, true);
+            window.addEventListener('keyup', function(event){
+                keyStuff(event);
+            }, true);
+
+            window.addEventListener('click', function(event){
+                preventStuff = !(event.target.tagName.toUpperCase() == "CANVAS");
+            }, true);
+        </script>
+        <input type="text" id="LoadProgramDialog"></input>
+        <button onclick="loadProgram()">Load</button>
     </body>
 </html>

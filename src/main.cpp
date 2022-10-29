@@ -116,7 +116,7 @@ void setup() {
 
 #elif 0
     abb.ab.load(ROOTDIR "resources/games/ardynia.hex");
-#elif 0
+#elif 1
     //abb.loadFromELFFile(ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.elf");
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
     //abb.ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");

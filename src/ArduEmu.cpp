@@ -1,6 +1,6 @@
 #include "ArdEmu.h"
 
-#include "utils/byteVisualiser.h"
+
 
 #include "ImGuiFD.h"
 
@@ -14,7 +14,25 @@
 #endif
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include "emscripten.h"
+#endif
+
+#include "utils/byteVisualiser.h"
+#include "Extensions/imguiExt.h"
+#include "StringUtils.h"
+
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
+size_t ArduEmu::idCounter = 0;
+size_t ArduEmu::lastOpenDialogId = -1;
+
+
+#if defined(__EMSCRIPTEN__) || 1
+bool ArduEmu::isSimpleLoadDialogOpen = false;
+bool ArduEmu::simpleLoadDialogIsCurrentlyLoading = false;
+std::string ArduEmu::simpleLoadDialogInputStr = "";
+std::vector<uint8_t> ArduEmu::simpleLoadDialogLoadedData;
+#endif
 
 void ArduEmu::init() {
 	ABB::utils::ByteVisualiser::init();
@@ -28,6 +46,8 @@ void ArduEmu::destroy() {
 }
 
 void ArduEmu::draw() {
+	drawLoadProgramDialog();
+
 	for (auto it = instances.begin(); it != instances.end();) {
 		auto& i = *it;
 		if (i->_wantsToBeClosed()) {
@@ -109,23 +129,7 @@ void ArduEmu::drawBenchmark(){
 void ArduEmu::drawMenu() {
 	if (ImGui::Begin("Open Game")) {
 		if (ImGui::Button("Open")) {
-			ImGuiFD::OpenFileDialog("GAME", "*", "");
-		}
-
-		if (ImGuiFD::BeginDialog("GAME")) {
-			if (ImGuiFD::ActionDone()) {
-				if(ImGuiFD::SelectionMade()) {
-					std::string path = ImGuiFD::GetSelectionPathString(0);
-					std::string name = ImGuiFD::GetSelectionNameString(0);
-
-					ABB::ArduboyBackend& abb = addEmulator(name.c_str());
-					abb.load(path.c_str());
-					abb.ab.mcu.powerOn();
-				}
-				ImGuiFD::CloseCurrentDialog();
-			}
-
-			ImGuiFD::EndDialog();
+			openLoadProgramDialog(-1);
 		}
 	}
 	ImGui::End();
@@ -134,11 +138,126 @@ void ArduEmu::drawMenu() {
 
 
 ABB::ArduboyBackend& ArduEmu::addEmulator(const char* n) {
-	ABB::ArduboyBackend* ptr = new ABB::ArduboyBackend(n);
+	ABB::ArduboyBackend* ptr = new ABB::ArduboyBackend(n, idCounter++);
 	instances.push_back(ptr);
 	return *ptr;
 }
 
-ABB::ArduboyBackend& ArduEmu::getInstance(size_t ind) {
-	return *instances.at(ind);
+ABB::ArduboyBackend* ArduEmu::getInstance(size_t ind) {
+	return instances.at(ind);
 }
+ABB::ArduboyBackend* ArduEmu::getInstanceById(size_t id) {
+	for (size_t i = 0; i < instances.size(); i++) {
+		if (instances.at(i)->id == id) {
+			return instances.at(i);
+		}
+	}
+	return nullptr;
+}
+
+void ArduEmu::drawLoadProgramDialog() {
+#if !defined(__EMSCRIPTEN__) && 0
+	if (ImGuiFD::BeginDialog("LoadProgramDialog")) {
+		if (ImGuiFD::ActionDone()) {
+			if(ImGuiFD::SelectionMade()) {
+				std::string path = ImGuiFD::GetSelectionPathString(0);
+				std::string name = ImGuiFD::GetSelectionNameString(0);
+
+				ABB::ArduboyBackend* abb = nullptr;
+				if (lastOpenDialogId != (size_t)-1) {
+					abb = getInstanceById(lastOpenDialogId);
+					MCU_ASSERT(abb != nullptr); // couldnt find id
+				}
+
+				if (abb == nullptr) { // also a failsafe, if it couldnt find the given id, dunno if thats smart
+					abb = &addEmulator(name.c_str());
+				}
+
+				abb->load(path.c_str());
+				abb->ab.mcu.powerOn();
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+
+		ImGuiFD::EndDialog();
+	}
+#else
+
+#if 0
+	if(simpleLoadDialogLoadedData.size() > 0) {
+		ABB::ArduboyBackend* abb = nullptr;
+		if (lastOpenDialogId != (size_t)-1) {
+			abb = getInstanceById(lastOpenDialogId);
+			MCU_ASSERT(abb != nullptr); // couldnt find id
+		}
+
+		if (abb == nullptr) { // also a failsafe, if it couldnt find the given id, dunno if thats smart
+			char buf[9];
+			StringUtils::uIntToHexBuf(rand(), 8, buf);
+			abb = &addEmulator(buf);
+		}
+
+		abb->load(&simpleLoadDialogLoadedData[0], simpleLoadDialogLoadedData.size());
+		abb->ab.mcu.powerOn();
+
+		simpleLoadDialogLoadedData.clear();
+		isSimpleLoadDialogOpen = false;
+	}
+
+	if (isSimpleLoadDialogOpen) {
+		bool wantToBeOpen = true;
+		if (ImGui::Begin("Simple Load Program Dialog", &wantToBeOpen)) {
+			if (simpleLoadDialogIsCurrentlyLoading) ImGui::BeginDisabled();
+
+			ImGuiExt::InputTextString("Url to file", "Enter the url of the file you want to load", &simpleLoadDialogInputStr);
+			if (ImGui::Button("Load")) {
+				simpleLoadDialogIsCurrentlyLoading = true;
+				emscripten_async_wget_data(simpleLoadDialogInputStr.c_str(), NULL, 
+				[](void* userData,void* data, int len) {
+					ArduEmu::simpleLoadDialogLoadedData.assign((uint8_t*)data, (uint8_t*)data+len);
+				},
+				[](void* userData) {
+					simpleLoadDialogIsCurrentlyLoading = false;
+				});
+			}
+
+			if (simpleLoadDialogIsCurrentlyLoading) ImGui::EndDisabled();
+
+			if (simpleLoadDialogIsCurrentlyLoading) {
+				ImGui::Text("Loading...");
+			}
+		}
+		ImGui::End();
+
+		if(!wantToBeOpen && !simpleLoadDialogIsCurrentlyLoading) {
+			isSimpleLoadDialogOpen = false;
+		}
+	}
+#endif
+	if (isSimpleLoadDialogOpen) {
+		if (ImGui::Begin("Simple Load Program Dialog",&isSimpleLoadDialogOpen)) {
+			ImGui::Text("Use the input field below to load from a url");
+		}
+		ImGui::End();
+	}
+#endif
+}
+
+void ArduEmu::openLoadProgramDialog(size_t ownId) {
+	lastOpenDialogId = ownId;
+#if !defined(__EMSCRIPTEN__) && 0
+	ImGuiFD::OpenFileDialog("LoadProgramDialog", "*", "");
+#else
+	isSimpleLoadDialogOpen = true;
+#endif
+}
+
+#ifdef __EMSCRIPTEN__
+extern "C" {
+__attribute__((used)) void ArduEmu_loadFile(const char* name, const uint8_t* data, size_t size) {
+	ABB::ArduboyBackend* abb = &ArduEmu::addEmulator(name);
+	abb->load(data, size);
+	abb->ab.mcu.powerOn();
+}
+}
+#endif

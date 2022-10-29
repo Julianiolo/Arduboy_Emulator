@@ -31,7 +31,7 @@ void ABB::AnalyticsBackend::draw(){
         for (size_t i = 0; i < StackSizeBuf.size(); i++) {
             usedSum += StackSizeBuf.get(i);
         }
-        float avg = (float)usedSum / StackSizeBuf.size();
+        float avg = StackSizeBuf.size() > 0 ? (float)usedSum / StackSizeBuf.size() : 0; // prevent div by 0
         ImGui::Text("Average: %.2f%% of Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
         ImGui::PlotHistogram("Stack Size",
             &getStackSizeBuf, &StackSizeBuf, (int)StackSizeBuf.size(), 
