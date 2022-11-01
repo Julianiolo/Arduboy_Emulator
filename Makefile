@@ -12,7 +12,9 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     CXX:=em++
 endif
 CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CFLAGS)
-CSTD:=-std=c++17
+CXXFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CXXFLAGS)
+CSTD:=-std=c99
+CXXSTD:=-std=c++17
 RELEASE_OPTIM?= -O3 -flto
 
 ROOT_DIR:=./
@@ -49,14 +51,18 @@ endif
 # get current dir
 current_dir :=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-BUILD_MODE_CFLAGS:=
+
+DEF_FLAGS:=$(addprefix -D,$(PLATFORM))
+
+BUILD_MODE_FLAGS:=
 ifeq ($(BUILD_MODE),DEBUG)
-	BUILD_MODE_CFLAGS +=-g
+	BUILD_MODE_FLAGS +=-g
+	DEF_FLAGS += -D_DEBUG
 else
-	BUILD_MODE_CFLAGS +=$(RELEASE_OPTIM)
+	BUILD_MODE_FLAGS +=$(RELEASE_OPTIM)
 endif
-CDEPFLAGS=-MMD -MF ${@:.o=.d}
-CDEFS:=$(addprefix -D,$(PLATFORM))
+
+DEP_FLAGS=-MMD -MF ${@:.o=.d}
 
 MAKE_CMD?=make
 
@@ -95,8 +101,11 @@ endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
 	EXTRA_FLAGS:= -s USE_GLFW=3 --shell-file $(SHELL_HTML)
 	CFLAGS += -sEXPORTED_FUNCTIONS=_main,_ArduEmu_loadFile -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
+	CXXFLAGS += -sEXPORTED_FUNCTIONS=_main,_ArduEmu_loadFile -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
 endif
 
+CFLAGS += $(BUILD_MODE_FLAGS)
+CXXFLAGS += $(BUILD_MODE_FLAGS)
 
 # rules:
 
@@ -106,7 +115,7 @@ all: $(OUT_PATH)
 
 $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)_depFile.dep $(OBJ_FILES)
 	mkdir -p $(OUT_DIR)
-	$(CXX) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(CDEFS) -o $@ $(OBJ_FILES) $(DEP_LIBS_DIR_FLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
+	$(CXX) $(CXXFLAGS) $(CXXSTD) $(DEF_FLAGS) -o $@ $(OBJ_FILES) $(DEP_LIBS_DIR_FLAGS) $(DEP_LIBS_FLAGS) $(EXTRA_FLAGS)
 	mkdir -p $(OUT_DIR)resources
 	mkdir -p $(OUT_DIR)resources/binutils
 	mkdir -p $(OUT_DIR)resources/device
@@ -115,13 +124,13 @@ $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)_depFile.dep $(OBJ_FILES)
 
 $(OBJ_DIR)%.o:%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(CFLAGS) $(CSTD) $(BUILD_MODE_CFLAGS) $(CDEFS) $(DEP_LIBS_INCLUDE_FLAGS) -c $< -o $@ $(CDEPFLAGS)
+	$(CXX) $(CXXFLAGS) $(CXXSTD) $(DEF_FLAGS) $(DEP_LIBS_INCLUDE_FLAGS) -c $< -o $@ $(DEP_FLAGS)
 
 -include $(DEP_FILES)
 
 # dependencies
 $(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)_depFile.dep:$(DEP_LIBS_DEPS)
-	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) PLATFORM=$(PLATFORM) BUILD_MODE=$(BUILD_MODE) CSTD=$(CSTD) BUILD_DIR=$(DEP_LIBS_BUILD_DIR) "CUSTOM_CFLAGS=$(CUSTOM_CFLAGS)"
+	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) PLATFORM=$(PLATFORM) BUILD_MODE=$(BUILD_MODE) BUILD_DIR=$(DEP_LIBS_BUILD_DIR) CUSTOM_CFLAGS="$(CUSTOM_CFLAGS)" CUSTOM_CXXFLAGS="$(CUSTOM_CXXFLAGS)" CSTD="$(CSTD)" CXXSTD="$(CXXSTD)"
 
 clean:
 	$(MAKE_CMD) -C $(DEPENDENCIES_DIR) clean BUILD_DIR=$(DEP_LIBS_BUILD_DIR)
