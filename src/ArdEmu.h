@@ -11,7 +11,7 @@ private:
 	static size_t idCounter;
 	static size_t lastOpenDialogId;
 
-#if defined(__EMSCRIPTEN__) || 1
+#if defined(__EMSCRIPTEN__)
 	static bool isSimpleLoadDialogOpen;
 	static bool simpleLoadDialogIsCurrentlyLoading;
 	static std::string simpleLoadDialogInputStr;

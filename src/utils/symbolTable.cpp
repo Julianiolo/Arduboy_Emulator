@@ -255,7 +255,7 @@ void ABB::utils::SymbolTable::init() {
 		return;
 	}
 
-	StringUtils::writeStringToFile(fileStr, "text.txt");
+	//StringUtils::writeStringToFile(fileStr, "text.txt");
 
 	deviceSpecSymbolStorage.clear();
 	parseList(&deviceSpecSymbolStorage,fileStr.c_str(),fileStr.size());

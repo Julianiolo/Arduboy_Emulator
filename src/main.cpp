@@ -8,6 +8,8 @@
 
 #include "ArdEmu.h"
 
+#include "utils/icons.h"
+
 #if defined(PLATFORM_WEB)
     #include "emscripten.h"
 #endif
@@ -30,7 +32,7 @@ Vector2 mouseDelta;
 
 
 int main(void) {
-#if 1
+#if 0
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -46,14 +48,22 @@ int main(void) {
     return 0;
 #else
     Arduboy ab;
-    if (!ab.loadFromHexFile(ROOTDIR "resources/games/Hollow/hollow.ino.hex")) {
+
+    const char* gamePath;
+#if 0
+    gamePath = ROOTDIR "resources/games/Hollow/hollow.ino.hex";
+#else
+    gamePath = "/home/juli/Downloads/166a9d346a3793b00cb90ea0f2145fec220638f6.hex";
+#endif
+
+    if (!ab.loadFromHexFile(gamePath)) {
         printf("couldnt load file!\n");
         return 1;
     }
     ab.mcu.powerOn();
     ab.updateButtons();
 
-    float secs = 500;
+    float secs = 5;
 
     uint8_t flags = A32u4::ATmega32u4::ExecFlags_None;
     //flags |= A32u4::ATmega32u4::ExecFlags_Analyse;
@@ -82,11 +92,14 @@ void setup() {
     lastMousePos = GetMousePosition();
     mouseDelta = { 0,0 };
 
-    //SetupRLImGui(true);
+#if !USE_ICONS
+    SetupRLImGui(true);
+#else
     InitRLGLImGui();
     ImGui::StyleColorsDark();
     AddRLImGuiIconFonts(12,true);
     FinishRLGLImguSetup();
+#endif
     
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;

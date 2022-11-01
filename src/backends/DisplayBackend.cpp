@@ -32,7 +32,7 @@ ABB::DisplayBackend::DisplayBackend(const char* name, AB::Display* display) : na
 	displayTex = LoadTextureFromImage(displayImg);
 }
 ABB::DisplayBackend::~DisplayBackend() {
-	UnloadImage(displayImg);
+	delete[] (uint8_t*)displayImg.data;
 	UnloadTexture(displayTex);
 }
 

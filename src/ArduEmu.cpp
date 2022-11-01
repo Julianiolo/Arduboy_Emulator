@@ -27,7 +27,7 @@ size_t ArduEmu::idCounter = 0;
 size_t ArduEmu::lastOpenDialogId = -1;
 
 
-#if defined(__EMSCRIPTEN__) || 1
+#if defined(__EMSCRIPTEN__)
 bool ArduEmu::isSimpleLoadDialogOpen = false;
 bool ArduEmu::simpleLoadDialogIsCurrentlyLoading = false;
 std::string ArduEmu::simpleLoadDialogInputStr = "";
@@ -156,7 +156,7 @@ ABB::ArduboyBackend* ArduEmu::getInstanceById(size_t id) {
 }
 
 void ArduEmu::drawLoadProgramDialog() {
-#if !defined(__EMSCRIPTEN__) && 0
+#if !defined(__EMSCRIPTEN__)
 	if (ImGuiFD::BeginDialog("LoadProgramDialog")) {
 		if (ImGuiFD::ActionDone()) {
 			if(ImGuiFD::SelectionMade()) {
@@ -173,7 +173,7 @@ void ArduEmu::drawLoadProgramDialog() {
 					abb = &addEmulator(name.c_str());
 				}
 
-				abb->load(path.c_str());
+				abb->loadFile(path.c_str());
 				abb->ab.mcu.powerOn();
 			}
 			ImGuiFD::CloseCurrentDialog();
@@ -245,7 +245,7 @@ void ArduEmu::drawLoadProgramDialog() {
 
 void ArduEmu::openLoadProgramDialog(size_t ownId) {
 	lastOpenDialogId = ownId;
-#if !defined(__EMSCRIPTEN__) && 0
+#if !defined(__EMSCRIPTEN__)
 	ImGuiFD::OpenFileDialog("LoadProgramDialog", "*", "");
 #else
 	isSimpleLoadDialogOpen = true;
