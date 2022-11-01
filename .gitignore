@@ -8,6 +8,8 @@ projects/VS2019/Arduboy_Emulator/build/*
 
 test/*
 
+text.txt
+
 *.vcxproj.user
 
 *.ini
