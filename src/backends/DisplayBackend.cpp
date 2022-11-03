@@ -110,9 +110,6 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize) {
 	
 	const ImVec2 pos = ImGui::GetCursorScreenPos();
 
-
-	Rectangle rec = getTexSrcRect();
-
 	{
 		ImVec2 uvMin(1.0f / displayTex.width, 1.0f / displayTex.height), uvMax(1 - 1.0f / displayTex.width, 1 - 1.0f / displayTex.height);
 

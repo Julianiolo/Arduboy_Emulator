@@ -19,7 +19,8 @@
 
 
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open, const utils::SymbolTable* symbolTable) 
-	: abb(abb), open(open), symbolTable(symbolTable), winName(winName), loadSrcMixFileDialogTitle(std::string(winName) + "srcMixFD") {
+	: abb(abb), open(open), symbolTable(symbolTable), loadSrcMixFileDialogTitle(std::string(winName) + "srcMixFD"), winName(winName) 
+{
 	
 }
 

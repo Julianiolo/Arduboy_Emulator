@@ -381,7 +381,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 	);
 
 	std::set<size_t> branchRootInds;
-	for (int line_no = lineStart; line_no < lineEnd; line_no++) {
+	for (size_t line_no = lineStart; line_no < lineEnd; line_no++) {
 		for (size_t i = 0; i < file.passingBranches[line_no].size(); i++) {
 			branchRootInds.insert(file.passingBranches[line_no][i]);
 		}

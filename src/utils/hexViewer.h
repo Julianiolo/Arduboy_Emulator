@@ -27,7 +27,8 @@ namespace ABB {
 				float diagramScale = 1;
 			} settings;
 
-			struct EditBytes {
+			class EditBytes {
+			public:
 				enum {
 					EditBase_2 = 0,
 					EditBase_10,
@@ -51,29 +52,45 @@ namespace ABB {
 					EditEndian_COUNT
 				};
 
+			private:
+
+				const uint8_t* data;
+				size_t dataLen;
 
 				size_t editAddr = -1;
 				uint64_t editValTemp = 0;
 
 				uint8_t editType = EditType_8bit;
 				uint8_t editEndian = EditEndian_Little;
+				bool editReversed = false; // write strings/stream in reverse
 				uint8_t editBase = EditBase_10;
 				bool editSigned = false;
-				bool editStringTerm = true;
+				bool editStringTerm = true; // if string input should be null-terminated
 				std::string editStr;
 
 				SetValueCallB setValueCallB = nullptr;
 				void* setValueUserData = nullptr;
 				std::string editErrorStr;
 
-				void openEditPopup(addrmcu_t addr);
-				void editPopupError(const char* msg);
+			public:
+
+				void openEditPopup(const uint8_t* data, size_t dataLen, addrmcu_t addr);
+				void setEditCallB(SetValueCallB callB, void* userData);
 
 				void draw();
-				void drawTypeChoose();
+				
+				bool canEdit() const;
 
+			private:
+				void editPopupError(const char* msg);
+
+				
+				void drawTypeChoose(size_t maxByteLen);
+
+				void writeVal();
+			public:
 				static uint64_t readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian=EditEndian_Little);
-				void writeValue(uint64_t val);
+				static bool writeValue(addrmcu_t addr, uint64_t val, const std::string& editStr, SetValueCallB setValueCallB, void* setValueUserData, size_t dataLen, bool editStringTerm, bool editReversed, uint8_t editType, uint8_t editEndian=EditEndian_Little);
 			};
 
 		private:

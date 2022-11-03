@@ -32,7 +32,7 @@ Vector2 mouseDelta;
 
 
 int main(void) {
-#if 0
+#if 1
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -129,7 +129,7 @@ void setup() {
 
 #elif 0
     abb.ab.load(ROOTDIR "resources/games/ardynia.hex");
-#elif 1
+#elif 0
     //abb.loadFromELFFile(ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.elf");
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
     //abb.ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
@@ -138,7 +138,7 @@ void setup() {
 #define GAME_NAME "almostPong"
 //#define GAME_NAME "PixelPortal"
 //#define GAME_NAME "longcat"
-    abb.load(ROOTDIR "resources/games/" GAME_NAME "/" GAME_NAME ".ino.hex");
+    abb.loadFile(ROOTDIR "resources/games/" GAME_NAME "/" GAME_NAME ".ino.hex");
     abb.debuggerBackend.addSrcFile(ROOTDIR "resources/games/" GAME_NAME "/srcMix.asm");
     abb.symbolTable.loadFromDumpFile(ROOTDIR "resources/games/" GAME_NAME "/symbs.asm");
 #elif 0

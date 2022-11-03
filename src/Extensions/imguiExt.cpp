@@ -196,14 +196,14 @@ static int TextCallBack(ImGuiInputTextCallbackData* data) {
     std::string* str = (std::string*)data->UserData;
 
     if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
-        str->resize(data->BufTextLen+1);
+        str->resize(data->BufTextLen);
         data->Buf = (char*)str->c_str();
     }
     return 0;
 }
 bool ImGuiExt::InputTextString(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags, const ImVec2& size) {
     return ImGui::InputTextEx(
-        label, hint, (char*)str->c_str(), (int)str->capacity(), 
+        label, hint, (char*)str->c_str(), (int)str->capacity()+1, 
         size, flags | ImGuiInputTextFlags_CallbackResize, TextCallBack, str
     );
 }

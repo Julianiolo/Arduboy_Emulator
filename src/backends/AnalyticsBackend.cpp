@@ -3,7 +3,7 @@
 #include "imgui.h"
 
 ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable)
-: ab(ab), winName(winName), open(open), symbolTable(symbolTable), StackSizeBuf(100), sleepCycsBuf(100)
+: ab(ab), symbolTable(symbolTable), StackSizeBuf(100), sleepCycsBuf(100), winName(winName), open(open)
 {
     StackSizeBuf.initTo(0);
     sleepCycsBuf.initTo(0);

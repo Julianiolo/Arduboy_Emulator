@@ -322,8 +322,6 @@ void ABB::utils::SymbolTable::parseList(std::vector<Symbol>* vec, const char* st
 	if (size == (size_t)-1)
 		size = std::strlen(str);
 
-	size_t actual = std::strlen(str);
-
 	size_t lastLineStart = strOff;
 	for (size_t i = strOff; i < size; i++) {
 		if (str[i] == '\n') {

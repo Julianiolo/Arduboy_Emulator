@@ -131,5 +131,5 @@ void ABB::McuInfoBackend::setEepromValue(addrmcu_t addr, reg_t val, void* userDa
 }
 void ABB::McuInfoBackend::setRomValue(addrmcu_t addr, reg_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
-	// TODO: edit data
+	abort(); // TODO: edit data
 }
