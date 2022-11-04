@@ -121,15 +121,15 @@ bool ABB::McuInfoBackend::isWinFocused() const {
 	return winFocused;
 }
 
-void ABB::McuInfoBackend::setRamValue(addrmcu_t addr, reg_t val, void* userData) {
+void ABB::McuInfoBackend::setRamValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
 	info->ab->mcu.dataspace.setDataByte(addr, val);
 }
-void ABB::McuInfoBackend::setEepromValue(addrmcu_t addr, reg_t val, void* userData) {
+void ABB::McuInfoBackend::setEepromValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
 	info->ab->mcu.dataspace.getEEPROM()[addr] = val;
 }
-void ABB::McuInfoBackend::setRomValue(addrmcu_t addr, reg_t val, void* userData) {
+void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
 	abort(); // TODO: edit data
 }
