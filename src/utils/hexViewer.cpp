@@ -24,7 +24,7 @@ bool ABB::utils::HexViewer::isSelected(size_t addr) const {
 void ABB::utils::HexViewer::setSymbolList(SymbolTable::SymbolListPtr list) {
 	symbolList = list;
 }
-void ABB::utils::HexViewer::setEditCallback(SetValueCallB func, void* userData) {
+void ABB::utils::HexViewer::setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData) {
 	eb.setEditCallB(func, userData);
 }
 
@@ -439,7 +439,7 @@ void ABB::utils::HexViewer::drawEditPopup() {
 	eb.draw();
 }
 
-void ABB::utils::HexViewer::EditBytes::setEditCallB(SetValueCallB callB, void* userData) {
+void ABB::utils::HexViewer::EditBytes::setEditCallB(DataUtils::EditMemory::SetValueCallB callB, void* userData) {
 	setValueCallB = callB;
 	setValueUserData = userData;
 }
@@ -455,7 +455,7 @@ void ABB::utils::HexViewer::EditBytes::openEditPopup(const uint8_t* data_, size_
 
 	editAddr = addr;
 	editStr = "";
-	editValTemp = readValue(data + addr, dataLen - addr, editType, editEndian);
+	editValTemp = DataUtils::EditMemory::readValue(data + addr, dataLen - addr, editType, editEndian);
 }
 void ABB::utils::HexViewer::EditBytes::editPopupError(const char* msg) {
 	ImGui::OpenPopup("hexViewEditError");
@@ -465,10 +465,10 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 	const char* lables[] = {"8bit","16bit","32bit","64bit","float","double","string","byte stream"};
 	constexpr size_t sizes[] = {1,      2,      4,      8,      4,       8,       1,            1};
 
-	if (sizes[editType] > maxByteLen) editType = EditType_8bit;
+	if (sizes[editType] > maxByteLen) editType = DataUtils::EditMemory::EditType_8bit;
 
 	if (ImGui::BeginCombo("Edit as", lables[editType])) {
-		for (int i = 0; i < EditType_COUNT; i++)
+		for (int i = 0; i < DataUtils::EditMemory::EditType_COUNT; i++)
 			if (sizes[i] <= maxByteLen)
 				if (ImGui::Selectable(lables[i], i == editType))
 					editType = i;
@@ -477,9 +477,13 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 	}
 
 	// edit data type is not float or double (or string/stream)
-	bool useInteger = editType == EditType_8bit || editType == EditType_16bit || editType == EditType_32bit || editType == EditType_64bit;	
+	bool useInteger =
+		editType == DataUtils::EditMemory::EditType_8bit ||
+		editType == DataUtils::EditMemory::EditType_16bit ||
+		editType == DataUtils::EditMemory::EditType_32bit ||
+		editType == DataUtils::EditMemory::EditType_64bit;
 
-	bool useSigned = (editBase == EditBase_10) && editSigned;
+	bool useSigned = (editBase == DataUtils::EditMemory::EditBase_10) && editSigned;
 	const ImGuiDataType types[] = {
 		useSigned ? ImGuiDataType_S8 : ImGuiDataType_U8,
 		useSigned ? ImGuiDataType_S16 : ImGuiDataType_U16,
@@ -495,7 +499,7 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 		ImGui::PushItemWidth(70);
 		const char* lablesBase[] = {"Bin", "Dec", "Hex"};
 		if (ImGui::BeginCombo("Base", lablesBase[editBase])) {
-			for (int i = 0; i < EditBase_COUNT; i++)
+			for (int i = 0; i < DataUtils::EditMemory::EditBase_COUNT; i++)
 				if (ImGui::Selectable(lablesBase[i], i == editBase))
 					editBase = i;
 			ImGui::EndCombo();
@@ -506,18 +510,18 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 			"%02x", "%04x", "%08x", "%016x"
 		};
 		switch (editBase) {
-		case EditBase_2:
-		case EditBase_10:
-			format = 0;
-			break;
-		case EditBase_16:
-			format = formatsBase16[editType];
-			break;
+			case DataUtils::EditMemory::EditBase_2:
+			case DataUtils::EditMemory::EditBase_10:
+				format = 0;
+				break;
+			case DataUtils::EditMemory::EditBase_16:
+				format = formatsBase16[editType];
+				break;
 		}
 	}
 
-	if (editType != EditType_8bit) {
-		if (editType == EditType_string || editType == EditType_bytestream) {
+	if (editType != DataUtils::EditMemory::EditType_8bit) {
+		if (editType == DataUtils::EditMemory::EditType_string || editType == DataUtils::EditMemory::EditType_bytestream) {
 			ImGui::SameLine();
 			ImGui::Checkbox("write reversed", &editReversed);
 		}
@@ -526,24 +530,22 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 			ImGui::PushItemWidth(100);
 			const char* lablesEndian[] = {"Little", "Big"};
 			if (ImGui::BeginCombo("Endian", lablesEndian[editEndian])) {
-				for (int i = 0; i < EditEndian_COUNT; i++)
+				for (int i = 0; i < DataUtils::EditMemory::EditEndian_COUNT; i++)
 					if (ImGui::Selectable(lablesEndian[i], i == editEndian))
 						editEndian = i;
 				ImGui::EndCombo();
 			}
 			ImGui::PopItemWidth();
 		}
-
-		
 	}
 
 	// only use Signed Box when editing in base 10 and editing an integer
-	if (editBase == EditBase_10 && useInteger) {
+	if (editBase == DataUtils::EditMemory::EditBase_10 && useInteger) {
 		ImGui::SameLine();
 		ImGui::Checkbox("Signed", &editSigned);
 	}
 
-	if (editType == EditType_string) {
+	if (editType == DataUtils::EditMemory::EditType_string) {
 		bool enabled = maxByteLen > 1;
 		if (!enabled) ImGui::BeginDisabled();
 
@@ -558,132 +560,32 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 	}
 
 
-	if (editType != EditType_string && editType != EditType_bytestream) {
+	if (editType != DataUtils::EditMemory::EditType_string && editType != DataUtils::EditMemory::EditType_bytestream) {
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
-		if (editBase == EditBase_16)
+		if (editBase == DataUtils::EditMemory::EditBase_16)
 			flags |= ImGuiInputTextFlags_CharsHexadecimal;
 		ImGui::InputScalar("hexViewEditInput", types[editType], &editValTemp, 0, 0, format, flags);
 	}
 	else {
 		if (ImGuiExt::InputTextString("hexViewEditInputStr", 0, &editStr)) {
-			if (editType == EditType_string && (editStr.size() + (editStringTerm ? 1 : 0)) > maxByteLen)
+			if (editType == DataUtils::EditMemory::EditType_string && (editStr.size() + (editStringTerm ? 1 : 0)) > maxByteLen)
 				editStr = editStr.substr(0, maxByteLen-(editStringTerm ? 1 : 0));
-			if (editType == EditType_bytestream && (editStr.size() + 1) / 2 > maxByteLen) 
+			if (editType == DataUtils::EditMemory::EditType_bytestream && (editStr.size() + 1) / 2 > maxByteLen) 
 				editStr = editStr.substr(0, maxByteLen * 2);
 		}
 		MCU_ASSERT(editStr.size() == 0 || editStr[editStr.size() - 1] != 0);
 	}
 }
-uint64_t ABB::utils::HexViewer::EditBytes::readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian) {
-	uint64_t res = 0;
-	uint16_t bytesToCopy = 0;
-	switch (editType) {
-		case EditType_8bit:
-			res = (uint64_t)*data;
-			break;
-		case EditType_16bit:
-			bytesToCopy = 2;
-			goto read_multi;
-		case EditType_32bit:
-		case EditType_float:
-			bytesToCopy = 4;
-			goto read_multi;
-		case EditType_64bit:
-		case EditType_double:
-			bytesToCopy = 8;
-			goto read_multi;
-
-		read_multi:
-			MCU_ASSERT(dataLen>=bytesToCopy);
-			for (addrmcu_t i = 0; i < bytesToCopy; i++) {
-				addrmcu_t offset = editEndian == EditEndian_Big ? (addrmcu_t)i : (bytesToCopy - (addrmcu_t)i - 1);
-				res <<= 8;
-				res |= data[offset];
-			}
-			break;
-	}
-	return res;
-}
-bool ABB::utils::HexViewer::EditBytes::writeValue(addrmcu_t addr, uint64_t val, const std::string& editStr, SetValueCallB setValueCallB, void* setValueUserData, size_t dataLen, bool editStringTerm, bool editReversed, uint8_t editType, uint8_t editEndian) {
-	const size_t maxSize = dataLen - addr;
-	
-	uint16_t bytesToCopy = 0;
-	switch (editType) {
-		case EditType_8bit:
-			setValueCallB(addr, (reg_t)val, setValueUserData);
-			break;
-
-		case EditType_16bit:
-			bytesToCopy = 2;
-			goto edit_cpy_tmpval;
-		case EditType_32bit:
-			bytesToCopy = 4;
-			goto edit_cpy_tmpval;
-		case EditType_64bit:
-			bytesToCopy = 8;
-			goto edit_cpy_tmpval;
-
-		case EditType_float:
-			val = StringUtils::stof(editStr.c_str(), editStr.c_str() + editStr.size(), 8, 23);
-			bytesToCopy = 4;
-			goto edit_cpy_tmpval;
-		case EditType_double:
-			val = StringUtils::stof(editStr.c_str(), editStr.c_str() + editStr.size(), 11, 52);
-			bytesToCopy = 8;
-			goto edit_cpy_tmpval;
-
-		edit_cpy_tmpval:
-			if (bytesToCopy > maxSize) return false;
-			for (addrmcu_t i = 0; i < bytesToCopy; i++) {
-				addrmcu_t offset = editEndian == EditEndian_Big ? (addrmcu_t)i : (bytesToCopy - (addrmcu_t)i - 1);
-				setValueCallB(addr+offset, (reg_t)((val>>(i*8)) & 0xFF), setValueUserData);
-			}
-			break;
-
-		case EditType_string:
-			{
-				const char* str = editStr.c_str();
-				size_t len = editStr.length();
-				if (editStringTerm)
-					len++;
-
-				if (len > maxSize) return false;
-				for (size_t i = 0; i < len; i++) {
-					addrmcu_t offset = !editReversed ? (addrmcu_t)i : (len - (addrmcu_t)i - 1);
-					setValueCallB(addr+offset, (reg_t)str[i], setValueUserData);
-				}
-				break;
-			}
-		
-
-		case EditType_bytestream:
-			if (editStr.length() / 2 > maxSize) return false;
-			if (editStr.length() % 2 != 0) return false;
-			for (size_t i = 0; i < editStr.length(); i++) {
-				const char c = editStr[i];
-				if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))) return false;
-			}
-
-			for (size_t i = 0; i < editStr.length()/2; i++) {
-				addrmcu_t offset = !editReversed ? (addrmcu_t)i : (editStr.length()/2 - (addrmcu_t)i - 1);
-				reg_t byte = StringUtils::hexStrToUIntLen<reg_t>(editStr.c_str() + i * 2, 2);
-				setValueCallB(addr+offset, byte, setValueUserData);
-			}
-			break;
-	}
-
-	return true;
-}
 
 
 void ABB::utils::HexViewer::EditBytes::writeVal() {
-	if (editType == EditType_bytestream) {
+	if (editType == DataUtils::EditMemory::EditType_bytestream) {
 		if (editStr.size() % 2 == 1) {
 			editPopupError("bytestream invalid, must be of even length!");
 			return;
 		}
 	}
-	bool success = writeValue(editAddr, editValTemp, editStr, setValueCallB, setValueUserData, dataLen, editStringTerm, editReversed, editType, editEndian);
+	bool success = DataUtils::EditMemory::writeValue(editAddr, editValTemp, editStr, setValueCallB, setValueUserData, dataLen, editStringTerm, editReversed, editType, editEndian);
 	if (!success) {
 		editPopupError("Couldn't Edit Value due to an unexpected error");
 	}

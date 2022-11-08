@@ -71,7 +71,7 @@ OBJ_FILES:=$(addprefix $(OBJ_DIR),${SRC_FILES:.cpp=.o})
 DEP_FILES:=$(patsubst %.o,%.d,$(OBJ_FILES))
 
 DEPENDENCIES_INCLUDE_PATHS:=$(addprefix $(ROOT_DIR)dependencies/,Arduboy_Emulator_HL/src Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui ImGuiFD Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/dependencies/CPP_Utils/src)
-DEPENDENCIES_LIBS_DIR:=$(BUILD_DIR)dependencies/libs
+DEPENDENCIES_LIBS_DIR:=$(BUILD_DIR)objs/libs/
 
 DEP_LIBS:=raylib imgui Arduboy_Emulator_HL ATmega32u4_Emulator ImGuiFD CPP_Utils
 DEP_LIBS_PATH:=$(addprefix $(DEPENDENCIES_LIBS_DIR)/,$(DEP_LIBS))
@@ -81,7 +81,7 @@ DEP_LIBS_DIR_FLAGS:=$(addprefix -L,$(DEPENDENCIES_LIBS_DIR))
 
 DEP_LIBS_FLAGS:=$(addprefix -l,$(DEP_LIBS))
 
-DEP_LIBS_BUILD_DIR:=$(current_dir)$(BUILD_DIR)dependencies/
+DEP_LIBS_BUILD_DIR:=$(current_dir)$(BUILD_DIR)objs/
 
 DEP_LIBS_DEPS:=dependencies/Makefile $(shell find $(ROOT_DIR)dependencies/ -name '*h' -o -name '*.c' -o -name '*.cpp')
 

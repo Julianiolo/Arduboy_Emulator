@@ -9,12 +9,12 @@
 #include "raylib.h"
 #include "ATmega32u4.h"
 
+#include "DataUtils.h"
+
 namespace ABB {
 	namespace utils {
 		class HexViewer {
 		public:
-			typedef void (*SetValueCallB)(addrmcu_t addr, reg_t val, void* userData);
-
 			struct Settings {
 				bool showTex = true;
 
@@ -28,30 +28,6 @@ namespace ABB {
 			} settings;
 
 			class EditBytes {
-			public:
-				enum {
-					EditBase_2 = 0,
-					EditBase_10,
-					EditBase_16,
-					EditBase_COUNT
-				};
-				enum {
-					EditType_8bit = 0,
-					EditType_16bit,
-					EditType_32bit,
-					EditType_64bit,
-					EditType_float,
-					EditType_double,
-					EditType_string,
-					EditType_bytestream,
-					EditType_COUNT
-				};
-				enum {
-					EditEndian_Little = 0,
-					EditEndian_Big,
-					EditEndian_COUNT
-				};
-
 			private:
 
 				const uint8_t* data;
@@ -60,22 +36,22 @@ namespace ABB {
 				size_t editAddr = -1;
 				uint64_t editValTemp = 0;
 
-				uint8_t editType = EditType_8bit;
-				uint8_t editEndian = EditEndian_Little;
+				uint8_t editType = DataUtils::EditMemory::EditType_8bit;
+				uint8_t editEndian = DataUtils::EditMemory::EditEndian_Little;
 				bool editReversed = false; // write strings/stream in reverse
-				uint8_t editBase = EditBase_10;
+				uint8_t editBase = DataUtils::EditMemory::EditBase_10;
 				bool editSigned = false;
 				bool editStringTerm = true; // if string input should be null-terminated
 				std::string editStr;
 
-				SetValueCallB setValueCallB = nullptr;
+				DataUtils::EditMemory::SetValueCallB setValueCallB = nullptr;
 				void* setValueUserData = nullptr;
 				std::string editErrorStr;
 
 			public:
 
 				void openEditPopup(const uint8_t* data, size_t dataLen, addrmcu_t addr);
-				void setEditCallB(SetValueCallB callB, void* userData);
+				void setEditCallB(DataUtils::EditMemory::SetValueCallB callB, void* userData);
 
 				void draw();
 				
@@ -83,14 +59,10 @@ namespace ABB {
 
 			private:
 				void editPopupError(const char* msg);
-
 				
 				void drawTypeChoose(size_t maxByteLen);
 
 				void writeVal();
-			public:
-				static uint64_t readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian=EditEndian_Little);
-				static bool writeValue(addrmcu_t addr, uint64_t val, const std::string& editStr, SetValueCallB setValueCallB, void* setValueUserData, size_t dataLen, bool editStringTerm, bool editReversed, uint8_t editType, uint8_t editEndian=EditEndian_Little);
 			};
 
 		private:
@@ -144,7 +116,7 @@ namespace ABB {
 			void sameFrame();
 
 			void setSymbolList(SymbolTable::SymbolListPtr list);
-			void setEditCallback(SetValueCallB func, void* userData);
+			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
 		};
 	}
 }

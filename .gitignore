@@ -7,11 +7,12 @@ projects/VS2019/Arduboy_Emulator/.vs/*
 projects/VS2019/Arduboy_Emulator/build/*
 
 test/*
-
-text.txt
+benchmark_res/*
 
 *.vcxproj.user
 
+
+*.txt
 *.ini
 *.asm
 *.hex
