@@ -37,7 +37,7 @@ Vector2 mouseDelta;
 
 
 int main(void) {
-#if 0
+#if 1
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -141,16 +141,16 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
     //abb.ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
     //StringUtils::writeBytesToFile(abb.ab.mcu.flash.getData(), abb.ab.mcu.flash.size(), "hex2.bin");
-#elif 1
+#elif 0
 #define GAME_NAME "almostPong"
 //#define GAME_NAME "PixelPortal"
 //#define GAME_NAME "longcat"
     abb.loadFile(ROOTDIR "resources/games/" GAME_NAME "/" GAME_NAME ".ino.hex");
     abb.debuggerBackend.addSrcFile(ROOTDIR "resources/games/" GAME_NAME "/srcMix.asm");
     abb.symbolTable.loadFromDumpFile(ROOTDIR "resources/games/" GAME_NAME "/symbs.asm");
-#elif 0
+#elif 1
     //abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hopper_v0.22.hex");
-    abb.ab.load("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/ardubullets_v0.11.hex");
+    abb.ab.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/ardubullets_v0.11.hex");
 #elif 1
     abb.ab.load(ROOTDIR"resources/games/tests/emu_tests_stuff.ino.hex");
     abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/tests/srcMix.asm");
@@ -309,6 +309,7 @@ uint64_t benchmark_step(double secs ,const char* gamePath, uint8_t flags) {
 
 
     if (!ab.loadFromHexFile(gamePath)) {
+        printf("couldnt load file\n");
         abort();
     }
     ab.mcu.powerOn();

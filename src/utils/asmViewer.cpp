@@ -18,7 +18,8 @@ ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 	{1,0.5f,0,1}, {1,1,0,1}, {0.2f,0.2f,0.7f,1}, {0.2f,0.4f,0.7f,1}, {0.4f,0.6f,0.4f,1}, {0.3f,0.4f,0.7f,1}, {0.5f,0.5f,0.7f,1}, {0.4f,0.4f,0.6f,1},
 	{1,0.7f,1,1}, {1,0,1,1},
 	{0,1,1,1}, {0.5f,1,0.5f,1},
-	{0.6f,0.6f,0.7f,1}
+	{0.6f,0.6f,0.7f,1},
+	{52/255.0f, 235/255.0f, 216/255.0f, 1}
 };
 
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
@@ -413,18 +414,18 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 				drawlist->AddLine(
 					{x,start},
 					{baseX,start},
-					IM_COL32(255, 0, 0, 255)
+					ImColor(syntaxColors.branch)
 				);
 
 				drawlist->AddLine(
 					{baseX-branchArrowSpace,start},
 					{baseX-branchArrowSpace*0.66f,start-branchArrowSpace*0.33f},
-					IM_COL32(255, 0, 0, 255)
+					ImColor(syntaxColors.branch)
 				);
 				drawlist->AddLine(
 					{baseX-branchArrowSpace,start},
 					{baseX-branchArrowSpace*0.66f,start+branchArrowSpace*0.33f},
-					IM_COL32(255, 0, 0, 255)
+					ImColor(syntaxColors.branch)
 				);
 			}
 		}
@@ -443,7 +444,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 				drawlist->AddLine(
 					{x,end},
 					{baseX-branchArrowSpace*0.25f,end},
-					IM_COL32(255, 0, 0, 255)
+					ImColor(syntaxColors.branch)
 				);
 
 				// arrow
@@ -451,7 +452,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 					{baseX-branchArrowSpace/2, end-branchArrowSpace/2},
 					{baseX, end},
 					{baseX-branchArrowSpace/2, end+branchArrowSpace/2},
-					IM_COL32(255, 0, 0, 255)
+					ImColor(syntaxColors.branch)
 				);
 			}
 		}
@@ -461,7 +462,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		drawlist->AddLine(
 			{x,start},
 			{x,end},
-			IM_COL32(255, 0, 0, 255)
+			ImColor(syntaxColors.branch)
 		);
 	}
 }

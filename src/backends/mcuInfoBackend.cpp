@@ -5,6 +5,7 @@
 #include <cctype>
 
 #include "../Extensions/imguiExt.h"
+#include "ImGuiFD.h"
 
 
 
@@ -22,6 +23,20 @@ ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open
 
 	flashHex.setSymbolList(symbolTable->getSymbolsRom());
 	flashHex.setEditCallback(setRomValue, this);
+}
+
+void drawSaveLoadButtons(const char* module) {
+	if(ImGui::Button("Save")){
+		char buf[128];
+		snprintf(buf, 128, "MIB_SAVE_%s",module);
+		ImGuiFD::OpenFileDialog(buf, "", ".");
+	}
+	ImGui::SameLine();
+	if(ImGui::Button("Load")) {
+		char buf[128];
+		snprintf(buf, 128, "MIB_LOADs_%s",module);
+		ImGuiFD::OpenFileDialog(buf, "", ".");
+	}
 }
 
 void ABB::McuInfoBackend::draw() {
@@ -111,6 +126,9 @@ void ABB::McuInfoBackend::draw() {
 		winFocused = false;
 	}
 	ImGui::End();
+
+
+	
 }
 
 const char* ABB::McuInfoBackend::getWinName() const {

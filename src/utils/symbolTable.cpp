@@ -7,6 +7,8 @@
 #define __STDC_FORMAT_MACROS 1
 #include <inttypes.h> // for printing uint64_t
 #include "StringUtils.h"
+#include "mathUtils.h"
+
 #include "../Extensions/imguiExt.h"
 
 #include "../bintools/bintools.h"
@@ -268,6 +270,8 @@ void ABB::utils::SymbolTable::init() {
 		if(s->addrEnd() > maxRamAddrEnd)
 			maxRamAddrEnd = s->addrEnd();
 	}
+
+	genColors(&deviceSpecSymbolStorage);
 }
 
 ABB::utils::SymbolTable::Symbol ABB::utils::SymbolTable::parseLine(const char* start, const char* end) {
@@ -333,11 +337,7 @@ void ABB::utils::SymbolTable::parseList(std::vector<Symbol>* vec, const char* st
 }
 
 void ABB::utils::SymbolTable::setupConnections() {
-	for (auto& symbol : symbolStorage) {
-		ImVec4 col = {(float)(rand() % 256) / 256.0f, 0.8f, 1, 1};
-		ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
-		symbol.col.w = col.w;
-	}
+	genColors(&symbolStorage);
 
 	std::sort(symbolStorage.begin(), symbolStorage.end());
 
@@ -384,6 +384,29 @@ void ABB::utils::SymbolTable::setupConnections() {
 		delete[] strs; // dont use delete[] bc theres nothing to delete there
 	}
 }
+
+
+float ABB::utils::SymbolTable::distSqCols(ImVec4 a, ImVec4 b){
+	return MathUtils::sq(a.x-b.x) + MathUtils::sq(a.y-b.y) + MathUtils::sq(a.z-b.z) + MathUtils::sq(a.w-b.w);
+}
+void ABB::utils::SymbolTable::genColors(std::vector<Symbol>* vec) {
+	ImVec4 lastCol = {-FLT_MAX,-FLT_MAX,-FLT_MAX,-FLT_MAX};
+	for (auto& symbol : *vec) {
+		size_t cnt = 0;
+		ImVec4 col;
+		do {
+			col = {(float)(rand() % 256) / 256.0f, 0.8f, 1, 1};
+			cnt++;
+		} while(distSqCols(col, lastCol) < 1 && cnt < 32);
+		
+		lastCol = col;
+
+		ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbol.col.x, symbol.col.y, symbol.col.z);
+		symbol.col.w = col.w;
+	}
+}
+
+
 bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
 	bool success = false;
 	std::string fileStr = StringUtils::loadFileIntoString(path, &success);

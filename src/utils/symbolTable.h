@@ -96,7 +96,9 @@ namespace ABB {
 			Symbol parseLine(const char* start, const char* end);
 			void parseList(std::vector<Symbol>* vec,const char* str, size_t size = -1);
 
-			void setupConnections();
+			void setupConnections(); 
+			void genColors(std::vector<Symbol>* vec);
+			float distSqCols(ImVec4 a, ImVec4 b);
 
 			void resetAll();
 		public:

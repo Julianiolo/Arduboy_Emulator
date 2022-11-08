@@ -8,9 +8,10 @@
 #include "imgui_internal.h"
 
 #include "../rlImGui/rlImGui.h"
-#include "../utils/mathUtils.h"
 #include "../Extensions/imguiExt.h"
 #include "../Extensions/imguiOperators.h"
+
+#include "mathUtils.h"
 
 ImVec4 ABB::DisplayBackend::Color3::toImGuiCol() const {
 	return {(float)r/255, (float)g/255, (float)b/255, 1};

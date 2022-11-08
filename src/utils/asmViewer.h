@@ -51,6 +51,8 @@ namespace ABB{
                 ImVec4 dataBlockText;
 
                 ImVec4 srcCodeText;
+
+                ImVec4 branch;
             };
             static SyntaxColors syntaxColors;
             
