@@ -7,6 +7,7 @@
 #include "../backends/LogBackend.h"
 #include "../Extensions/imguiExt.h"
 #include "StringUtils.h"
+#include "DataUtils.h"
 #include "components/Disassembler.h"
 
 #include <inttypes.h> // for printf
@@ -19,7 +20,7 @@ ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 	{1,0.7f,1,1}, {1,0,1,1},
 	{0,1,1,1}, {0.5f,1,0.5f,1},
 	{0.6f,0.6f,0.7f,1},
-	{52/255.0f, 235/255.0f, 216/255.0f, 1}
+	{52/255.0f, 235/255.0f, 216/255.0f, 1}, {70/255.0f, 245/255.0f, 130/255.0f, 1}
 };
 
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
@@ -388,11 +389,41 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		}
 	}
 
+	constexpr size_t maxDepth = 16;
+
 	for (auto& b : branchRootInds) {
 		auto& branchRoot = file.branchRoots[b];
 		float baseX = winStartPos.x + lineXOff;
-		float x = baseX - branchArrowSpace - branchRoot.displayDepth * branchSpacing - branchSpacing / 2;
 
+
+		float x;
+		bool clip = false;
+
+		if (std::max(branchRoot.startLine, branchRoot.destLine) - std::min(branchRoot.startLine, branchRoot.destLine) > maxBranchLen) {
+			clip = true;
+		}
+
+		if (branchRoot.displayDepth < maxBranchDepth && !clip) {
+			x = baseX - branchArrowSpace - branchRoot.displayDepth * branchSpacing - branchSpacing / 2;
+		}
+		else {
+			// depth is too big, so we clip it
+			x = baseX - branchArrowSpace - (maxBranchDepth+1) * branchSpacing - branchSpacing / 2;
+			clip = true;
+		}
+
+		
+		
+
+		ImVec4 col;
+		if (0) {
+			col = clip ? syntaxColors.branchClipped : syntaxColors.branch;
+		}
+		else {
+			float h = (float)(DataUtils::simpleHash(branchRoot.destLine)&0xFFFF)/0xFFFF;
+			ImGui::ColorConvertHSVtoRGB(h, 0.5, !clip?0.9:0.5, col.x, col.y, col.z);
+			col.w = 1;
+		}
 
 		float start;
 		if (branchRoot.startLine < lineStart) { // too far up
@@ -402,24 +433,24 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 			start = winStartPos.y + winSize.y;
 		}
 		else {
-			float lineY = firstLineY + (branchRoot.startLine - lineStart) * lineHeight - 2;
+			float lineY = firstLineY + (branchRoot.startLine - lineStart) * lineHeight - 1;
 			start = lineY + 0.5f * lineHeight;
 			{ // draw start line thingy
 				drawlist->AddLine(
 					{x,start},
 					{baseX,start},
-					ImColor(syntaxColors.branch)
+					ImColor(col)
 				);
 
 				drawlist->AddLine(
 					{baseX-branchArrowSpace,start},
 					{baseX-branchArrowSpace*0.66f,start-branchArrowSpace*0.33f},
-					ImColor(syntaxColors.branch)
+					ImColor(col)
 				);
 				drawlist->AddLine(
 					{baseX-branchArrowSpace,start},
 					{baseX-branchArrowSpace*0.66f,start+branchArrowSpace*0.33f},
-					ImColor(syntaxColors.branch)
+					ImColor(col)
 				);
 			}
 		}
@@ -432,13 +463,13 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 			end = winStartPos.y + winSize.y;
 		}
 		else {
-			float lineY = firstLineY + (branchRoot.destLine - lineStart) * lineHeight + 2;
+			float lineY = firstLineY + (branchRoot.destLine - lineStart) * lineHeight + 1;
 			end = lineY + 0.5*lineHeight;
 			{ // draw start line thingy
 				drawlist->AddLine(
 					{x,end},
 					{baseX-branchArrowSpace*0.25f,end},
-					ImColor(syntaxColors.branch)
+					ImColor(col)
 				);
 
 				// arrow
@@ -446,7 +477,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 					{baseX-branchArrowSpace/2, end-branchArrowSpace/2},
 					{baseX, end},
 					{baseX-branchArrowSpace/2, end+branchArrowSpace/2},
-					ImColor(syntaxColors.branch)
+					ImColor(col)
 				);
 			}
 		}
@@ -456,7 +487,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		drawlist->AddLine(
 			{x,start},
 			{x,end},
-			ImColor(syntaxColors.branch)
+			ImColor(col)
 		);
 	}
 }
@@ -486,7 +517,11 @@ void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr) {
 				decorateScrollBar(PCAddr);
 
 			
-			const float lineXOff = file.maxBranchDisplayDepth * branchSpacing + branchArrowSpace;
+			float lineXOff = 0;
+			if (showBranches) {
+				lineXOff += std::min(maxBranchDepth+1,file.maxBranchDisplayDepth) * branchSpacing + branchArrowSpace;
+			}
+			
 			const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
 
 			if (breakpointsEnabled) {

@@ -53,6 +53,7 @@ namespace ABB{
                 ImVec4 srcCodeText;
 
                 ImVec4 branch;
+                ImVec4 branchClipped;
             };
             static SyntaxColors syntaxColors;
             
@@ -63,6 +64,8 @@ namespace ABB{
             size_t selectedLine = -1;
 
             bool showBranches = true;
+            size_t maxBranchDepth = 16;
+            size_t maxBranchLen = 256;
 
             void loadSrc(const char* str, const char* strEnd = NULL);
             bool loadSrcFile(const char* path);
