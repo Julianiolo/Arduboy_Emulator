@@ -418,7 +418,7 @@ bool ABB::utils::SymbolTable::loadFromDumpFile(const char* path) {
 	return loadFromDumpString(fileStr.c_str(), fileStr.size());
 }
 bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
-	resetAll();
+	//resetAll();
 	parseList(&symbolStorage,str,size);
 
 	setupConnections();
@@ -428,7 +428,7 @@ bool ABB::utils::SymbolTable::loadFromDumpString(const char* str, size_t size) {
 }
 
 bool ABB::utils::SymbolTable::loadFromELF(const ELF::ELFFile& elf) {
-	resetAll();
+	//resetAll();
 
 	for (size_t i = 0; i < elf.symbolTableEntrys.size(); i++) {
 		auto& symb = elf.symbolTableEntrys[i];

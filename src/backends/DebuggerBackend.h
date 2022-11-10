@@ -37,6 +37,7 @@ namespace ABB{
         uint32_t loadedSrcFileInc = 0;
         utils::AsmViewer& addSrcMix();
         void generateSrc();
+        A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo genDisamsInfo();
 
         std::string loadSrcMixFileDialogTitle;
         bool drawLoadGenerateButtons(); // return true if a button was pressed

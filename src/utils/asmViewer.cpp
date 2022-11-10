@@ -391,13 +391,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 	for (auto& b : branchRootInds) {
 		auto& branchRoot = file.branchRoots[b];
 		float baseX = winStartPos.x + lineXOff;
-		float x;
-		if (branchRoot.displayFully) {
-			x = baseX - branchArrowSpace - branchRoot.displayDepth * branchSpacing - branchSpacing / 2;
-		}
-		else {
-			x = winStartPos.x;
-		}
+		float x = baseX - branchArrowSpace - branchRoot.displayDepth * branchSpacing - branchSpacing / 2;
 
 
 		float start;
@@ -408,7 +402,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 			start = winStartPos.y + winSize.y;
 		}
 		else {
-			float lineY = firstLineY + (branchRoot.startLine - lineStart) * lineHeight;
+			float lineY = firstLineY + (branchRoot.startLine - lineStart) * lineHeight - 2;
 			start = lineY + 0.5f * lineHeight;
 			{ // draw start line thingy
 				drawlist->AddLine(
@@ -438,7 +432,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 			end = winStartPos.y + winSize.y;
 		}
 		else {
-			float lineY = firstLineY + (branchRoot.destLine - lineStart) * lineHeight;
+			float lineY = firstLineY + (branchRoot.destLine - lineStart) * lineHeight + 2;
 			end = lineY + 0.5*lineHeight;
 			{ // draw start line thingy
 				drawlist->AddLine(
@@ -470,15 +464,6 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 void ABB::utils::AsmViewer::drawHeader(){
 	if(file.content.size() == 0)
 		return;
-
-	if(file.isSelfDisassembled()){
-		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Disassembled %" PRId64 " lines", file.getDisasmData()->lines.size());
-		ImGui::SameLine();
-		if(ImGui::Button("Update with analytics data")){
-			file.disassembleBinFile(&mcu->flash);
-		}
-	}
 }
 void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr) {
 	if(file.content.size() == 0)
@@ -664,6 +649,9 @@ void ABB::utils::AsmViewer::generateDisasmFile(const A32u4::Flash* data, const A
 	file.disassembleBinFile(data, info);
 }
 
+size_t ABB::utils::AsmViewer::numOfDisasmLines(){
+	return file.getDisasmData()->lines.size();
+}
 
 void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
 	if (file.isEmpty())

@@ -117,6 +117,8 @@ namespace ABB {
 
 			void setSymbolList(SymbolTable::SymbolListPtr list);
 			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
+
+			
 		};
 	}
 }

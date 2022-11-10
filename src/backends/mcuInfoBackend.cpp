@@ -25,18 +25,25 @@ ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open
 	flashHex.setEditCallback(setRomValue, this);
 }
 
-void drawSaveLoadButtons(const char* module) {
+void ABB::McuInfoBackend::drawSaveLoadButtons(const char* module) {
 	if(ImGui::Button("Save")){
-		char buf[128];
-		snprintf(buf, 128, "MIB_SAVE_%s",module);
-		ImGuiFD::OpenFileDialog(buf, "", ".");
+		char buf[256];
+		snprintf(buf, sizeof(buf), "%s_MIB_SAVE_%s",winName.c_str(),module);
+		ImGuiFD::OpenFileDialog(buf, "*", ".");
 	}
 	ImGui::SameLine();
 	if(ImGui::Button("Load")) {
-		char buf[128];
-		snprintf(buf, 128, "MIB_LOADs_%s",module);
-		ImGuiFD::OpenFileDialog(buf, "", ".");
+		char buf[256];
+		snprintf(buf, sizeof(buf), "MIB_LOADs_%s",module);
+		ImGuiFD::OpenFileDialog(buf, "*", ".");
 	}
+}
+
+void drawSaveDialog(const char* module){
+	
+}
+void drawLoadDialog(const char* module){
+
 }
 
 void ABB::McuInfoBackend::draw() {
@@ -52,6 +59,8 @@ void ABB::McuInfoBackend::draw() {
 
 		if (ImGui::TreeNode("DataSpace")) {
 			if (ImGui::TreeNode("Data")) {
+				drawSaveLoadButtons("Data");
+
 				if (!dataSpaceSplitHexView) {
 					dataspaceDataHex.draw();
 				}
@@ -127,8 +136,21 @@ void ABB::McuInfoBackend::draw() {
 	}
 	ImGui::End();
 
+	char buf[256];
+	snprintf(buf, sizeof(buf), "%s_MIB_SAVE_Data",winName.c_str());
+	if (ImGuiFD::BeginDialog(buf)) {
+		if (ImGuiFD::ActionDone()) {
+			if(ImGuiFD::SelectionMade()) {
+				std::string path = ImGuiFD::GetSelectionPathString(0);
+				std::string name = ImGuiFD::GetSelectionNameString(0);
 
-	
+				StringUtils::writeBytesToFile(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, path.c_str());
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+
+		ImGuiFD::EndDialog();
+	}
 }
 
 const char* ABB::McuInfoBackend::getWinName() const {

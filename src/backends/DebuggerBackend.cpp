@@ -389,6 +389,14 @@ void ABB::DebuggerBackend::draw() {
 			}
 
 			if(srcMixs.size() > 0){
+				if(srcMixs[selectedSrcMix].file.isSelfDisassembled()){
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("Disassembled %" PRId64 " lines", srcMixs[selectedSrcMix].numOfDisasmLines());
+					ImGui::SameLine();
+					if(ImGui::Button("Update with analytics data")) {
+						srcMixs[selectedSrcMix].generateDisasmFile(&abb->ab.mcu.flash, genDisamsInfo());
+					}
+				}
 				srcMixs[selectedSrcMix].drawFile(abb->ab.mcu.cpu.getPCAddr());
 			}
 			else{
@@ -433,7 +441,7 @@ ABB::utils::AsmViewer& ABB::DebuggerBackend::addSrcMix() {
 	return srcMix;
 }
 
-void ABB::DebuggerBackend::generateSrc() {
+A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genDisamsInfo(){
 	A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo info;
 	info.analytics = &abb->ab.mcu.analytics;
 	bool (*funcLine)(addrmcu_t,std::string*,void*) = [](addrmcu_t addr, std::string* out, void* userData) {
@@ -477,9 +485,14 @@ void ABB::DebuggerBackend::generateSrc() {
 	info.getSymbolNameFromAddr = funcSymb;
 	info.symbolUserData = (void*)symbolTable;
 
+	return info;
+}
+
+void ABB::DebuggerBackend::generateSrc() {
 	utils::AsmViewer& srcMix = addSrcMix();
 	
 	srcMix.title = ADD_ICON(ICON_FA_FILE_CODE) "Generated";
+	auto info = genDisamsInfo();
 	srcMix.generateDisasmFile(&abb->ab.mcu.flash, info);
 }
 

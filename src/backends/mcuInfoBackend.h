@@ -25,6 +25,8 @@ namespace ABB {
 		std::vector<std::pair<size_t,std::string>> romStrings;
 
 		void drawSaveLoadButtons(const char* module);
+		void drawSaveDialog(const char* module);
+		void drawLoadDialog(const char* module);
 
 		static void setRamValue(size_t addr, uint8_t val, void* userData);
 		static void setEepromValue(size_t addr, uint8_t val, void* userData);
