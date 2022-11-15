@@ -25,9 +25,12 @@ namespace ABB{
             A32u4::ATmega32u4* mcu = nullptr;
             float scrollSet = -1;
 
+        public:
+
             static constexpr float breakpointExtraPadding = 3;
 
-            static constexpr float branchSpacing = 2;
+            static float branchWidth;
+            static float branchSpacing;
             static constexpr float branchArrowSpace = 10;
             
         public:

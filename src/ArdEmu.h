@@ -33,6 +33,7 @@ private:
 	static void drawBenchmark();
 	static void drawMenu();
 	static void drawLoadProgramDialog();
+	static void drawStyleSettings();
 };
 
 #endif

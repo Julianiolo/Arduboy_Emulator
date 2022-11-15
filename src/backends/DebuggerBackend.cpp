@@ -461,9 +461,15 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 					}
 				}
 
+				const size_t lineTo = entry->line + 1;
+
+				if(lineTo - lineFrom > 64) { // TODO improve this, currently it just randomly cuts off at 64 lines
+					lineFrom = lineTo-64;
+				}
+
 				*out = /*file.name + ":" + std::to_string(entry->line) +*/ std::string(
 					file.content.c_str() + file.lines[lineFrom], 
-					file.content.c_str() + ((entry->line + 1 < file.lines.size()) ? file.lines[entry->line+1]-1 : file.content.size())
+					file.content.c_str() + ((lineTo < file.lines.size()) ? file.lines[lineTo]-1 : file.content.size())
 				);
 				return true;
 			}

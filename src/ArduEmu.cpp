@@ -19,6 +19,7 @@
 #endif
 
 #include "utils/byteVisualiser.h"
+#include "utils/asmViewer.h"
 #include "Extensions/imguiExt.h"
 #include "StringUtils.h"
 
@@ -61,6 +62,7 @@ void ArduEmu::draw() {
 	}
 	drawBenchmark();
 	drawMenu();
+	drawStyleSettings();
 }
 
 void ArduEmu::drawBenchmark(){
@@ -261,3 +263,18 @@ __attribute__((used)) void ArduEmu_loadFile(const char* name, const uint8_t* dat
 }
 }
 #endif
+
+
+
+
+
+void ArduEmu::drawStyleSettings() {
+	if(ImGui::Begin("Syle Settings")) {
+		if(ImGui::TreeNode("AsmViewer")){
+			ImGui::SliderFloat("Branch Width", &ABB::utils::AsmViewer::branchWidth, 0, 10);
+			ImGui::SliderFloat("Branch Spacing", &ABB::utils::AsmViewer::branchSpacing, 0, 10);
+			ImGui::TreePop();
+		}
+	}
+	ImGui::End();
+}

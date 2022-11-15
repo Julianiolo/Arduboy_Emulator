@@ -15,6 +15,9 @@
 #include <iostream>
 #include <set>
 
+float ABB::utils::AsmViewer::branchWidth = 2;
+float ABB::utils::AsmViewer::branchSpacing = 1;
+
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 	{1,0.5f,0,1}, {1,1,0,1}, {0.2f,0.2f,0.7f,1}, {0.2f,0.4f,0.7f,1}, {0.4f,0.6f,0.4f,1}, {0.3f,0.4f,0.7f,1}, {0.5f,0.5f,0.7f,1}, {0.4f,0.4f,0.6f,1},
 	{1,0.7f,1,1}, {1,0,1,1},
@@ -404,11 +407,11 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		}
 
 		if (branchRoot.displayDepth < maxBranchDepth && !clip) {
-			x = baseX - branchArrowSpace - branchRoot.displayDepth * branchSpacing - branchSpacing / 2;
+			x = baseX - branchArrowSpace - branchRoot.displayDepth * (branchWidth+branchSpacing) - branchSpacing ;
 		}
 		else {
 			// depth is too big, so we clip it
-			x = baseX - branchArrowSpace - (maxBranchDepth+1) * branchSpacing - branchSpacing / 2;
+			x = baseX - branchArrowSpace - (maxBranchDepth+1) * (branchWidth+branchSpacing) - branchSpacing;
 			clip = true;
 		}
 
@@ -439,7 +442,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 				drawlist->AddLine(
 					{x,start},
 					{baseX,start},
-					ImColor(col)
+					ImColor(col), branchWidth
 				);
 
 				drawlist->AddLine(
@@ -469,7 +472,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 				drawlist->AddLine(
 					{x,end},
 					{baseX-branchArrowSpace*0.25f,end},
-					ImColor(col)
+					ImColor(col), branchWidth
 				);
 
 				// arrow
@@ -487,7 +490,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		drawlist->AddLine(
 			{x,start},
 			{x,end},
-			ImColor(col)
+			ImColor(col), branchWidth
 		);
 	}
 }
@@ -519,7 +522,7 @@ void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr) {
 			
 			float lineXOff = 0;
 			if (showBranches) {
-				lineXOff += std::min(maxBranchDepth+1,file.maxBranchDisplayDepth) * branchSpacing + branchArrowSpace;
+				lineXOff += std::min(maxBranchDepth+1,file.maxBranchDisplayDepth) * (branchWidth+branchSpacing) + branchSpacing + branchArrowSpace;
 			}
 			
 			const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
