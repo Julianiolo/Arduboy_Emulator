@@ -1,8 +1,11 @@
 #include "CompilerBackend.h"
 
-#include "ImGuiFD.h"
+#include "ArduboyBackend.h"
 
-ABB::CompilerBackend::CompilerBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
+#include "ImGuiFD.h"
+#include "StringUtils.h"
+
+ABB::CompilerBackend::CompilerBackend(ArduboyBackend* abb, const char* winName, bool* open) : abb(abb), winName(winName), open(open) {
 
 }
 
@@ -31,6 +34,7 @@ void ABB::CompilerBackend::draw() {
         if(!callProc) {
             if(!hasInoPath) ImGui::BeginDisabled();
             if(ImGui::Button("Compile")){
+                compileOutput = "";
                 callProc = std::make_unique<SystemUtils::CallProcThread>(std::string("arduino-cli compile --fqbn arduino:avr:leonardo --build-path ./temp/ 2>&1") + inoPath);
                 callProc->start();
             }
@@ -49,15 +53,24 @@ void ABB::CompilerBackend::draw() {
 
             if(!callProc->isRunning()) {
                 callProc = nullptr;
+                load = true;
             }
         }
 
         if(ImGui::Button("Load result")){
             load = true;
         }
+        ImGui::SameLine();
+        ImGui::Checkbox("Auto Load", &autoLoad);
+        if(ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Automatically load programm after compilation");
+        }
 
         if(load) {
-            
+            if(abb->loadFromELFFile((std::string("./temp/")+StringUtils::getDirName(inoPath.c_str())+".ino.elf").c_str())) {
+                abb->resetMachine();
+                abb->ab.mcu.powerOn();
+            }
         }
 
         ImGui::Separator();

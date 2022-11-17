@@ -63,11 +63,11 @@ namespace ABB {
 
 		void buildDefaultLayout();
 
-		void load(const uint8_t* data, size_t dataLen);
-		void loadFile(const char* path);
+		bool load(const uint8_t* data, size_t dataLen);
+		bool loadFile(const char* path);
 
-		void loadFromELF(const uint8_t* data, size_t dataLen);
-		void loadFromELFFile(const char* path);
+		bool loadFromELF(const uint8_t* data, size_t dataLen);
+		bool loadFromELFFile(const char* path);
 
 		bool _wantsToBeClosed();
 	};

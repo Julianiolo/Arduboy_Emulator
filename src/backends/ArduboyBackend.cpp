@@ -13,7 +13,7 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id)
 	logBackend      (      (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen              ),
 	mcuInfoBackend  (&ab,  (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen, &symbolTable),
 	analyticsBackend(&ab,  (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen, &symbolTable),
-	compilerBackend (&ab,  (name + " - " ADD_ICON(ICON_FA_BUG)         "Compilile").c_str(), &devToolsOpen),
+	compilerBackend (this,  (name + " - " ADD_ICON(ICON_FA_HAMMER)     "Compile"  ).c_str(), &devToolsOpen),
 	id(id)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
@@ -205,6 +205,7 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 
 	ImGui::DockBuilderDockWindow(   mcuInfoBackend.winName.c_str(), l2);
 	ImGui::DockBuilderDockWindow( analyticsBackend.winName.c_str(), r2);
+	ImGui::DockBuilderDockWindow(  compilerBackend.winName.c_str(), r2);
 	ImGui::DockBuilderDockWindow(       logBackend.winName.c_str(), r2);
 }
 
@@ -231,7 +232,7 @@ bool ABB::ArduboyBackend::_wantsToBeClosed() {
 	return !open;
 }
 
-void ABB::ArduboyBackend::load(const uint8_t* data, size_t dataLen){
+bool ABB::ArduboyBackend::load(const uint8_t* data, size_t dataLen){
 	bool isElf = false;
 	if(dataLen >= 4 && std::memcmp(data, "\x7f" "ELF", 4) == 0){ // check for magic number
 		isElf = true;
@@ -239,16 +240,19 @@ void ABB::ArduboyBackend::load(const uint8_t* data, size_t dataLen){
 
 	bool success = false;
 	if(isElf){
-		loadFromELF(data, dataLen);
+		success = loadFromELF(data, dataLen);
 	}else{
 		success = ab.loadFromHexString((const char*)data);
 	}
 
 	if(!success){
 		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't load program from data");
+		return false;
 	}
+
+	return true;
 }
-void ABB::ArduboyBackend::loadFile(const char* path) {
+bool ABB::ArduboyBackend::loadFile(const char* path) {
 	const char* ext = StringUtils::getFileExtension(path);
 
 	if (std::strcmp(ext, "hex") == 0) {
@@ -259,10 +263,12 @@ void ABB::ArduboyBackend::loadFile(const char* path) {
 	}
 	else {
 		LogBackend::logf(LogBackend::LogLevel_Error, "Cant load file with extension %s! Trying to load: %s", ext, path);
+		return false;
 	}
+	return true;
 }
 
-void ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
+bool ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
 	elf = utils::ELF::parseELFFile(data, dataLen);
 
 	symbolTable.loadFromELF(elf);
@@ -281,19 +287,21 @@ void ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
 		delete[] romData;
 
 		LogBackend::log(LogBackend::LogLevel_DebugOutput, "Successfully loaded Flash content from elf!");
+		return true;
 	}
 	else {
 		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't find required sections for execution: %s %s", textInd == (size_t)-1 ? ".text" : "", dataInd == (size_t)-1 ? ".data" : "");
+		return false;
 	}
 }
 
-void ABB::ArduboyBackend::loadFromELFFile(const char* path) {
+bool ABB::ArduboyBackend::loadFromELFFile(const char* path) {
 	bool success = true;
 	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
 	if (!success) {
 		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't load ELF file: %s", path);
-		return;
+		return false;
 	}
 		
-	loadFromELF(&content[0], content.size());
+	return loadFromELF(&content[0], content.size());
 }
