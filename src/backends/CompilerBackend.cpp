@@ -1,0 +1,85 @@
+#include "CompilerBackend.h"
+
+#include "ImGuiFD.h"
+
+ABB::CompilerBackend::CompilerBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
+
+}
+
+void ABB::CompilerBackend::draw() {
+    if(ImGui::Begin(winName.c_str())) {
+#if defined(__EMSCRIPTEN__)
+        ImGui::TextUnformatted("Compilation is not supported on this platform :(");
+#else
+        const bool hasInoPath = inoPath.size() > 0;
+        if(hasInoPath) {
+            ImGui::Text("Project located at: %s", inoPath.c_str());
+        }else{
+            ImGui::TextUnformatted("No Project opened!");
+        }
+
+        if(ImGui::Button("Open")){
+            char buf[512];
+		    snprintf(buf, sizeof(buf), "%s_COMP",winName.c_str());
+            ImGuiFD::OpenDirDialog(buf, ".");
+        }
+
+        ImGui::Separator();
+
+        bool load = false;
+
+        if(!callProc) {
+            if(!hasInoPath) ImGui::BeginDisabled();
+            if(ImGui::Button("Compile")){
+                callProc = std::make_unique<SystemUtils::CallProcThread>(std::string("arduino-cli compile --fqbn arduino:avr:leonardo --build-path ./temp/ 2>&1") + inoPath);
+                callProc->start();
+            }
+            if(ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("This needs arduino-cli to be installed!");
+            }
+            if(!hasInoPath) ImGui::EndDisabled();
+        }else{
+            ImGui::BeginDisabled();
+            ImGui::Button("Compiling...");
+            ImGui::EndDisabled();
+
+            if(callProc->hasData()) {
+                compileOutput += callProc->get();
+            }
+
+            if(!callProc->isRunning()) {
+                callProc = nullptr;
+            }
+        }
+
+        if(ImGui::Button("Load result")){
+            load = true;
+        }
+
+        if(load) {
+            
+        }
+
+        ImGui::Separator();
+
+        ImGui::TextWrapped("%s", compileOutput.c_str());
+        
+#endif
+    }
+    ImGui::End();
+
+    char buf[512];
+	snprintf(buf, sizeof(buf), "%s_COMP",winName.c_str());
+	if (ImGuiFD::BeginDialog(buf)) {
+		if (ImGuiFD::ActionDone()) {
+			if(ImGuiFD::SelectionMade()) {
+				std::string path = ImGuiFD::GetSelectionPathString(0);
+
+				inoPath = path;
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+
+		ImGuiFD::EndDialog();
+	}
+}

@@ -13,6 +13,7 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id)
 	logBackend      (      (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen              ),
 	mcuInfoBackend  (&ab,  (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen, &symbolTable),
 	analyticsBackend(&ab,  (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen, &symbolTable),
+	compilerBackend (&ab,  (name + " - " ADD_ICON(ICON_FA_BUG)         "Compilile").c_str(), &devToolsOpen),
 	id(id)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
@@ -70,6 +71,7 @@ void ABB::ArduboyBackend::draw() {
 		logBackend.draw();
 		mcuInfoBackend.draw();
 		analyticsBackend.draw();
+		compilerBackend.draw();
 	}
 
 	displayBackend.drawSetColorWin();

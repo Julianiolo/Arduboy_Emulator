@@ -10,6 +10,8 @@
 #include "LogBackend.h"
 #include "mcuInfoBackend.h"
 #include "AnalyticsBackend.h"
+#include "CompilerBackend.h"
+
 #include "../utils/symbolTable.h"
 #include "../utils/elfReader.h"
 
@@ -27,6 +29,8 @@ namespace ABB {
 		LogBackend logBackend;
 		McuInfoBackend mcuInfoBackend;
 		AnalyticsBackend analyticsBackend;
+		CompilerBackend compilerBackend;
+
 		utils::SymbolTable symbolTable;
 		utils::ELF::ELFFile elf;
 
