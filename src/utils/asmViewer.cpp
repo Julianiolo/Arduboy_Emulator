@@ -4,16 +4,20 @@
 #include <streambuf>
 #include <iostream>
 
-#include "../backends/LogBackend.h"
-#include "../Extensions/imguiExt.h"
-#include "StringUtils.h"
-#include "DataUtils.h"
-#include "components/Disassembler.h"
 
 #include <inttypes.h> // for printf
 
 #include <iostream>
 #include <set>
+
+#include "../backends/LogBackend.h"
+#include "extras/Disassembler.h"
+#include "../backends/SymbolBackend.h"
+
+#include "../Extensions/imguiExt.h"
+#include "StringUtils.h"
+#include "DataUtils.h"
+
 
 float ABB::utils::AsmViewer::branchWidth = 2;
 float ABB::utils::AsmViewer::branchSpacing = 1;
@@ -292,9 +296,9 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 	if (ImGui::IsItemHovered()) {
 		popFileStyle();
 			ImGui::BeginTooltip();
-			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff));
+			const A32u4::SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff));
 			if(symbol)
-				symbol->draw(-1,mcu->flash.getData());
+				SymbolBackend::drawSymbol(symbol, -1, mcu->flash.getData());
 			ImGui::EndTooltip();
 		pushFileStyle();
 
@@ -321,7 +325,7 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 		*hasAlreadyClicked = true; 
 		if (symbolTable != nullptr) {
 			std::string symbolName = std::string(lineStart + symbolNameStartOff, lineStart + symbolNameEndOff);
-			const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
+			const A32u4::SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
 			if (symbol) {
 				if (file.labels.find((addrmcu_t)symbol->value) != file.labels.end()) {
 					if (io.KeyShift && hasOffset) {
@@ -354,12 +358,12 @@ void ABB::utils::AsmViewer::drawSymbolLabel(const char* lineStart, const char* l
 	ImGuiExt::TextColored(syntaxColors.syntaxLabelText, lineStart+addrEnd, lineEnd);
 	if(ImGui::IsItemHovered()){
 		std::string symbolName = std::string(lineStart + addrEnd+2, lineEnd-3);
-		const SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
+		const A32u4::SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
 		if (symbol) {
 			popFileStyle();
 			ImGui::BeginTooltip();
 
-			symbol->draw(-1,mcu->flash.getData());
+			SymbolBackend::drawSymbol(symbol, -1, mcu->flash.getData());
 
 			ImGui::EndTooltip();
 			pushFileStyle();
@@ -709,7 +713,7 @@ void ABB::utils::AsmViewer::popFileStyle(){
 	ImGui::PopStyleVar();
 }
 
-void ABB::utils::AsmViewer::setSymbolTable(const SymbolTable* table) {
+void ABB::utils::AsmViewer::setSymbolTable(const A32u4::SymbolTable* table) {
 	symbolTable = table;
 }
 void ABB::utils::AsmViewer::setMcu(A32u4::ATmega32u4* mcuPtr) {

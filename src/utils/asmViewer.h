@@ -10,9 +10,9 @@
 #include "imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui_internal.h"
-#include "symbolTable.h"
+#include "extras/SymbolTable.h"
 #include "ATmega32u4.h"
-#include "components/Disassembler.h"
+#include "extras/Disassembler.h"
 
 namespace ABB{
     namespace utils{
@@ -36,7 +36,7 @@ namespace ABB{
         public:
             bool breakpointsEnabled = true;
 
-            const SymbolTable* symbolTable = nullptr;
+            const A32u4::SymbolTable* symbolTable = nullptr;
             struct SyntaxColors{
                 ImVec4 PCAddr;
                 ImVec4 rawInstBytes;
@@ -77,7 +77,7 @@ namespace ABB{
             void drawFile(uint16_t PCAddr);
             void scrollToLine(size_t line, bool select = false);
 
-            void setSymbolTable(const SymbolTable* table);
+            void setSymbolTable(const A32u4::SymbolTable* table);
             void setMcu(A32u4::ATmega32u4* mcuPtr);
 
             size_t numOfDisasmLines();

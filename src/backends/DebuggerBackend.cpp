@@ -9,17 +9,16 @@
 
 #include "ImGuiFD.h"
 
-#include "StringUtils.h"
-
 #include "ArduboyBackend.h"
 
-#include "components/Disassembler.h"
+#include "extras/Disassembler.h"
 
 #include "../utils/icons.h"
+#include "StringUtils.h"
 
 
-ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open, const utils::SymbolTable* symbolTable) 
-	: abb(abb), open(open), symbolTable(symbolTable), loadSrcMixFileDialogTitle(std::string(winName) + "srcMixFD"), winName(winName) 
+ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open) 
+	: abb(abb), open(open), loadSrcMixFileDialogTitle(std::string(winName) + "srcMixFD"), winName(winName) 
 {
 	
 }
@@ -101,13 +100,13 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				
-				if(symbolTable->hasSymbols()){
+				if(abb->ab.mcu.symbolTable.hasSymbols()){
 					uint16_t Addr = abb->ab.mcu.debugger.getPCAt(i)*2;
-					const utils::SymbolTable::Symbol* symbol = symbolTable->drawAddrWithSymbol(Addr, symbolTable->getSymbolsRom());
+					const A32u4::SymbolTable::Symbol* symbol = SymbolBackend::drawAddrWithSymbol(Addr, abb->ab.mcu.symbolTable.getSymbolsRom());
 
 					if (symbol && ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
-						symbol->draw();
+						SymbolBackend::drawSymbol(symbol);
 						ImGui::EndTooltip();
 					}
 					if (ImGui::IsItemClicked() && srcMixs.size() > 0) {
@@ -135,13 +134,13 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				ImGui::TextUnformatted(": from ");
 				ImGui::SameLine();
 					
-				if(symbolTable->hasSymbols()){
+				if(abb->ab.mcu.symbolTable.hasSymbols()){
 					uint16_t fromAddr = abb->ab.mcu.debugger.getFromPCAt(i) * 2;
-					const utils::SymbolTable::Symbol* fromSymbol = symbolTable->drawAddrWithSymbol(fromAddr, symbolTable->getSymbolsRom());
+					const A32u4::SymbolTable::Symbol* fromSymbol = SymbolBackend::drawAddrWithSymbol(fromAddr, abb->ab.mcu.symbolTable.getSymbolsRom());
 
 					if (fromSymbol && ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
-						fromSymbol->draw();
+						SymbolBackend::drawSymbol(fromSymbol);
 						ImGui::EndTooltip();
 					}
 					if (ImGui::IsItemClicked() && srcMixs.size() > 0) {
@@ -436,7 +435,7 @@ ABB::utils::AsmViewer& ABB::DebuggerBackend::addSrcMix() {
 	utils::AsmViewer& srcMix = srcMixs.back();
 	selectedSrcMix = srcMixs.size() - 1;
 
-	srcMix.setSymbolTable(symbolTable);
+	srcMix.setSymbolTable(&abb->ab.mcu.symbolTable);
 	srcMix.setMcu(&abb->ab.mcu);
 	return srcMix;
 }
@@ -445,7 +444,7 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 	A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo info;
 	info.analytics = &abb->ab.mcu.analytics;
 	bool (*funcLine)(addrmcu_t,std::string*,void*) = [](addrmcu_t addr, std::string* out, void* userData) {
-		utils::ELF::ELFFile* elf = (utils::ELF::ELFFile*)userData;
+		A32u4::ELF::ELFFile* elf = (A32u4::ELF::ELFFile*)userData;
 		size_t entryInd = elf->dwarf.debug_line.getEntryIndByAddr(addr);
 		auto entry = entryInd != (size_t)-1 ? elf->dwarf.debug_line.getEntry(entryInd) : nullptr;
 
@@ -480,8 +479,8 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 	info.lineUserData = &abb->elf;
 
 	bool (*funcSymb)(addrmcu_t,bool,std::string*,void*) = [](addrmcu_t addr, bool ramNotRom, std::string* out, void* userData) {
-		const utils::SymbolTable* symbolTable = (utils::SymbolTable*)userData;
-		const utils::SymbolTable::Symbol* symb = utils::SymbolTable::getSymbolByValue(addr, ramNotRom ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
+		const A32u4::SymbolTable* symbolTable = (A32u4::SymbolTable*)userData;
+		const A32u4::SymbolTable::Symbol* symb = A32u4::SymbolTable::getSymbolByValue(addr, ramNotRom ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
 		if (symb != NULL) {
 			*out = symb->name;
 			return true;
@@ -489,7 +488,7 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 		return false;
 	};
 	info.getSymbolNameFromAddr = funcSymb;
-	info.symbolUserData = (void*)symbolTable;
+	info.symbolUserData = (void*)&abb->ab.mcu.symbolTable;
 
 	return info;
 }

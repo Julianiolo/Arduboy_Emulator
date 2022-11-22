@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "../utils/asmViewer.h"
-#include "../utils/symbolTable.h"
+#include "SymbolBackend.h"
 
 namespace ABB{
     class ArduboyBackend;
@@ -22,7 +22,6 @@ namespace ABB{
 
         bool* open;
         
-        const utils::SymbolTable* symbolTable;
         bool winFocused = false;
 
         bool showGPRegs = false;
@@ -48,7 +47,7 @@ namespace ABB{
         bool stepFrame = false;
         bool haltOnReset = false;
 
-        DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open, const utils::SymbolTable* symbolTable);
+        DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open);
 
         void draw();
         

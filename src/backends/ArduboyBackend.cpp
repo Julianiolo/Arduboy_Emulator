@@ -8,12 +8,13 @@
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) 
 : name(n), devWinName(std::string(n) + "devtools"), 
-	displayBackend  (      (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
-	debuggerBackend (this, (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen, &symbolTable),
-	logBackend      (      (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen              ),
-	mcuInfoBackend  (&ab,  (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen, &symbolTable),
-	analyticsBackend(&ab,  (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen, &symbolTable),
-	compilerBackend (this,  (name + " - " ADD_ICON(ICON_FA_HAMMER)     "Compile"  ).c_str(), &devToolsOpen),
+	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
+	debuggerBackend (this,   (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen),
+	logBackend      (        (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen              ),
+	mcuInfoBackend  (&ab,    (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen),
+	analyticsBackend(&ab,    (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
+	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
+	symbolBackend   (&ab.mcu,(name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
 	id(id)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
@@ -72,6 +73,7 @@ void ABB::ArduboyBackend::draw() {
 		mcuInfoBackend.draw();
 		analyticsBackend.draw();
 		compilerBackend.draw();
+		symbolBackend.draw();
 	}
 
 	displayBackend.drawSetColorWin();
@@ -193,7 +195,7 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 	ImVec2 size;
 	//size = { debugWin->Size.x * 2, debugWin->Size.y }; // resize node bc if not, window will shrink on split docking
 	size = {700,600};
-	ImGui::DockBuilderSetNodeSize(node, size); 
+	ImGui::DockBuilderSetNodeSize(node, size);
 
 	ImGuiID l, r;
 	ImGui::DockBuilderSplitNode(node, ImGuiDir_Left, 0.5, &l, &r);
@@ -204,6 +206,8 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 	ImGui::DockBuilderSplitNode(r, ImGuiDir_Up, 0.5, &l2, &r2);
 
 	ImGui::DockBuilderDockWindow(   mcuInfoBackend.winName.c_str(), l2);
+	ImGui::DockBuilderDockWindow(    symbolBackend.winName.c_str(), l2);
+
 	ImGui::DockBuilderDockWindow( analyticsBackend.winName.c_str(), r2);
 	ImGui::DockBuilderDockWindow(  compilerBackend.winName.c_str(), r2);
 	ImGui::DockBuilderDockWindow(       logBackend.winName.c_str(), r2);
@@ -269,9 +273,9 @@ bool ABB::ArduboyBackend::loadFile(const char* path) {
 }
 
 bool ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
-	elf = utils::ELF::parseELFFile(data, dataLen);
+	elf = A32u4::ELF::parseELFFile(data, dataLen);
 
-	symbolTable.loadFromELF(elf);
+	ab.mcu.symbolTable.loadFromELF(elf);
 
 	size_t textInd = elf.getIndOfSectionWithName(".text");
 	size_t dataInd = elf.getIndOfSectionWithName(".data");

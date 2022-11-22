@@ -3,8 +3,9 @@
 #include <cmath>
 #include <string>
 #include <cinttypes>
-
 #include <algorithm>
+
+#include "../backends/SymbolBackend.h"
 
 #include "../Extensions/imguiExt.h"
 #include "StringUtils.h"
@@ -21,7 +22,7 @@ ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u
 bool ABB::utils::HexViewer::isSelected(size_t addr) const {
 	return addr >= selectStart && addr < selectEnd;
 }
-void ABB::utils::HexViewer::setSymbolList(SymbolTable::SymbolListPtr list) {
+void ABB::utils::HexViewer::setSymbolList(A32u4::SymbolTable::SymbolListPtr list) {
 	symbolList = list;
 }
 void ABB::utils::HexViewer::setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData) {
@@ -39,7 +40,7 @@ ImRect ABB::utils::HexViewer::getNextByteRect(const ImVec2& charSize) const {
 		{ cursorScreenPos.x + charSize.x * 3, cursorScreenPos.y + charSize.y }
 	);
 }
-bool ABB::utils::HexViewer::newSymbol(SymbolTable::symb_size_t addr, size_t* symbolPtr, SymbolTable::symb_size_t nextSymbolAddrEnd) {
+bool ABB::utils::HexViewer::newSymbol(A32u4::SymbolTable::symb_size_t addr, size_t* symbolPtr, A32u4::SymbolTable::symb_size_t nextSymbolAddrEnd) {
 	if (addr >= nextSymbolAddrEnd) {
 		if (*symbolPtr == 0 && *symbolPtr + 1 < symbolList->size() && addr > symbolList->operator[]((size_t)( *symbolPtr + 1 ))->addrEnd()) {
 			size_t from = (size_t)*symbolPtr;
@@ -87,7 +88,7 @@ bool ABB::utils::HexViewer::newSymbol(SymbolTable::symb_size_t addr, size_t* sym
 			}
 		}
 		else {
-			const SymbolTable::Symbol* nextSymbol;
+			const A32u4::SymbolTable::Symbol* nextSymbol;
 			do {
 				(*symbolPtr)++;
 
@@ -129,7 +130,7 @@ size_t ABB::utils::HexViewer::getBytesPerRow(float widthAvail, const ImVec2& cha
 	return bytesPerRow;
 }
 
-void ABB::utils::HexViewer::drawHoverInfo(size_t addr, const SymbolTable::Symbol* symbol) {
+void ABB::utils::HexViewer::drawHoverInfo(size_t addr, const A32u4::SymbolTable::Symbol* symbol) {
 	float hSpacing = ImGui::GetStyle().ItemSpacing.y;
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, hSpacing));
 
@@ -144,7 +145,7 @@ void ABB::utils::HexViewer::drawHoverInfo(size_t addr, const SymbolTable::Symbol
 	ImGui::PopStyleVar();
 
 	if (symbol)
-		symbol->draw(addr, data);
+		SymbolBackend::drawSymbol(symbol, addr, data);
 }
 
 void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
@@ -163,7 +164,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		if (settings.showDiagram && symbolList) {
 			float buttonHeight = ImGui::GetItemRectSize().y;
 			ImGui::SameLine();
-			SymbolTable::drawSymbolListSizeDiagramm(symbolList, dataLen, &settings.diagramScale, data, ImVec2{0, buttonHeight});
+			SymbolBackend::drawSymbolListSizeDiagramm(symbolList, dataLen, &settings.diagramScale, data, ImVec2{0, buttonHeight});
 		}
 
 		if (ImGui::BeginPopup(settingsPopupName.c_str())) {
@@ -172,11 +173,11 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		}
 	}
 
-	SymbolTable::symb_size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
+	A32u4::SymbolTable::symb_size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
 	size_t symbolPtr = 0;
 	if (settings.showSymbols && symbolList) {
 		if (symbolList->size() > 0) {
-			const SymbolTable::Symbol* symbol;
+			const A32u4::SymbolTable::Symbol* symbol;
 			while (true) {
 				symbol = symbolList->operator[](symbolPtr);
 				if (symbol->size > 0 || symbolPtr >= symbolList->size())
@@ -240,7 +241,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 
 				const ImRect nextItemRect = getNextByteRect(charSize);
 
-				const SymbolTable::Symbol* symbol = nullptr;
+				const A32u4::SymbolTable::Symbol* symbol = nullptr;
 				if (settings.showSymbols && symbolList) {
 					if (newSymbol(addrOff, &symbolPtr, nextSymbolAddrEnd)) {
 						if (symbolPtr < symbolList->size()) {
@@ -268,7 +269,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 						//if (nextSymbolAddrEnd > (lineAddr + bytesPerRow))
 							max.y += vertSpacing;
 						
-						drawList->AddRectFilled( min, max, ImColor(symbol->col) );
+						drawList->AddRectFilled( min, max, ImColor(*SymbolBackend::getSymbolColor(symbol)) );
 					}
 				}
 
@@ -296,9 +297,10 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 				if (!symbol)
 					ImGui::TextUnformatted(byteStr, byteStr + 3);
 				else {
-					if (settings.invertTextColOverSymbols)
-						ImGuiExt::TextColored({ 1 - symbol->col.x, 1 - symbol->col.y, 1 - symbol->col.z, 1 }, byteStr, byteStr + 3);
-					else {
+					if (settings.invertTextColOverSymbols) {
+						ImVec4* col = SymbolBackend::getSymbolColor(symbol);
+						ImGuiExt::TextColored({ 1 - col->x, 1 - col->y, 1 - col->z, 1 }, byteStr, byteStr + 3);
+					} else {
 						ImGuiExt::TextColored({0, 0, 0, 1}, byteStr, byteStr + 3);
 					}
 				}

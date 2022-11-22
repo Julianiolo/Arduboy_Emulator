@@ -5,7 +5,7 @@
 #include <vector>
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "symbolTable.h"
+#include "extras/SymbolTable.h"
 #include "raylib.h"
 #include "ATmega32u4.h"
 
@@ -81,11 +81,11 @@ namespace ABB {
 
 			static constexpr size_t AddrDigits = 4;
 
-			SymbolTable::SymbolListPtr symbolList = nullptr;
+			A32u4::SymbolTable::SymbolListPtr symbolList = nullptr;
 
 			float vertSpacing = 0;
 			size_t popupAddr = -1; // symbol popup address
-			const SymbolTable::Symbol* popupSymbol = nullptr;
+			const A32u4::SymbolTable::Symbol* popupSymbol = nullptr;
 
 			
 			EditBytes eb;
@@ -94,10 +94,10 @@ namespace ABB {
 
 			ImRect getNextByteRect(const ImVec2& charSize) const;
 			size_t getBytesPerRow(float widthAvail, const ImVec2& charSize);
-			bool newSymbol(SymbolTable::symb_size_t addr, size_t* symbolPtr, SymbolTable::symb_size_t nextSymbolAddrEnd);
+			bool newSymbol(A32u4::SymbolTable::symb_size_t addr, size_t* symbolPtr, A32u4::SymbolTable::symb_size_t nextSymbolAddrEnd);
 
 			void drawSettings();
-			void drawHoverInfo(size_t addr, const SymbolTable::Symbol* symbol);
+			void drawHoverInfo(size_t addr, const A32u4::SymbolTable::Symbol* symbol);
 			
 			void drawEditPopup();
 		public:
@@ -115,7 +115,7 @@ namespace ABB {
 			void draw(size_t dataAmt = -1, size_t dataOff = 0);
 			void sameFrame();
 
-			void setSymbolList(SymbolTable::SymbolListPtr list);
+			void setSymbolList(A32u4::SymbolTable::SymbolListPtr list);
 			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
 
 			

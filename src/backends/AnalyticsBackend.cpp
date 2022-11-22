@@ -2,8 +2,8 @@
 
 #include "imgui.h"
 
-ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable)
-: ab(ab), symbolTable(symbolTable), StackSizeBuf(100), sleepCycsBuf(100), winName(winName), open(open)
+ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* open)
+: ab(ab), StackSizeBuf(100), sleepCycsBuf(100), winName(winName), open(open)
 {
     StackSizeBuf.initTo(0);
     sleepCycsBuf.initTo(0);
@@ -25,7 +25,7 @@ void ABB::AnalyticsBackend::draw(){
         winFocused = ImGui::IsWindowFocused();
 
         addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
-        addrmcu_t max = (addrmcu_t)(A32u4::DataSpace::Consts::data_size - 1 - symbolTable->getMaxRamAddrEnd());
+        addrmcu_t max = (addrmcu_t)(A32u4::DataSpace::Consts::data_size - 1 - ab->mcu.symbolTable.getMaxRamAddrEnd());
         ImGui::Text("%.2f%% of Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
         uint64_t usedSum = 0;
         for (size_t i = 0; i < StackSizeBuf.size(); i++) {

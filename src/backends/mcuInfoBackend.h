@@ -6,7 +6,7 @@
 #include "../utils/hexViewer.h"
 #include <string>
 
-#include "../utils/symbolTable.h"
+#include "SymbolBackend.h"
 
 namespace ABB {
 	class McuInfoBackend {
@@ -35,7 +35,7 @@ namespace ABB {
 		const std::string winName;
 		bool* open;
 
-		McuInfoBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable);
+		McuInfoBackend(Arduboy* ab, const char* winName, bool* open);
 
 		void draw();
 

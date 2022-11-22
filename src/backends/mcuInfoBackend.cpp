@@ -9,19 +9,19 @@
 
 
 
-ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open, const utils::SymbolTable* symbolTable) :
+ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open) :
 	ab(ab),
 	dataspaceDataHex(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, &ab->mcu), 
 	dataspaceEEPROMHex(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size),
 	flashHex(ab->mcu.flash.getData(), A32u4::Flash::sizeMax),
 	winName(winName), open(open)
 {
-	dataspaceDataHex.setSymbolList(symbolTable->getSymbolsRam());
+	dataspaceDataHex.setSymbolList(ab->mcu.symbolTable.getSymbolsRam());
 	dataspaceDataHex.setEditCallback(setRamValue, this);
 
 	dataspaceEEPROMHex.setEditCallback(setEepromValue, this);
 
-	flashHex.setSymbolList(symbolTable->getSymbolsRom());
+	flashHex.setSymbolList(ab->mcu.symbolTable.getSymbolsRom());
 	flashHex.setEditCallback(setRomValue, this);
 }
 

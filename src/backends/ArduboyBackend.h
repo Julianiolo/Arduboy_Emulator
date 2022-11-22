@@ -11,9 +11,10 @@
 #include "mcuInfoBackend.h"
 #include "AnalyticsBackend.h"
 #include "CompilerBackend.h"
+#include "SymbolBackend.h"
 
-#include "../utils/symbolTable.h"
-#include "../utils/elfReader.h"
+
+#include "extras/elfReader.h"
 
 namespace ABB {
 	class ArduboyBackend {
@@ -30,9 +31,9 @@ namespace ABB {
 		McuInfoBackend mcuInfoBackend;
 		AnalyticsBackend analyticsBackend;
 		CompilerBackend compilerBackend;
+		SymbolBackend symbolBackend;
 
-		utils::SymbolTable symbolTable;
-		utils::ELF::ELFFile elf;
+		A32u4::ELF::ELFFile elf;
 
 		size_t id;
 
