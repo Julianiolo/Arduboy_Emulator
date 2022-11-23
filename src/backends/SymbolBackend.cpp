@@ -2,6 +2,9 @@
 
 #define __STDC_FORMAT_MACROS 1
 #include <inttypes.h> // for printing uint64_t
+#include <cmath>
+#include <algorithm>
+#include <functional>
 
 #include "LogBackend.h"
 
@@ -70,14 +73,133 @@ float ABB::SymbolBackend::distSqCols(const ImVec4& a, const ImVec4& b){
 	return MathUtils::sq(a.x-b.x) + MathUtils::sq(a.y-b.y) + MathUtils::sq(a.z-b.z) + MathUtils::sq(a.w-b.w);
 }
 
+bool ABB::SymbolBackend::compareSymbols(uint32_t a, uint32_t b) {
+	const A32u4::SymbolTable::Symbol* symbolA = mcu->symbolTable.getSymbolById(a);
+	const A32u4::SymbolTable::Symbol* symbolB = mcu->symbolTable.getSymbolById(b);
+
+	for (int i = 0; i < sortSpecs->SpecsCount; i++) {
+		auto& specs = sortSpecs->Specs[i];
+		int delta = 0;
+		switch (specs.ColumnUserID) {
+			case SB_NAME:
+				delta = std::strcmp(symbolA->name.c_str(), symbolB->name.c_str());
+				break;
+
+			case SB_VALUE:
+				delta = (int)symbolA->value - (int)symbolB->value;
+				break;
+
+			case SB_SIZE:
+				delta = (int)symbolA->size - (int)symbolB->size;
+				break;
+
+			case SB_FLAGS:
+				delta = std::strcmp(symbolA->flagStr.c_str(), symbolB->flagStr.c_str());
+				break;
+
+			case SB_SECTION:
+				delta = std::strcmp(symbolA->section->name.c_str(), symbolB->section->name.c_str());
+				break;
+
+			case SB_NOTES:
+				delta = std::strcmp(symbolA->name.c_str(), symbolB->name.c_str());
+				break;
+			
+		}
+
+		if (delta > 0)
+			return (specs.SortDirection == ImGuiSortDirection_Ascending) ? false : true;
+		if (delta < 0)
+			return (specs.SortDirection == ImGuiSortDirection_Ascending) ? true : false;
+	}
+	return false;
+}
+
 void ABB::SymbolBackend::draw() {
     if(ImGui::Begin(winName.c_str(), open)) {
-        if(ImGui::BeginTable("Symbols", 5)) {
+		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_RowBg | 
+			ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti;
+        if(ImGui::BeginTable("Symbols", 6, flags)) {
+			ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, 0, SB_NAME);
+			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_DefaultSort, 0, SB_VALUE);
+			ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_None, 0, SB_SIZE);
+			ImGui::TableSetupColumn("Flags", ImGuiTableColumnFlags_None, 0, SB_FLAGS);
+			ImGui::TableSetupColumn("Section", ImGuiTableColumnFlags_None, 0, SB_SECTION);
+			ImGui::TableSetupColumn("Note", ImGuiTableColumnFlags_None, 0, SB_SECTION);
+			ImGui::TableHeadersRow();
 
+			if (symbolsSortedOrder.size() != mcu->symbolTable.getSymbols().size()) {
+				std::set<uint32_t> seen;
+				for (size_t i = 0; i < symbolsSortedOrder.size();) {
+					if (mcu->symbolTable.getSymbolById(symbolsSortedOrder[i]) == nullptr) {
+						symbolsSortedOrder.erase(symbolsSortedOrder.begin() + i);
+						continue;
+					}
 
-            for(size_t i = 0; i<mcu->symbolTable.getSymbols().size(); i++) {
-                
-            }
+					seen.insert(symbolsSortedOrder[i]);
+					i++;
+				}
+
+				for (size_t i = 0; i < mcu->symbolTable.getSymbols().size(); i++) {
+					const A32u4::SymbolTable::Symbol* symbol = &mcu->symbolTable.getSymbols()[i];
+					if (seen.find(symbol->id) == seen.end()) {
+						symbolsSortedOrder.push_back(symbol->id);
+					}
+				}
+				shouldResort = true;
+			}
+
+			if (ImGuiTableSortSpecs* specs = ImGui::TableGetSortSpecs()) {
+				if (specs->SpecsDirty || shouldResort) {
+					sortSpecs = specs;
+					std::sort(symbolsSortedOrder.begin(), symbolsSortedOrder.end(), [&](uint32_t a, uint32_t b) {
+						return compareSymbols(a, b);
+					});
+					sortSpecs = nullptr;
+					specs->SpecsDirty = false;
+					shouldResort = false;
+				}
+			}
+
+			ImGuiListClipper clipper;
+			clipper.Begin(mcu->symbolTable.getSymbols().size());
+			while (clipper.Step()) {
+				for(int i = clipper.DisplayStart; i<clipper.DisplayEnd; i++) {
+					const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolById(symbolsSortedOrder[i]);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGuiExt::TextColored(*getSymbolColor(symbol), symbol->demangled.c_str());
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%04x", symbol->value);
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%u", symbol->size);
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%s", symbol->flagStr.c_str());
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%s", symbol->section->name.c_str());
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%s", symbol->note.c_str());
+					if (ImGui::IsItemHovered()) {
+						ImGui::BeginTooltip();
+
+						ImGui::TextUnformatted("Note:");
+						ImGui::Separator();
+
+						ImGui::TextWrapped("%s", symbol->note.c_str());
+
+						ImGui::EndTooltip();
+					}
+				}
+			}
+
+            
 
             ImGui::EndTable();
         }

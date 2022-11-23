@@ -15,14 +15,27 @@ namespace ABB {
         const std::string winName;
 		bool* open;
     private:
+        enum {
+            SB_NAME = 0,
+            SB_VALUE,
+            SB_SIZE,
+            SB_FLAGS,
+            SB_SECTION,
+            SB_NOTES
+        };
+        std::vector<uint32_t> symbolsSortedOrder;
+        bool shouldResort = true;
+        ImGuiTableSortSpecs* sortSpecs = nullptr;
+
         static float distSqCols(const ImVec4& a, const ImVec4& b);
 
         static void postProcessSymbols(A32u4::SymbolTable::Symbol* symbs, size_t len, void* userData);
+
+        bool compareSymbols(uint32_t a, uint32_t b);
     public:
         SymbolBackend(A32u4::ATmega32u4* mcu, const char* winName, bool* open);
 
         void draw();
-
 
         static ImVec4* getSymbolColor(const A32u4::SymbolTable::Symbol* symbol);
 

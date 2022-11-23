@@ -186,19 +186,19 @@
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\AnalyticsBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\backends\CompilerBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\DebuggerBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\DisplayBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\LogBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\mcuInfoBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\backends\SymbolBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\bintools\bintools.cpp" />
     <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp" />
     <ClCompile Include="..\..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\asmViewer.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\byteVisualiser.cpp" />
-    <ClCompile Include="..\..\..\..\src\utils\elfReader.cpp" />
     <ClCompile Include="..\..\..\..\src\utils\hexViewer.cpp" />
-    <ClCompile Include="..\..\..\..\src\utils\symbolTable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\dependencies\ImGuiFD\ImGuiFD.h" />
@@ -206,10 +206,12 @@
     <ClInclude Include="..\..\..\..\src\ArdEmu.h" />
     <ClInclude Include="..\..\..\..\src\backends\AnalyticsBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\ArduboyBackend.h" />
+    <ClInclude Include="..\..\..\..\src\backends\CompilerBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\DebuggerBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\DisplayBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\LogBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\mcuInfoBackend.h" />
+    <ClInclude Include="..\..\..\..\src\backends\SymbolBackend.h" />
     <ClInclude Include="..\..\..\..\src\bintools\bintools.h" />
     <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h" />
     <ClInclude Include="..\..\..\..\src\Extensions\imguiOperators.h" />
@@ -217,12 +219,10 @@
     <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h" />
     <ClInclude Include="..\..\..\..\src\utils\asmViewer.h" />
     <ClInclude Include="..\..\..\..\src\utils\byteVisualiser.h" />
-    <ClInclude Include="..\..\..\..\src\utils\elfReader.h" />
     <ClInclude Include="..\..\..\..\src\utils\hexViewer.h" />
     <ClInclude Include="..\..\..\..\src\utils\icons.h" />
     <ClInclude Include="..\..\..\..\src\utils\mathUtils.h" />
     <ClInclude Include="..\..\..\..\src\utils\ringBuffer.h" />
-    <ClInclude Include="..\..\..\..\src\utils\symbolTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

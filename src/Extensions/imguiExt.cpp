@@ -1,7 +1,6 @@
 #include "imguiExt.h"
 
 
-
 void ImGuiExt::TextColored(const ImVec4& col, const char* text_start, const char* text_end) {
     ImGui::PushStyleColor(ImGuiCol_Text, col);
     ImGui::TextEx(text_start, text_end, ImGuiTextFlags_NoWidthForLargeClippedText); // Skip formatting

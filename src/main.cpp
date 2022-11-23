@@ -130,8 +130,10 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 
-#elif 1
+#elif 0
     abb.loadFromELFFile("C:/Users/korma/Desktop/Julian/dateien/abgames/CastleBoy-master/CastleBoy.ino.elf");
+#elif 1
+    abb.loadFromELFFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.elf");
 #elif 0
     abb.ab.load(ROOTDIR"resources/games/MicroCity/MicroCity.ino.hex");
     abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/MicroCity/srcMix.asm");

@@ -6,6 +6,7 @@
 #include "imgui_internal.h"
 #include "raylib.h"
 #include <string>
+#include <vector>
 
 namespace ImGuiExt {
 	void TextColored(const ImVec4& col, const char* text_start, const char* text_end = NULL);
