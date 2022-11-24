@@ -27,6 +27,9 @@ namespace ABB {
         bool shouldResort = true;
         ImGuiTableSortSpecs* sortSpecs = nullptr;
 
+        A32u4::SymbolTable::Symbol addSymbol;
+        void clearAddSymbol();
+
         static float distSqCols(const ImVec4& a, const ImVec4& b);
 
         static void postProcessSymbols(A32u4::SymbolTable::Symbol* symbs, size_t len, void* userData);
@@ -41,8 +44,8 @@ namespace ABB {
 
         static void drawSymbol(const A32u4::SymbolTable::Symbol* symbol, A32u4::SymbolTable::symb_size_t addr = -1, const uint8_t* data = nullptr);
 
-        static const A32u4::SymbolTable::Symbol* drawAddrWithSymbol(A32u4::SymbolTable::symb_size_t Addr, A32u4::SymbolTable::SymbolListPtr list);
-		static void drawSymbolListSizeDiagramm(A32u4::SymbolTable::SymbolListPtr list, A32u4::SymbolTable::symb_size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});
+        const A32u4::SymbolTable::Symbol* drawAddrWithSymbol(A32u4::SymbolTable::symb_size_t Addr, const A32u4::SymbolTable::SymbolList& list)const;
+		static void drawSymbolListSizeDiagramm(const A32u4::SymbolTable& table, const A32u4::SymbolTable::SymbolList& list, A32u4::SymbolTable::symb_size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});
     };
 }
 

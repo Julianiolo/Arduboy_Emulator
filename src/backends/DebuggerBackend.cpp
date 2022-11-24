@@ -102,7 +102,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				
 				if(abb->ab.mcu.symbolTable.hasSymbols()){
 					uint16_t Addr = abb->ab.mcu.debugger.getPCAt(i)*2;
-					const A32u4::SymbolTable::Symbol* symbol = SymbolBackend::drawAddrWithSymbol(Addr, abb->ab.mcu.symbolTable.getSymbolsRom());
+					const A32u4::SymbolTable::Symbol* symbol = abb->symbolBackend.drawAddrWithSymbol(Addr, abb->ab.mcu.symbolTable.getSymbolsRom());
 
 					if (symbol && ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
@@ -136,7 +136,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 					
 				if(abb->ab.mcu.symbolTable.hasSymbols()){
 					uint16_t fromAddr = abb->ab.mcu.debugger.getFromPCAt(i) * 2;
-					const A32u4::SymbolTable::Symbol* fromSymbol = SymbolBackend::drawAddrWithSymbol(fromAddr, abb->ab.mcu.symbolTable.getSymbolsRom());
+					const A32u4::SymbolTable::Symbol* fromSymbol = abb->symbolBackend.drawAddrWithSymbol(fromAddr, abb->ab.mcu.symbolTable.getSymbolsRom());
 
 					if (fromSymbol && ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
@@ -480,7 +480,7 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 
 	bool (*funcSymb)(addrmcu_t,bool,std::string*,void*) = [](addrmcu_t addr, bool ramNotRom, std::string* out, void* userData) {
 		const A32u4::SymbolTable* symbolTable = (A32u4::SymbolTable*)userData;
-		const A32u4::SymbolTable::Symbol* symb = A32u4::SymbolTable::getSymbolByValue(addr, ramNotRom ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
+		const A32u4::SymbolTable::Symbol* symb = symbolTable->getSymbolByValue(addr, ramNotRom ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
 		if (symb != NULL) {
 			*out = symb->name;
 			return true;

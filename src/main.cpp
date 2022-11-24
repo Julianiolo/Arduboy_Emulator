@@ -130,7 +130,7 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 
-#elif 0
+#elif 1
     abb.loadFromELFFile("C:/Users/korma/Desktop/Julian/dateien/abgames/CastleBoy-master/CastleBoy.ino.elf");
 #elif 1
     abb.loadFromELFFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.elf");

@@ -81,16 +81,13 @@ namespace ABB {
 
 			static constexpr size_t AddrDigits = 4;
 
-			A32u4::SymbolTable::SymbolListPtr symbolList = nullptr;
+			const A32u4::SymbolTable::SymbolList* symbolList = nullptr;
 
 			float vertSpacing = 0;
 			size_t popupAddr = -1; // symbol popup address
 			const A32u4::SymbolTable::Symbol* popupSymbol = nullptr;
 
-			
 			EditBytes eb;
-			
-			
 
 			ImRect getNextByteRect(const ImVec2& charSize) const;
 			size_t getBytesPerRow(float widthAvail, const ImVec2& charSize);
@@ -115,7 +112,7 @@ namespace ABB {
 			void draw(size_t dataAmt = -1, size_t dataOff = 0);
 			void sameFrame();
 
-			void setSymbolList(A32u4::SymbolTable::SymbolListPtr list);
+			void setSymbolList(const A32u4::SymbolTable::SymbolList& list);
 			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
 
 			

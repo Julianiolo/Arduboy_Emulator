@@ -1,137 +1,137 @@
-00000023:         .bss	00000001 PINB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PINB7    PINB6    PINB5    PINB4    PINB3    PINB2    PINB1    PINB0         
-00000024:         .bss	00000001 DDRB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDB7     DDB6     DDB5     DDB4     DDB3     DDB2     DDB1     DDB0         
-00000025:         .bss	00000001 PORTB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTB7   PORTB6   PORTB5   PORTB4   PORTB3   PORTB2   PORTB1   PORTB0         
-00000026:         .bss	00000001 PINC	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PINC7    PINC6        -        -        -        -        -        -         
-00000027:         .bss	00000001 DDRC	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDC7     DDC6        -        -        -        -        -        -         
-00000028:         .bss	00000001 PORTC	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTC7   PORTC6        -        -        -        -        -        -         
-00000029:         .bss	00000001 PIND	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PIND7    PIND6    PIND5    PIND4    PIND3    PIND2    PIND1    PIND0         
-0000002a:         .bss	00000001 DDRD	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDD7     DDD6     DDD5     DDD4     DDD3     DDD2     DDD1     DDD0         
-0000002b:         .bss	00000001 PORTD	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTD7   PORTD6   PORTD5   PORTD4   PORTD3   PORTD2   PORTD1   PORTD0         
-0000002c:         .bss	00000001 PINE	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -    PINE6        -        -        -    PINE2        -        -         
-0000002d:         .bss	00000001 DDRE	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -     DDE6        -        -        -     DDE2        -        -         
-0000002e:         .bss	00000001 PORTE	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -   PORTE6        -        -        -   PORTE2        -        -         
-0000002f:         .bss	00000001 PINF	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PINF7    PINF6    PINF5    PINF4        -        -    PINF1    PINF0         
-00000030:         .bss	00000001 DDRF	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDF7     DDF6     DDF5     DDF4        -        -     DDF1     DDF0         
-00000031:         .bss	00000001 PORTF	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTF7   PORTF6   PORTF5   PORTF4        -        -   PORTF1   PORTF0         
-00000035:         .bss	00000001 TIFR0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -    OCF0B    OCF0A     TOV0         
-00000036:         .bss	00000001 TIFR1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -     ICF1        -    OCF1C    OCF1B    OCF1A     TOV1         
-00000038:         .bss	00000001 TIFR3	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -     ICF3        -    OCF3C    OCF3B    OCF3A     TOV3         
-00000039:         .bss	00000001 TIFR4	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    OCF4D    OCF4A    OCF4B        -        -     TOV4        -        -         
-0000003b:         .bss	00000001 PCIFR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -    PCIF0         
-0000003c:         .bss	00000001 EIFR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -    INTF6        -        -    INTF3    INTF2    INTF1    INTF0         
-0000003d:         .bss	00000001 EIMSK	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -     INT6        -        -     INT3     INT2     INT1     INT0         
-0000003e:         .bss	00000001 GPIOR0	General Purpose I/O Register 0
-0000003f:         .bss	00000001 EECR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    EEPM1    EEPM0    EERIE    EEMPE     EEPE     EERE         
-00000040:         .bss	00000001 EEDR	EEPROM Data Register
-00000041:         .bss	00000002 EEAR	EEPROM Address Register        
-00000043:         .bss	00000001 GTCCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      TSM        -        -        -        -        -   PSRASY  PSRSYNC         
-00000044:         .bss	00000001 TCCR0A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM0A1   COM0A0   COM0B1   COM0B0        -        -    WGM01    WGM00         
-00000045:         .bss	00000001 TCCR0B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FOC0A    FOC0B        -        -    WGM02     CS02     CS01     CS00         
-00000046:         .bss	00000001 TCNT0	Timer/Counter0 (8 Bit)
-00000047:         .bss	00000001 OCR0A	Timer/Counter0 Output Compare Register A
-00000048:         .bss	00000001 OCR0B	Timer/Counter0 Output Compare Register B
-00000049:         .bss	00000001 PLLCSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -   PINDIV        -        -     PLLE    PLOCK         
-0000004a:         .bss	00000001 GPIOR1	General Purpose I/O Register 1
-0000004b:         .bss	00000001 GPIOR2	General Purpose I/O Register 2
-0000004c:         .bss	00000001 SPCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     SPIE      SPE     DORD     MSTR     CPOL     CPHA     SPR1     SPR0         
-0000004d:         .bss	00000001 SPSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     SPIF     WCOL        -        -        -        -        -    SPI2X         
-0000004e:         .bss	00000001 SPDR	SPI Data Register
-00000050:         .bss	00000001 ACSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      ACD     ACBG      ACO      ACI     ACIE     ACIC    ACIS1    ACIS0         
-00000051:         .bss	00000001 OCDR/MONDR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    OCDR7    OCDR6    OCDR5    OCDR4    OCDR3    OCDR2    OCDR1    OCDR0         
-00000052:         .bss	00000001 PLLFRQ	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PINMUX   PLLUSB   PLLTM1   PLLTM0    PDIV3    PDIV2    PDIV1    PDIV0         
-00000053:         .bss	00000001 SMCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -      SM2      SM1      SM0       SE         
-00000054:         .bss	00000001 MCUSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    USBRF     JTRF     WDRF     BORF    EXTRF     PORF         
-00000055:         .bss	00000001 MCUCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      JTD        -        -      PUD        -        -    IVSEL     IVCE         
-00000057:         .bss	00000001 SPMCSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    SPMIE    RWWSB    SIGRD   RWWSRE   BLBSET    PGWRT    PGERS    SPMEN         
-0000005b:         .bss	00000001 RAMPZ	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -   RAMPZ1   RAMPZ0         
-0000005d:         .bss	00000001 SPL	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      SP7      SP6      SP5      SP4      SP3      SP2      SP1      SP0         
-0000005e:         .bss	00000001 SPH	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     SP15     SP14     SP13     SP12     SP11     SP10      SP9      SP8         
-0000005f:         .bss	00000001 SREG	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        I        T        H        S        V        N        Z        C         
-00000060:         .bss	00000001 WDTCSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     WDIF     WDIE     WDP3     WDCE      WDE     WDP2     WDP1     WDP0         
-00000061:         .bss	00000001 CLKPR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   CLKPCE        -        -        -   CLKPS3   CLKPS2   CLKPS1   CLKPS0         
-00000064:         .bss	00000001 PRR0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PRTWI        -   PRTIM0        -   PRTIM1    PRSPI        -    PRADC         
-00000065:         .bss	00000001 PRR1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PRUSB        -        -   PRTIM4   PRTIM3        -        - PRUSART1         
-00000066:         .bss	00000001 OSCCAL	RC Oscillator Calibration Register
-00000067:         .bss	00000001 RCCTRL	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -   RCFREQ         
-00000068:         .bss	00000001 PCICR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -    PCIE0         
-00000069:         .bss	00000001 EICRA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ISC31    ISC30    ISC21    ISC20    ISC11    ISC10    ISC01    ISC00         
-0000006a:         .bss	00000001 EICRB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    ISC61    ISC60        -        -        -        -         
-0000006b:         .bss	00000001 PCMSK0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PCINT7   PCINT6   PCINT5   PCINT4   PCINT3   PCINT2   PCINT1   PCINT0         
-0000006e:         .bss	00000001 TIMSK0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -   OCIE0B   OCIE0A    TOIE0         
-0000006f:         .bss	00000001 TIMSK1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    ICIE1        -   OCIE1C   OCIE1B   OCIE1A    TOIE1         
-00000071:         .bss	00000001 TIMSK3	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    ICIE3        -   OCIE3C   OCIE3B   OCIE3A    TOIE3         
-00000072:         .bss	00000001 TIMSK4	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   OCIE4D   OCIE4A   OCIE4B        -        -    TOIE4        -        -         
-00000078:         .bss	00000001 ADCL	ADC Data Register Low byte
-00000079:         .bss	00000001 ADCH	ADC Data Register High byte
-0000007a:         .bss	00000001 ADCSRA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     ADEN     ADSC    ADATE     ADIF     ADIE    ADPS2    ADPS1    ADPS0         
-0000007b:         .bss	00000001 ADCSRB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ADHSM     ACME     MUX5        -    ADTS3    ADTS2    ADTS1    ADTS0         
-0000007c:         .bss	00000001 ADMUX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    REFS1    REFS0    ADLAR     MUX4     MUX3     MUX2     MUX1     MUX0         
-0000007d:         .bss	00000001 DIDR2	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -   ADC13D   ADC12D   ADC11D   ADC10D    ADC9D    ADC8D         
-0000007e:         .bss	00000001 DIDR0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ADC7D    ADC6D    ADC5D    ADC4D        -        -    ADC1D    ADC0D         
-0000007f:         .bss	00000001 DIDR1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -    AIN0D         
-00000080:         .bss	00000001 TCCR1A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM1A1   COM1A0   COM1B1   COM1B0   COM1C1   COM1C0    WGM11    WGM10         
-00000081:         .bss	00000001 TCCR1B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ICNC1    ICES1        -    WGM13    WGM12     CS12     CS11     CS10         
-00000082:         .bss	00000001 TCCR1C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FOC1A    FOC1B    FOC1C        -        -        -        -        -         
-00000084:         .bss	00000002 TCNT1	Timer/Counter1 - Counter Register        
-00000086:         .bss	00000002 ICR1	Timer/Counter1 - Input Capture Register        
-00000088:         .bss	00000002 OCR1A	Timer/Counter1 - Output Compare Register A        
-0000008a:         .bss	00000002 OCR1B	Timer/Counter1 - Output Compare Register B        
-0000008c:         .bss	00000002 OCR1C	Timer/Counter1 - Output Compare Register C        
-00000090:         .bss	00000001 TCCR3A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM3A1   COM3A0   COM3B1   COM3B0   COM3C1   COM3C0    WGM31    WGM30         
-00000091:         .bss	00000001 TCCR3B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ICNC3    ICES3        -    WGM33    WGM32     CS32     CS31     CS30         
-00000092:         .bss	00000001 TCCR3C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FOC3A        -        -        -        -        -        -        -         
-00000094:         .bss	00000002 TCNT3	Timer/Counter3 - Counter Register        
-00000096:         .bss	00000002 ICR3	Timer/Counter3 - Input Capture Register        
-00000098:         .bss	00000002 OCR3A	Timer/Counter3 - Output Compare Register A        
-0000009a:         .bss	00000002 OCR3B	Timer/Counter3 - Output Compare Register B        
-0000009c:         .bss	00000002 OCR3C	Timer/Counter3 - Output Compare Register C        
-000000b8:         .bss	00000001 TWBR	2-wire Serial Interface Bit Rate Register
-000000b9:         .bss	00000001 TWSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     TWS7     TWS6     TWS5     TWS4     TWS3        -    TWPS1    TWPS0         
-000000ba:         .bss	00000001 TWAR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     TWA6     TWA5     TWA4     TWA3     TWA2     TWA1     TWA0    TWGCE         
-000000bb:         .bss	00000001 TWDR	2-wire Serial Interface Data Register
-000000bc:         .bss	00000001 TWCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    TWINT     TWEA    TWSTA    TWSTO     TWWC     TWEN        -     TWIE         
-000000bd:         .bss	00000001 TWAMR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    TWAM6    TWAM5    TWAM4    TWAM3    TWAM2    TWAM1    TWAM0        -         
-000000be:         .bss	00000002 TCNT4	Timer/Counter4 - Counter Register        
-000000c0:         .bss	00000001 TCCR4A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM4A1   COM4A0   COM4B1   COM4B0    FOC4A    FOC4B    PWM4A    PWM4B         
-000000c1:         .bss	00000001 TCCR4B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PWM4X     PSR4   DTPS41   DTPS40     CS43     CS42     CS41     CS40         
-000000c2:         .bss	00000001 TCCR4C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n  COM4A1S  COM4A0S  COM4B1S  COM4B0S  COM4D1S  COM4D0S    FOC4D    PWM4D         
-000000c3:         .bss	00000001 TCCR4D	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FPIE4    FPEN4    FPNC4    FPES4    FPAC4     FPF4    WGM41    WGM40         
-000000c4:         .bss	00000001 TCCR4E	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   TLOCK4    ENHC4   OC4OE5   OC4OE4   OC4OE3   OC4OE2   OC4OE1   OC4OE0         
-000000c5:         .bss	00000001 CLKSEL0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   RCSUT1   RCSUT0   EXSUT1   EXSUT0      RCE     EXTE        -     CLKS         
-000000c6:         .bss	00000001 CLKSEL1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n RCCKSEL3 RCCKSEL2 RCCKSEL1 RCCKSEL0 EXCKSEL3 EXCKSEL2 EXCKSEL1 EXCKSEL0         
-000000c7:         .bss	00000001 CLKSTA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -     RCON    EXTON         
-000000c8:         .bss	00000001 UCSR1A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     RXC1     TXC1    UDRE1      FE1     DOR1      PE1     U2X1    MPCM1         
-000000c9:         .bss	00000001 UCSR1B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   RXCIE1   TXCIE1   UDRIE1    RXEN1    TXEN1   UCSZ12    RXB81    TXB81         
-000000ca:         .bss	00000001 UCSR1C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n  UMSEL11  UMSEL10    UPM11    UPM10    USBS1   UCSZ11   UCSZ10   UCPOL1         
-000000cb:         .bss	00000001 UCSR1D	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -    CTSEN    RTSEN         
-000000cc:         .bss	00000002 UBRR1	USART1 Baud Rate Register        
-000000ce:         .bss	00000001 UDR1	USART1 I/O Data Register
-000000cf:         .bss	00000001 OCR4A	Timer/Counter4 - Output Compare Register A
-000000d0:         .bss	00000001 OCR4B	Timer/Counter4 - Output Compare Register B
-000000d1:         .bss	00000001 OCR4C	Timer/Counter4 - Output Compare Register C
-000000d2:         .bss	00000001 OCR4D	Timer/Counter4 - Output Compare Register D
-000000d4:         .bss	00000001 DT4	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    DT4H3    DT4H2    DT4H1    DT4H0    DT4L3    DT4L2    DT4L1    DT4L0         
-000000d7:         .bss	00000001 UHWCON	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -   UVREGE         
-000000d8:         .bss	00000001 USBCON	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     USBE        -   FRZCLK  OTGPADE        -        -        -   VBUSTE         
-000000d9:         .bss	00000001 USBSTA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -       ID     VBUS         
-000000da:         .bss	00000001 USBINT	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -   VBUSTI         
-000000e0:         .bss	00000001 UDCON	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -   RSTCPU      LSM   RMWKUP   DETACH         
-000000e1:         .bss	00000001 UDINT	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -   UPRSMI   EORSMI  WAKEUPI   EORSTI     SOFI    MSOFI    SUSPI         
-000000e2:         .bss	00000001 UDIEN	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -   UPRSME   EORSME  WAKEUPE   EORSTE     SOFE    MSOFE    SUSPE         
-000000e3:         .bss	00000001 UDADDR	ADDEN UADD6:0
-000000e4:         .bss	00000001 UDFNUML	FNUM7:0
-000000e5:         .bss	00000001 UDFNUMH	- - - - - FNUM10:8
-000000e6:         .bss	00000001 UDMFN	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -   FNCERR        -        -        -        -         
-000000e8:         .bss	00000001 UEINTX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n  FIFOCON   NAKINI     RWAL  NAKOUTI   RXSTPI   RXOUTI STALLEDI    TXINI         
-000000e9:         .bss	00000001 UENUM	- - - - - EPNUM2:0
-000000ea:         .bss	00000001 UERST	- EPRST6:0
-000000eb:         .bss	00000001 UECONX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -  STALLRQ STALLRQC    RSTDT        -        -     EPEN         
-000000ec:         .bss	00000001 UECFG0X	EPTYPE1:0 - - - - - EPDIR
-000000ed:         .bss	00000001 UECFG1X	EPSIZE2:0 EPBK1:0 ALLOC -
-000000ee:         .bss	00000001 UESTA0X	CFGOK OVERFI UNDERFI - DTSEQ1:0 NBUSYBK1:0
-000000ef:         .bss	00000001 UESTA1X	- - - - - CTRLDIR CURRBK1:0
-000000f0:         .bss	00000001 UEIENX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   FLERRE   NAKINE        -  NAKOUTE   RXSTPE   RXOUTE STALLEDE    TXINE         
-000000f1:         .bss	00000001 UEDATX	DAT7:0
-000000f2:         .bss	00000001 UEBCLX	BYCT7:0
-000000f3:         .bss	00000001 UEBCHX	- - - - - BYCT10:8
-000000f4:         .bss	00000001 UEINT	- EPINT6:0
+00000023         .bss	00000001 PINB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PINB7    PINB6    PINB5    PINB4    PINB3    PINB2    PINB1    PINB0         
+00000024         .bss	00000001 DDRB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDB7     DDB6     DDB5     DDB4     DDB3     DDB2     DDB1     DDB0         
+00000025         .bss	00000001 PORTB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTB7   PORTB6   PORTB5   PORTB4   PORTB3   PORTB2   PORTB1   PORTB0         
+00000026         .bss	00000001 PINC	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PINC7    PINC6        -        -        -        -        -        -         
+00000027         .bss	00000001 DDRC	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDC7     DDC6        -        -        -        -        -        -         
+00000028         .bss	00000001 PORTC	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTC7   PORTC6        -        -        -        -        -        -         
+00000029         .bss	00000001 PIND	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PIND7    PIND6    PIND5    PIND4    PIND3    PIND2    PIND1    PIND0         
+0000002a         .bss	00000001 DDRD	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDD7     DDD6     DDD5     DDD4     DDD3     DDD2     DDD1     DDD0         
+0000002b         .bss	00000001 PORTD	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTD7   PORTD6   PORTD5   PORTD4   PORTD3   PORTD2   PORTD1   PORTD0         
+0000002c         .bss	00000001 PINE	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -    PINE6        -        -        -    PINE2        -        -         
+0000002d         .bss	00000001 DDRE	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -     DDE6        -        -        -     DDE2        -        -         
+0000002e         .bss	00000001 PORTE	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -   PORTE6        -        -        -   PORTE2        -        -         
+0000002f         .bss	00000001 PINF	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PINF7    PINF6    PINF5    PINF4        -        -    PINF1    PINF0         
+00000030         .bss	00000001 DDRF	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     DDF7     DDF6     DDF5     DDF4        -        -     DDF1     DDF0         
+00000031         .bss	00000001 PORTF	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PORTF7   PORTF6   PORTF5   PORTF4        -        -   PORTF1   PORTF0         
+00000035         .bss	00000001 TIFR0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -    OCF0B    OCF0A     TOV0         
+00000036         .bss	00000001 TIFR1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -     ICF1        -    OCF1C    OCF1B    OCF1A     TOV1         
+00000038         .bss	00000001 TIFR3	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -     ICF3        -    OCF3C    OCF3B    OCF3A     TOV3         
+00000039         .bss	00000001 TIFR4	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    OCF4D    OCF4A    OCF4B        -        -     TOV4        -        -         
+0000003b         .bss	00000001 PCIFR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -    PCIF0         
+0000003c         .bss	00000001 EIFR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -    INTF6        -        -    INTF3    INTF2    INTF1    INTF0         
+0000003d         .bss	00000001 EIMSK	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -     INT6        -        -     INT3     INT2     INT1     INT0         
+0000003e         .bss	00000001 GPIOR0	General Purpose I/O Register 0
+0000003f         .bss	00000001 EECR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    EEPM1    EEPM0    EERIE    EEMPE     EEPE     EERE         
+00000040         .bss	00000001 EEDR	EEPROM Data Register
+00000041         .bss	00000002 EEAR	EEPROM Address Register        
+00000043         .bss	00000001 GTCCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      TSM        -        -        -        -        -   PSRASY  PSRSYNC         
+00000044         .bss	00000001 TCCR0A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM0A1   COM0A0   COM0B1   COM0B0        -        -    WGM01    WGM00         
+00000045         .bss	00000001 TCCR0B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FOC0A    FOC0B        -        -    WGM02     CS02     CS01     CS00         
+00000046         .bss	00000001 TCNT0	Timer/Counter0 (8 Bit)
+00000047         .bss	00000001 OCR0A	Timer/Counter0 Output Compare Register A
+00000048         .bss	00000001 OCR0B	Timer/Counter0 Output Compare Register B
+00000049         .bss	00000001 PLLCSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -   PINDIV        -        -     PLLE    PLOCK         
+0000004a         .bss	00000001 GPIOR1	General Purpose I/O Register 1
+0000004b         .bss	00000001 GPIOR2	General Purpose I/O Register 2
+0000004c         .bss	00000001 SPCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     SPIE      SPE     DORD     MSTR     CPOL     CPHA     SPR1     SPR0         
+0000004d         .bss	00000001 SPSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     SPIF     WCOL        -        -        -        -        -    SPI2X         
+0000004e         .bss	00000001 SPDR	SPI Data Register
+00000050         .bss	00000001 ACSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      ACD     ACBG      ACO      ACI     ACIE     ACIC    ACIS1    ACIS0         
+00000051         .bss	00000001 OCDR/MONDR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    OCDR7    OCDR6    OCDR5    OCDR4    OCDR3    OCDR2    OCDR1    OCDR0         
+00000052         .bss	00000001 PLLFRQ	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PINMUX   PLLUSB   PLLTM1   PLLTM0    PDIV3    PDIV2    PDIV1    PDIV0         
+00000053         .bss	00000001 SMCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -      SM2      SM1      SM0       SE         
+00000054         .bss	00000001 MCUSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    USBRF     JTRF     WDRF     BORF    EXTRF     PORF         
+00000055         .bss	00000001 MCUCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      JTD        -        -      PUD        -        -    IVSEL     IVCE         
+00000057         .bss	00000001 SPMCSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    SPMIE    RWWSB    SIGRD   RWWSRE   BLBSET    PGWRT    PGERS    SPMEN         
+0000005b         .bss	00000001 RAMPZ	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -   RAMPZ1   RAMPZ0         
+0000005d         .bss	00000001 SPL	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n      SP7      SP6      SP5      SP4      SP3      SP2      SP1      SP0         
+0000005e         .bss	00000001 SPH	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     SP15     SP14     SP13     SP12     SP11     SP10      SP9      SP8         
+0000005f         .bss	00000001 SREG	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        I        T        H        S        V        N        Z        C         
+00000060         .bss	00000001 WDTCSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     WDIF     WDIE     WDP3     WDCE      WDE     WDP2     WDP1     WDP0         
+00000061         .bss	00000001 CLKPR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   CLKPCE        -        -        -   CLKPS3   CLKPS2   CLKPS1   CLKPS0         
+00000064         .bss	00000001 PRR0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PRTWI        -   PRTIM0        -   PRTIM1    PRSPI        -    PRADC         
+00000065         .bss	00000001 PRR1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PRUSB        -        -   PRTIM4   PRTIM3        -        - PRUSART1         
+00000066         .bss	00000001 OSCCAL	RC Oscillator Calibration Register
+00000067         .bss	00000001 RCCTRL	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -   RCFREQ         
+00000068         .bss	00000001 PCICR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -    PCIE0         
+00000069         .bss	00000001 EICRA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ISC31    ISC30    ISC21    ISC20    ISC11    ISC10    ISC01    ISC00         
+0000006a         .bss	00000001 EICRB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    ISC61    ISC60        -        -        -        -         
+0000006b         .bss	00000001 PCMSK0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   PCINT7   PCINT6   PCINT5   PCINT4   PCINT3   PCINT2   PCINT1   PCINT0         
+0000006e         .bss	00000001 TIMSK0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -   OCIE0B   OCIE0A    TOIE0         
+0000006f         .bss	00000001 TIMSK1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    ICIE1        -   OCIE1C   OCIE1B   OCIE1A    TOIE1         
+00000071         .bss	00000001 TIMSK3	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -    ICIE3        -   OCIE3C   OCIE3B   OCIE3A    TOIE3         
+00000072         .bss	00000001 TIMSK4	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   OCIE4D   OCIE4A   OCIE4B        -        -    TOIE4        -        -         
+00000078         .bss	00000001 ADCL	ADC Data Register Low byte
+00000079         .bss	00000001 ADCH	ADC Data Register High byte
+0000007a         .bss	00000001 ADCSRA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     ADEN     ADSC    ADATE     ADIF     ADIE    ADPS2    ADPS1    ADPS0         
+0000007b         .bss	00000001 ADCSRB	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ADHSM     ACME     MUX5        -    ADTS3    ADTS2    ADTS1    ADTS0         
+0000007c         .bss	00000001 ADMUX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    REFS1    REFS0    ADLAR     MUX4     MUX3     MUX2     MUX1     MUX0         
+0000007d         .bss	00000001 DIDR2	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -   ADC13D   ADC12D   ADC11D   ADC10D    ADC9D    ADC8D         
+0000007e         .bss	00000001 DIDR0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ADC7D    ADC6D    ADC5D    ADC4D        -        -    ADC1D    ADC0D         
+0000007f         .bss	00000001 DIDR1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -    AIN0D         
+00000080         .bss	00000001 TCCR1A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM1A1   COM1A0   COM1B1   COM1B0   COM1C1   COM1C0    WGM11    WGM10         
+00000081         .bss	00000001 TCCR1B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ICNC1    ICES1        -    WGM13    WGM12     CS12     CS11     CS10         
+00000082         .bss	00000001 TCCR1C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FOC1A    FOC1B    FOC1C        -        -        -        -        -         
+00000084         .bss	00000002 TCNT1	Timer/Counter1 - Counter Register        
+00000086         .bss	00000002 ICR1	Timer/Counter1 - Input Capture Register        
+00000088         .bss	00000002 OCR1A	Timer/Counter1 - Output Compare Register A        
+0000008a         .bss	00000002 OCR1B	Timer/Counter1 - Output Compare Register B        
+0000008c         .bss	00000002 OCR1C	Timer/Counter1 - Output Compare Register C        
+00000090         .bss	00000001 TCCR3A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM3A1   COM3A0   COM3B1   COM3B0   COM3C1   COM3C0    WGM31    WGM30         
+00000091         .bss	00000001 TCCR3B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    ICNC3    ICES3        -    WGM33    WGM32     CS32     CS31     CS30         
+00000092         .bss	00000001 TCCR3C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FOC3A        -        -        -        -        -        -        -         
+00000094         .bss	00000002 TCNT3	Timer/Counter3 - Counter Register        
+00000096         .bss	00000002 ICR3	Timer/Counter3 - Input Capture Register        
+00000098         .bss	00000002 OCR3A	Timer/Counter3 - Output Compare Register A        
+0000009a         .bss	00000002 OCR3B	Timer/Counter3 - Output Compare Register B        
+0000009c         .bss	00000002 OCR3C	Timer/Counter3 - Output Compare Register C        
+000000b8         .bss	00000001 TWBR	2-wire Serial Interface Bit Rate Register
+000000b9         .bss	00000001 TWSR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     TWS7     TWS6     TWS5     TWS4     TWS3        -    TWPS1    TWPS0         
+000000ba         .bss	00000001 TWAR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     TWA6     TWA5     TWA4     TWA3     TWA2     TWA1     TWA0    TWGCE         
+000000bb         .bss	00000001 TWDR	2-wire Serial Interface Data Register
+000000bc         .bss	00000001 TWCR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    TWINT     TWEA    TWSTA    TWSTO     TWWC     TWEN        -     TWIE         
+000000bd         .bss	00000001 TWAMR	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    TWAM6    TWAM5    TWAM4    TWAM3    TWAM2    TWAM1    TWAM0        -         
+000000be         .bss	00000002 TCNT4	Timer/Counter4 - Counter Register        
+000000c0         .bss	00000001 TCCR4A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   COM4A1   COM4A0   COM4B1   COM4B0    FOC4A    FOC4B    PWM4A    PWM4B         
+000000c1         .bss	00000001 TCCR4B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    PWM4X     PSR4   DTPS41   DTPS40     CS43     CS42     CS41     CS40         
+000000c2         .bss	00000001 TCCR4C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n  COM4A1S  COM4A0S  COM4B1S  COM4B0S  COM4D1S  COM4D0S    FOC4D    PWM4D         
+000000c3         .bss	00000001 TCCR4D	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    FPIE4    FPEN4    FPNC4    FPES4    FPAC4     FPF4    WGM41    WGM40         
+000000c4         .bss	00000001 TCCR4E	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   TLOCK4    ENHC4   OC4OE5   OC4OE4   OC4OE3   OC4OE2   OC4OE1   OC4OE0         
+000000c5         .bss	00000001 CLKSEL0	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   RCSUT1   RCSUT0   EXSUT1   EXSUT0      RCE     EXTE        -     CLKS         
+000000c6         .bss	00000001 CLKSEL1	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n RCCKSEL3 RCCKSEL2 RCCKSEL1 RCCKSEL0 EXCKSEL3 EXCKSEL2 EXCKSEL1 EXCKSEL0         
+000000c7         .bss	00000001 CLKSTA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -     RCON    EXTON         
+000000c8         .bss	00000001 UCSR1A	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     RXC1     TXC1    UDRE1      FE1     DOR1      PE1     U2X1    MPCM1         
+000000c9         .bss	00000001 UCSR1B	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   RXCIE1   TXCIE1   UDRIE1    RXEN1    TXEN1   UCSZ12    RXB81    TXB81         
+000000ca         .bss	00000001 UCSR1C	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n  UMSEL11  UMSEL10    UPM11    UPM10    USBS1   UCSZ11   UCSZ10   UCPOL1         
+000000cb         .bss	00000001 UCSR1D	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -    CTSEN    RTSEN         
+000000cc         .bss	00000002 UBRR1	USART1 Baud Rate Register        
+000000ce         .bss	00000001 UDR1	USART1 I/O Data Register
+000000cf         .bss	00000001 OCR4A	Timer/Counter4 - Output Compare Register A
+000000d0         .bss	00000001 OCR4B	Timer/Counter4 - Output Compare Register B
+000000d1         .bss	00000001 OCR4C	Timer/Counter4 - Output Compare Register C
+000000d2         .bss	00000001 OCR4D	Timer/Counter4 - Output Compare Register D
+000000d4         .bss	00000001 DT4	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n    DT4H3    DT4H2    DT4H1    DT4H0    DT4L3    DT4L2    DT4L1    DT4L0         
+000000d7         .bss	00000001 UHWCON	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -   UVREGE         
+000000d8         .bss	00000001 USBCON	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n     USBE        -   FRZCLK  OTGPADE        -        -        -   VBUSTE         
+000000d9         .bss	00000001 USBSTA	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -       ID     VBUS         
+000000da         .bss	00000001 USBINT	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -        -        -        -   VBUSTI         
+000000e0         .bss	00000001 UDCON	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -        -   RSTCPU      LSM   RMWKUP   DETACH         
+000000e1         .bss	00000001 UDINT	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -   UPRSMI   EORSMI  WAKEUPI   EORSTI     SOFI    MSOFI    SUSPI         
+000000e2         .bss	00000001 UDIEN	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -   UPRSME   EORSME  WAKEUPE   EORSTE     SOFE    MSOFE    SUSPE         
+000000e3         .bss	00000001 UDADDR	ADDEN UADD6:0
+000000e4         .bss	00000001 UDFNUML	FNUM7:0
+000000e5         .bss	00000001 UDFNUMH	- - - - - FNUM10:8
+000000e6         .bss	00000001 UDMFN	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -        -   FNCERR        -        -        -        -         
+000000e8         .bss	00000001 UEINTX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n  FIFOCON   NAKINI     RWAL  NAKOUTI   RXSTPI   RXOUTI STALLEDI    TXINI         
+000000e9         .bss	00000001 UENUM	- - - - - EPNUM2:0
+000000ea         .bss	00000001 UERST	- EPRST6:0
+000000eb         .bss	00000001 UECONX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n        -        -  STALLRQ STALLRQC    RSTDT        -        -     EPEN         
+000000ec         .bss	00000001 UECFG0X	EPTYPE1:0 - - - - - EPDIR
+000000ed         .bss	00000001 UECFG1X	EPSIZE2:0 EPBK1:0 ALLOC -
+000000ee         .bss	00000001 UESTA0X	CFGOK OVERFI UNDERFI - DTSEQ1:0 NBUSYBK1:0
+000000ef         .bss	00000001 UESTA1X	- - - - - CTRLDIR CURRBK1:0
+000000f0         .bss	00000001 UEIENX	    Bit 7    Bit 6    Bit 5    Bit 4    Bit 3    Bit 2    Bit 1    Bit 0\n   FLERRE   NAKINE        -  NAKOUTE   RXSTPE   RXOUTE STALLEDE    TXINE         
+000000f1         .bss	00000001 UEDATX	DAT7:0
+000000f2         .bss	00000001 UEBCLX	BYCT7:0
+000000f3         .bss	00000001 UEBCHX	- - - - - BYCT10:8
+000000f4         .bss	00000001 UEINT	- EPINT6:0

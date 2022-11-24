@@ -22,8 +22,8 @@ ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u
 bool ABB::utils::HexViewer::isSelected(size_t addr) const {
 	return addr >= selectStart && addr < selectEnd;
 }
-void ABB::utils::HexViewer::setSymbolList(A32u4::SymbolTable::SymbolListPtr list) {
-	symbolList = list;
+void ABB::utils::HexViewer::setSymbolList(const A32u4::SymbolTable::SymbolList& list) {
+	symbolList = &list;
 }
 void ABB::utils::HexViewer::setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData) {
 	eb.setEditCallB(func, userData);
@@ -42,17 +42,17 @@ ImRect ABB::utils::HexViewer::getNextByteRect(const ImVec2& charSize) const {
 }
 bool ABB::utils::HexViewer::newSymbol(A32u4::SymbolTable::symb_size_t addr, size_t* symbolPtr, A32u4::SymbolTable::symb_size_t nextSymbolAddrEnd) {
 	if (addr >= nextSymbolAddrEnd) {
-		if (*symbolPtr == 0 && *symbolPtr + 1 < symbolList->size() && addr > symbolList->operator[]((size_t)( *symbolPtr + 1 ))->addrEnd()) {
+		if (*symbolPtr == 0 && *symbolPtr + 1 < symbolList->size() && addr > mcu->symbolTable.getSymbol(*symbolList,(size_t)( *symbolPtr + 1 ))->addrEnd()) {
 			size_t from = (size_t)*symbolPtr;
 			size_t to = symbolList->size() - 1;
 
 			while (from != to) {
 				const size_t mid = from + ((to - from) / 2);
-				auto symbol = symbolList->operator[](mid);
+				auto symbol = mcu->symbolTable.getSymbol(*symbolList,mid);
 				if (symbol->addrEnd() <= addr) {
 					if(from == mid){ // couldnt find a symbol for the current address so we just select the next
 						size_t ind = mid;
-						while(symbolList->operator[](ind)->size == 0)
+						while(mcu->symbolTable.getSymbol(*symbolList,ind)->size == 0)
 							ind++;
 						
 						*symbolPtr = ind;
@@ -66,7 +66,7 @@ bool ABB::utils::HexViewer::newSymbol(A32u4::SymbolTable::symb_size_t addr, size
 				else { // found Symbol candidate
 					size_t ind = mid;
 					while (symbol->size == 0) { 
-						auto newSymbol = symbolList->operator[](--ind); // go back to seach for symbols with size > 0
+						auto newSymbol = mcu->symbolTable.getSymbol(*symbolList,--ind); // go back to seach for symbols with size > 0
 						if (newSymbol->value > addr)
 							break;
 						symbol = newSymbol;
@@ -75,7 +75,7 @@ bool ABB::utils::HexViewer::newSymbol(A32u4::SymbolTable::symb_size_t addr, size
 					if (symbol->size == 0) {                                // if symbol size is still 0
 						ind = mid;                                          // jump back to startingpoint
 						while (symbol->size == 0) {
-							auto newSymbol = symbolList->operator[](++ind); // step forward to search for symbol with size > 0
+							auto newSymbol = mcu->symbolTable.getSymbol(*symbolList,++ind); // step forward to search for symbol with size > 0
 							if (newSymbol->addrEnd() <= addr)
 								break;
 							symbol = newSymbol;
@@ -94,7 +94,7 @@ bool ABB::utils::HexViewer::newSymbol(A32u4::SymbolTable::symb_size_t addr, size
 
 				if (*symbolPtr >= symbolList->size())
 					break;
-				nextSymbol = symbolList->operator[](*symbolPtr);
+				nextSymbol = mcu->symbolTable.getSymbol(*symbolList,*symbolPtr);
 
 			} while (nextSymbol->addrEnd() < addr || nextSymbol->size == 0);
 		}
@@ -164,7 +164,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		if (settings.showDiagram && symbolList) {
 			float buttonHeight = ImGui::GetItemRectSize().y;
 			ImGui::SameLine();
-			SymbolBackend::drawSymbolListSizeDiagramm(symbolList, dataLen, &settings.diagramScale, data, ImVec2{0, buttonHeight});
+			SymbolBackend::drawSymbolListSizeDiagramm(mcu->symbolTable, *symbolList, dataLen, &settings.diagramScale, data, ImVec2{0, buttonHeight});
 		}
 
 		if (ImGui::BeginPopup(settingsPopupName.c_str())) {
@@ -179,7 +179,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		if (symbolList->size() > 0) {
 			const A32u4::SymbolTable::Symbol* symbol;
 			while (true) {
-				symbol = symbolList->operator[](symbolPtr);
+				symbol = mcu->symbolTable.getSymbol(*symbolList,symbolPtr);
 				if (symbol->size > 0 || symbolPtr >= symbolList->size())
 					break;
 				symbolPtr++;
@@ -245,7 +245,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 				if (settings.showSymbols && symbolList) {
 					if (newSymbol(addrOff, &symbolPtr, nextSymbolAddrEnd)) {
 						if (symbolPtr < symbolList->size()) {
-							auto newSymbol = symbolList->operator[](symbolPtr);
+							auto newSymbol = mcu->symbolTable.getSymbol(*symbolList,symbolPtr);
 							nextSymbolAddr = newSymbol->value;
 							nextSymbolAddrEnd = newSymbol->addrEnd();
 						}
@@ -253,7 +253,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 							nextSymbolAddr = nextSymbolAddrEnd = -1;
 					}
 					if (addrOff >= nextSymbolAddr && addrOff < nextSymbolAddrEnd) {
-						symbol = symbolList->operator[](symbolPtr);
+						symbol = mcu->symbolTable.getSymbol(*symbolList,symbolPtr);
 						ImVec2 min = nextItemRect.Min, max = nextItemRect.Max;
 
 						if(i != 0) // check if not first item in row
