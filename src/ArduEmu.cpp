@@ -7,21 +7,23 @@
 #include "imgui.h"
 #include <chrono>
 #ifndef __EMSCRIPTEN__
-#ifdef _WIN32
-	#include <intrin.h> // for __rdtsc()
-#else
-	#include <x86intrin.h>
-#endif
+	#ifdef _WIN32
+		#include <intrin.h> // for __rdtsc()
+	#else
+		#include <x86intrin.h>
+	#endif
 #endif
 
 #ifdef __EMSCRIPTEN__
-#include "emscripten.h"
+	#include "emscripten.h"
 #endif
 
 #include "utils/byteVisualiser.h"
 #include "utils/asmViewer.h"
 #include "Extensions/imguiExt.h"
 #include "StringUtils.h"
+
+#include "utils/icons.h"
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 size_t ArduEmu::idCounter = 0;
@@ -34,6 +36,11 @@ bool ArduEmu::simpleLoadDialogIsCurrentlyLoading = false;
 std::string ArduEmu::simpleLoadDialogInputStr = "";
 std::vector<uint8_t> ArduEmu::simpleLoadDialogLoadedData;
 #endif
+
+bool ArduEmu::showSettings = false;
+bool ArduEmu::showBenchmark = false;
+bool ArduEmu::showImGuiDemo = true;
+bool ArduEmu::showAbout = false;
 
 void ArduEmu::init() {
 	ABB::utils::ByteVisualiser::init();
@@ -62,79 +69,95 @@ void ArduEmu::draw() {
 	}
 	drawBenchmark();
 	drawMenu();
-	drawStyleSettings();
+	drawSettings();
+	drawAbout();
+
+	if(showImGuiDemo)
+		ImGui::ShowDemoWindow(&showImGuiDemo);
 }
 
 void ArduEmu::drawBenchmark(){
-	static bool open = true;
-	if(open){
-		if(ImGui::Begin("Benchmark",&open)){
-			static uint64_t benchCycls = (A32u4::CPU::ClockFreq/60)*1000;
-			constexpr uint64_t min = 0;
-			ImGui::DragScalar("##cycs",ImGuiDataType_U64, &benchCycls, 1000, &min);
-			ImGui::SameLine();
-			if(ImGui::SmallButton("*10"))
-				benchCycls *= 10;
-			ImGui::SameLine();
-			if(ImGui::SmallButton("/10"))
-				benchCycls /= 10;
-			
-			ImGui::TextUnformatted("Run Flags:");
-				ImGui::Indent();
-				static bool debug = false, analyse = false;
-				ImGui::Checkbox("Debug",&debug);
-				ImGui::Checkbox("Analyze", &analyse);
-			ImGui::Unindent();
+	if(!showBenchmark) return;
 
-			static std::string res = "";
-			if(ImGui::Button("Do Benchmark")){
-				A32u4::ATmega32u4 mcu;
-				mcu.flash.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
-				//mcu.flash.loadFromHexFile("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
-				mcu.powerOn();
+	if(ImGui::Begin("Benchmark",&showBenchmark)){
+		static uint64_t benchCycls = (A32u4::CPU::ClockFreq/60)*1000;
+		constexpr uint64_t min = 0;
+		ImGui::DragScalar("##cycs",ImGuiDataType_U64, &benchCycls, 1000, &min);
+		ImGui::SameLine();
+		if(ImGui::SmallButton("*10"))
+			benchCycls *= 10;
+		ImGui::SameLine();
+		if(ImGui::SmallButton("/10"))
+			benchCycls /= 10;
+		
+		ImGui::TextUnformatted("Run Flags:");
+			ImGui::Indent();
+			static bool debug = false, analyse = false;
+			ImGui::Checkbox("Debug",&debug);
+			ImGui::Checkbox("Analyze", &analyse);
+		ImGui::Unindent();
 
-				uint8_t execFlags = 0;
-				if(debug)
-					execFlags |= A32u4::ATmega32u4::ExecFlags_Debug;
-				if(analyse)
-					execFlags |= A32u4::ATmega32u4::ExecFlags_Analyse;
+		static std::string res = "";
+		if(ImGui::Button("Do Benchmark")){
+			A32u4::ATmega32u4 mcu;
+			mcu.flash.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+			//mcu.flash.loadFromHexFile("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+			mcu.powerOn();
 
-				auto start = std::chrono::high_resolution_clock::now();
-				#ifndef __EMSCRIPTEN__
-				uint64_t cpu_start = __rdtsc();
-				#endif
-				mcu.execute(benchCycls, execFlags);
-				#ifndef __EMSCRIPTEN__
-				uint64_t cpu_end = __rdtsc();
-				#endif
-				auto end = std::chrono::high_resolution_clock::now();
+			uint8_t execFlags = 0;
+			if(debug)
+				execFlags |= A32u4::ATmega32u4::ExecFlags_Debug;
+			if(analyse)
+				execFlags |= A32u4::ATmega32u4::ExecFlags_Analyse;
 
-				auto time = end - start;
+			auto start = std::chrono::high_resolution_clock::now();
+			#ifndef __EMSCRIPTEN__
+			uint64_t cpu_start = __rdtsc();
+			#endif
+			mcu.execute(benchCycls, execFlags);
+			#ifndef __EMSCRIPTEN__
+			uint64_t cpu_end = __rdtsc();
+			#endif
+			auto end = std::chrono::high_resolution_clock::now();
 
-				#ifndef __EMSCRIPTEN__
-				uint64_t cycles = cpu_end - cpu_start;
-				#else
-				uint64_t cycles = 0;
-				#endif
-				double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
-				double frames = (double)benchCycls/(A32u4::CPU::ClockFreq/60);
-				double fps = 1000/(ms/frames);
-				res = StringUtils::format("%s/%s cycles run in %.4f ms => %.2f frames => %.4ffps; %s cycles\n", std::to_string(mcu.cpu.getTotalCycles()).c_str(), std::to_string(benchCycls).c_str(), ms, frames, fps, std::to_string(cycles).c_str()) + res;
-			}
+			auto time = end - start;
 
-			ImGui::TextUnformatted(res.c_str());
+			#ifndef __EMSCRIPTEN__
+			uint64_t cycles = cpu_end - cpu_start;
+			#else
+			uint64_t cycles = 0;
+			#endif
+			double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
+			double frames = (double)benchCycls/(A32u4::CPU::ClockFreq/60);
+			double fps = 1000/(ms/frames);
+			res = StringUtils::format("%s/%s cycles run in %.4f ms => %.2f frames => %.4ffps; %s cycles\n", std::to_string(mcu.cpu.getTotalCycles()).c_str(), std::to_string(benchCycls).c_str(), ms, frames, fps, std::to_string(cycles).c_str()) + res;
 		}
-		ImGui::End();
+
+		ImGui::TextUnformatted(res.c_str());
 	}
+	ImGui::End();
 }
 
 void ArduEmu::drawMenu() {
-	if (ImGui::Begin("Open Game")) {
-		if (ImGui::Button("Open")) {
-			openLoadProgramDialog(-1);
+	if(ImGui::BeginMainMenuBar()){
+		if(ImGui::BeginMenu(ADD_ICON(ICON_FA_FILE)"File")){
+			if(ImGui::MenuItem("Open game")){
+				openLoadProgramDialog(-1);
+			}
+			ImGui::EndMenu();
 		}
+		if(ImGui::BeginMenu("Edit")){
+			ImGui::MenuItem("Settings", nullptr, &showSettings);
+			ImGui::EndMenu();
+		}
+		if(ImGui::BeginMenu("Info")){
+			ImGui::MenuItem("Benchmark", nullptr, &showBenchmark);
+			ImGui::MenuItem("Dear ImGui Demo Window", nullptr, &showImGuiDemo);
+			ImGui::MenuItem("About", nullptr, &showAbout);
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
 	}
-	ImGui::End();
 }
 
 
@@ -268,13 +291,24 @@ __attribute__((used)) void ArduEmu_loadFile(const char* name, const uint8_t* dat
 
 
 
-void ArduEmu::drawStyleSettings() {
-	if(ImGui::Begin("Syle Settings")) {
+void ArduEmu::drawSettings() {
+	if(!showSettings) return;
+
+	if(ImGui::Begin("Settings",&showSettings)) {
 		if(ImGui::TreeNode("AsmViewer")){
 			ImGui::SliderFloat("Branch Width", &ABB::utils::AsmViewer::branchWidth, 0, 10);
 			ImGui::SliderFloat("Branch Spacing", &ABB::utils::AsmViewer::branchSpacing, 0, 10);
 			ImGui::TreePop();
 		}
+	}
+	ImGui::End();
+}
+
+void ArduEmu::drawAbout(){
+	if(!showAbout) return;
+
+	if(ImGui::Begin("About Arduboy_Emulator")) {
+		ImGui::TextUnformatted("TODO");
 	}
 	ImGui::End();
 }

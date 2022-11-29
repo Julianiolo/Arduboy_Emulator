@@ -88,12 +88,24 @@ int main(void) {
 #endif
 }
 
+void DrawFPSRL(int x, int y){
+    Color color = LIME;                         // Good FPS
+    int fps = GetFPS();
+
+    if ((fps < 30) && (fps >= 15)) color = ORANGE;  // Warning FPS
+    else if (fps < 15) color = RED;             // Low FPS
+
+    const char* str = TextFormat("%2i FPS", GetFPS());
+    DrawText(str, x-MeasureText(str, 20), y, 20, color);
+}
+
 void setup() {
     SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );
     InitWindow(1200, 800, "ABemu");
     printf("Inited window\n");
 
     SetWindowResizeDrawCallback(draw);
+    SetExitKey(0);
     //SetTargetFPS(60);
 
     lastMousePos = GetMousePosition();
@@ -131,7 +143,7 @@ void setup() {
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 
 #elif 1
-    abb.loadFromELFFile("C:/Users/korma/Desktop/Julian/dateien/abgames/CastleBoy-master/CastleBoy.ino.elf");
+    abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
 #elif 1
     abb.loadFromELFFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.elf");
 #elif 0
@@ -193,12 +205,11 @@ void draw() {
 
     ArduEmu::draw();
 
-    ImGui::ShowDemoWindow(NULL);
     EndRLImGui();
 
     lastMousePos = GetMousePosition();
 
-    DrawFPS(0,0);
+    DrawFPSRL(GetScreenWidth(),0);
 
     EndDrawing();
 

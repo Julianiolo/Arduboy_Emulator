@@ -21,7 +21,8 @@ namespace ABB {
             SB_SIZE,
             SB_FLAGS,
             SB_SECTION,
-            SB_NOTES
+            SB_NOTES,
+            SB_ID
         };
         std::vector<uint32_t> symbolsSortedOrder;
         bool shouldResort = true;

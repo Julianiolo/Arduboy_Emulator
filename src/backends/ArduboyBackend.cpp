@@ -83,11 +83,15 @@ void ABB::ArduboyBackend::draw() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
 
-	const char* addToTitle = "";
-	if (!ab.mcu.flash.isProgramLoaded())
-		addToTitle = " - NO PROGRAM LOADED!";
-	char nameBuf[256];
-	snprintf(nameBuf, sizeof(nameBuf), "%s%s##%s", name.c_str(), addToTitle, name.c_str());
+	char nameBuf[512];
+	snprintf(nameBuf, sizeof(nameBuf), "%s %s%s%s###%s", 
+		name.c_str(),
+		isWinFocused() ? "[Active]" : "",
+		ab.mcu.debugger.isHalted() ? "[HALTED]" : "",
+		ab.mcu.flash.isProgramLoaded() ? "" : " - NO PROGRAM LOADED!", 
+		
+		name.c_str()
+	);
 	if (ImGui::Begin(nameBuf, &open_try, ImGuiWindowFlags_MenuBar)) {
 		if (ImGui::BeginMenuBar()) {
 			if (ImGui::BeginMenu(ADD_ICON(ICON_FA_BARS) "Menu")) {

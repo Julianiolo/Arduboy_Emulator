@@ -17,6 +17,7 @@
 #include "../Extensions/imguiExt.h"
 #include "StringUtils.h"
 #include "DataUtils.h"
+#include "MathUtils.h"
 
 
 float ABB::utils::AsmViewer::branchWidth = 2;
@@ -32,10 +33,9 @@ ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
 	auto lineAddr = file.addrs[line_no];
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 	if (breakpointsEnabled) {
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-
 		auto linePC = lineAddr / 2;
 		bool isAddr = lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel;
 		bool hasBreakpoint = isAddr && mcu->debugger.getBreakpoints()[linePC];
@@ -70,14 +70,9 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	ImGui::BeginGroup();
 
 	if(showLineHeat && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel){
-		uint64_t cnt = mcu->analytics.getPCCnt(lineAddr);
+		const uint64_t cnt = mcu->analytics.getPCCnt(lineAddr);
 		if (cnt > 0) {
-			float intensity = (float)std::log(cnt) / 15;
-			if(intensity < 0.05f)
-				intensity = 0.1f;
-			if(intensity > 1)
-				intensity = 1;
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			const float intensity = MathUtils::clamp((float)std::log(cnt) / 15, 0.05f, 1.f);
 			drawList->AddRectFilled(
 				lineRect.Min, lineRect.Max,
 				ImColor(ImVec4{1,0,0,intensity/3})
@@ -87,7 +82,6 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	}
 
 	if (line_no == selectedLine) {
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddRectFilled(
 			lineRect.Min, lineRect.Max,
 			IM_COL32(50,50,255,50)
@@ -113,7 +107,6 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 			}
 
 			if(file.addrs[line_no] == PCAddr){
-				ImDrawList* drawList = ImGui::GetWindowDrawList();
 				drawList->AddRect(
 					lineRect.Min, lineRect.Max,
 					IM_COL32(255, 0, 0, 255)

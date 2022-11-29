@@ -18,6 +18,12 @@ private:
 	static std::vector<uint8_t> simpleLoadDialogLoadedData;
 #endif
 public:
+	static bool showSettings;
+
+	static bool showBenchmark;
+	static bool showImGuiDemo;
+	static bool showAbout;
+
 	static void init();
 	static void destroy();
 
@@ -33,7 +39,8 @@ private:
 	static void drawBenchmark();
 	static void drawMenu();
 	static void drawLoadProgramDialog();
-	static void drawStyleSettings();
+	static void drawSettings();
+	static void drawAbout();
 };
 
 #endif

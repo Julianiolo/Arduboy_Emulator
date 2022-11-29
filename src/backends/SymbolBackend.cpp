@@ -10,7 +10,7 @@
 
 #include "../Extensions/imguiExt.h"
 #include "StringUtils.h"
-#include "mathUtils.h"
+#include "MathUtils.h"
 #include "../utils/byteVisualiser.h"
 
 #include "../bintools/bintools.h"
@@ -106,6 +106,9 @@ bool ABB::SymbolBackend::compareSymbols(uint32_t a, uint32_t b) {
 			case SB_NOTES:
 				delta = std::strcmp(symbolA->name.c_str(), symbolB->name.c_str());
 				break;
+
+			case SB_ID:
+				delta = (int64_t)symbolA->id - (int64_t)symbolB->id;
 			
 		}
 
@@ -181,15 +184,18 @@ void ABB::SymbolBackend::draw() {
 
 			ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_RowBg | 
 				ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti;
-			if(ImGui::BeginTable("Symbols", 6, flags)) {
+			if(ImGui::BeginTable("Symbols", 7, flags)) {
 				ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
 				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, 0, SB_NAME);
 				ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_DefaultSort, 0, SB_VALUE);
 				ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_None, 0, SB_SIZE);
 				ImGui::TableSetupColumn("Flags", ImGuiTableColumnFlags_None, 0, SB_FLAGS);
 				ImGui::TableSetupColumn("Section", ImGuiTableColumnFlags_None, 0, SB_SECTION);
-				ImGui::TableSetupColumn("Note", ImGuiTableColumnFlags_None, 0, SB_SECTION);
+				ImGui::TableSetupColumn("Note", ImGuiTableColumnFlags_None, 0, SB_NOTES);
+				ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_None, 0, SB_ID);
 				ImGui::TableHeadersRow();
+
+				
 
 				if (symbolsSortedOrder.size() != mcu->symbolTable.getSymbols().size()) {
 					std::set<uint32_t> seen;
@@ -233,6 +239,17 @@ void ABB::SymbolBackend::draw() {
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
 						ImGuiExt::TextColored(*getSymbolColor(symbol), (symbol->hasDemangledName ? symbol->demangled : symbol->name).c_str());
+						if(ImGui::IsItemHovered()) {
+							ImGui::BeginTooltip();
+							const uint8_t* data = nullptr;
+							if(symbol->section == ".bss" || symbol->section == ".data"){
+								data = mcu->dataspace.getData();
+							} else if(symbol->section == ".text"){
+								data = mcu->flash.getData();
+							}
+							drawSymbol(symbol, symbol->value, data);
+							ImGui::EndTooltip();
+						}
 
 						ImGui::TableNextColumn();
 						ImGui::Text("%04x", (int)symbol->value);
@@ -247,7 +264,15 @@ void ABB::SymbolBackend::draw() {
 						ImGui::Text("%s", symbol->section.c_str());
 
 						ImGui::TableNextColumn();
-						ImGui::Text("%s", symbol->note.c_str());
+						{
+							auto newLinePos = symbol->note.find('\n');
+							ImGui::TextUnformatted(symbol->note.c_str(), 
+								(newLinePos==std::string::npos) ? 
+									(symbol->note.c_str()+symbol->note.size()) :
+									(symbol->note.c_str()+newLinePos)
+							);
+						}
+						
 						if (ImGui::IsItemHovered()) {
 							ImGui::BeginTooltip();
 
@@ -258,6 +283,9 @@ void ABB::SymbolBackend::draw() {
 
 							ImGui::EndTooltip();
 						}
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%u", symbol->id);
 					}
 				}
 

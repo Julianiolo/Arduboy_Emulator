@@ -11,7 +11,7 @@
 #include "../Extensions/imguiExt.h"
 #include "../Extensions/imguiOperators.h"
 
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 ImVec4 ABB::DisplayBackend::Color3::toImGuiCol() const {
 	return {(float)r/255, (float)g/255, (float)b/255, 1};
@@ -155,7 +155,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize) {
 
 		//ImGui::Text("Pixel: x:%d, y:%d ", (int)pixX, (int)pixY);
 		ImGui::Text("Pixel: x:%f, y:%f ", relPosAdj.x, relPosAdj.y);
-		ImGui::Text("x:%f, y:%f ", relPosReg.x, relPosReg.y);
+		//ImGui::Text("x:%f, y:%f ", relPosReg.x, relPosReg.y);
 		ImGui::SameLine();
 		ImGuiExt::Rect(2074620378, getPixelOfImage(pixX, pixY) ? lightColor.toImGuiCol() : darkColor.toImGuiCol());
 
