@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include <functional>
+#include <iostream>
 
 #include "LogBackend.h"
 
@@ -34,6 +35,7 @@ void ABB::SymbolBackend::postProcessSymbols(A32u4::SymbolTable::Symbol* symbs, s
 		if (demList.size() == len) {
 			for (size_t i = 0; i < len; i++) {
 				symbs[i].demangled = demList[i];
+				symbs[i].hasDemangledName = true;
 			}
 		}
 		else {
@@ -43,7 +45,7 @@ void ABB::SymbolBackend::postProcessSymbols(A32u4::SymbolTable::Symbol* symbs, s
 			LogBackend::log(LogBackend::LogLevel_Warning, "an error occured while trying to generate demangled list");
 		}
 
-		delete[] strs; // dont use delete[] bc theres nothing to delete there
+		delete[] strs;
 	}
 
     // generate colors
@@ -182,18 +184,23 @@ void ABB::SymbolBackend::draw() {
 			}
 		
 
-			ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_RowBg | 
+			ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit |
 				ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti;
 			if(ImGui::BeginTable("Symbols", 7, flags)) {
 				ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
-				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, 0, SB_NAME);
-				ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_DefaultSort, 0, SB_VALUE);
-				ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_None, 0, SB_SIZE);
-				ImGui::TableSetupColumn("Flags", ImGuiTableColumnFlags_None, 0, SB_FLAGS);
-				ImGui::TableSetupColumn("Section", ImGuiTableColumnFlags_None, 0, SB_SECTION);
-				ImGui::TableSetupColumn("Note", ImGuiTableColumnFlags_None, 0, SB_NOTES);
-				ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_None, 0, SB_ID);
-				ImGui::TableHeadersRow();
+
+				{
+					const float approx_char_width = ImGui::CalcTextSize("00").x/2;
+					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, approx_char_width*20, SB_NAME);
+					ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_DefaultSort, approx_char_width*6, SB_VALUE);
+					ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_None, approx_char_width*6, SB_SIZE);
+					ImGui::TableSetupColumn("Flags", ImGuiTableColumnFlags_None, approx_char_width*7, SB_FLAGS);
+					ImGui::TableSetupColumn("Section", ImGuiTableColumnFlags_None, approx_char_width*5, SB_SECTION);
+					ImGui::TableSetupColumn("Note", ImGuiTableColumnFlags_None, approx_char_width*5, SB_NOTES);
+					ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_None, approx_char_width*4, SB_ID);
+					ImGui::TableHeadersRow();
+				}
+				
 
 				
 

@@ -9,7 +9,7 @@
 #include "rlImGui/rlImGui.h"
 #include "oneHeaderLibs/VectorOperators.h"
 
-#include "ArdEmu.h"
+#include "ArduEmu.h"
 
 #include "utils/icons.h"
 
@@ -123,7 +123,7 @@ void setup() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigWindowsResizeFromEdges = true;
-    io.WantSaveIniSettings = false;
+    io.IniFilename = NULL;
     io.ConfigWindowsMoveFromTitleBarOnly = true;
 
     
@@ -142,9 +142,9 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 
-#elif 1
+#elif 0
     abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
-#elif 1
+#elif 0
     abb.loadFromELFFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.elf");
 #elif 0
     abb.ab.load(ROOTDIR"resources/games/MicroCity/MicroCity.ino.hex");
@@ -158,13 +158,13 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/Hollow/srcMix.asm");
     //abb.ab.load(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
     //StringUtils::writeBytesToFile(abb.ab.mcu.flash.getData(), abb.ab.mcu.flash.size(), "hex2.bin");
-#elif 0
-#define GAME_NAME "almostPong"
+#elif 1
+//#define GAME_NAME "almostPong"
 //#define GAME_NAME "PixelPortal"
-//#define GAME_NAME "longcat"
+#define GAME_NAME "longcat"
     abb.loadFile(ROOTDIR "resources/games/" GAME_NAME "/" GAME_NAME ".ino.hex");
+    abb.ab.mcu.symbolTable.loadFromDumpFile(ROOTDIR "resources/games/" GAME_NAME "/symbs.asm");
     abb.debuggerBackend.addSrcFile(ROOTDIR "resources/games/" GAME_NAME "/srcMix.asm");
-    abb.symbolTable.loadFromDumpFile(ROOTDIR "resources/games/" GAME_NAME "/symbs.asm");
 #elif 1
     //abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hopper_v0.22.hex");
     abb.ab.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/ardubullets_v0.11.hex");

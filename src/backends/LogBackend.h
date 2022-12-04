@@ -10,6 +10,7 @@
 namespace ABB {
     class LogBackend{
     private:
+        std::vector<size_t> cache;
         std::vector<std::pair<A32u4::ATmega32u4::LogLevel,std::string>> logs;
     public:
         enum LogLevel_ {
@@ -24,6 +25,7 @@ namespace ABB {
         std::string winName;
         bool* open;
         ImVec4 logColors[A32u4::ATmega32u4::LogLevel_COUNT];
+        uint8_t filterLevel = LogLevel_None;
 
         LogBackend(const char* winName, bool* open);
 
@@ -35,6 +37,10 @@ namespace ABB {
         static LogBackend* activeLB;
 
         bool winFocused = false;
+
+        
+
+        void addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg);
     public:
         void activate();
         static void log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg);

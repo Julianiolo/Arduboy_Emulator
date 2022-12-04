@@ -65,10 +65,18 @@ namespace ABB {
 				void writeVal();
 			};
 
+			enum {
+				DataType_None = 0,
+				DataType_Ram = 1,
+				DataType_Eeprom = 2,
+				DataType_Rom = 3
+			};
+
 		private:
 			const A32u4::ATmega32u4* mcu = nullptr;
 			const uint8_t* const data;
 			const size_t dataLen;
+			const uint8_t dataType;
 
 			bool isSelecting = false;
 			size_t selectStart = 0;
@@ -98,7 +106,7 @@ namespace ABB {
 			
 			void drawEditPopup();
 		public:
-			HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu = nullptr);
+			HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu = nullptr, uint8_t dataType = DataType_None);
 
 			struct SyntaxColors{
 				ImVec4 Addr;

@@ -4,13 +4,13 @@
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
 #include "../utils/icons.h"
-#include "../ArdEmu.h"
+#include "../ArduEmu.h"
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) 
 : name(n), devWinName(std::string(n) + "devtools"), 
 	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
 	debuggerBackend (this,   (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen),
-	logBackend      (        (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen              ),
+	logBackend      (        (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen),
 	mcuInfoBackend  (&ab,    (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen),
 	analyticsBackend(&ab,    (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
 	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
@@ -198,7 +198,7 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 	ImGui::DockBuilderSetNodePos(node, debugWin->Pos);
 	ImVec2 size;
 	//size = { debugWin->Size.x * 2, debugWin->Size.y }; // resize node bc if not, window will shrink on split docking
-	size = {700,600};
+	size = {1000,700};
 	ImGui::DockBuilderSetNodeSize(node, size);
 
 	ImGuiID l, r;

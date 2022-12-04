@@ -104,7 +104,7 @@
     <ClInclude Include="..\..\..\..\src\backends\DisplayBackend.h">
       <Filter>Source Files\backends</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\src\ArdEmu.h">
+    <ClInclude Include="..\..\..\..\src\ArduEmu.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h">

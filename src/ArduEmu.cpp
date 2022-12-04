@@ -1,4 +1,4 @@
-#include "ArdEmu.h"
+#include "ArduEmu.h"
 
 
 
@@ -140,7 +140,7 @@ void ArduEmu::drawBenchmark(){
 
 void ArduEmu::drawMenu() {
 	if(ImGui::BeginMainMenuBar()){
-		if(ImGui::BeginMenu(ADD_ICON(ICON_FA_FILE)"File")){
+		if(ImGui::BeginMenu("File")){
 			if(ImGui::MenuItem("Open game")){
 				openLoadProgramDialog(-1);
 			}

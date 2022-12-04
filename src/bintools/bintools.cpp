@@ -1,5 +1,7 @@
 #include "bintools.h"
 
+#include "StringUtils.h"
+
 #if defined(_MSC_VER) && true
 #define EXTERNAL_
 #endif
@@ -190,8 +192,14 @@ std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
 	std::string placeHolder = "0______";
 	for (size_t i = 0; i < num; i++) {
 		list += " ";
-		if (strlen(strs[i]) > 0)
-			list += strs[i];
+
+
+		auto strStripped = StringUtils::stripString(strs[i]);
+		const char* start = strStripped.first;
+		const char* end = strStripped.second;
+
+		if (end-start > 0)
+			list += std::string(start,end);
 		else
 			list += placeHolder;
 	}
@@ -206,9 +214,9 @@ std::vector<std::string> BinTools::demangleList(const char** strs, size_t num) {
 
 	std::string cmd = progPath + list;
 
-	std::cout << cmd << std::endl;
+	//std::cout << cmd << std::endl;
 	std::string ret = exec(cmd.c_str());
-	std::cout << ret << std::endl;
+	//std::cout << ret << std::endl;
 
 	
 	size_t lastI = 0;

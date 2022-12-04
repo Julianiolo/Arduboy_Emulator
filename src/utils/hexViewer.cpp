@@ -15,7 +15,7 @@ ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = {
 	{1,1,0,1}, {0.7f,0.7f,0.9f,1}, {0.5f,0.6f,0.5f,1} 
 };
 
-ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu) : mcu(mcu), data(data), dataLen(dataLen) {
+ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu, uint8_t dataType) : mcu(mcu), data(data), dataLen(dataLen), dataType(dataType) {
 
 }
 
@@ -161,7 +161,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		if (ImGui::Button(" Options ", {0, 25}))
 			ImGui::OpenPopup(settingsPopupName.c_str());
 
-		if (settings.showDiagram && symbolList) {
+		if (settings.showDiagram && symbolList && mcu) {
 			float buttonHeight = ImGui::GetItemRectSize().y;
 			ImGui::SameLine();
 			SymbolBackend::drawSymbolListSizeDiagramm(mcu->symbolTable, *symbolList, dataLen, &settings.diagramScale, data, ImVec2{0, buttonHeight});
@@ -175,7 +175,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 
 	A32u4::SymbolTable::symb_size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
 	size_t symbolPtr = 0;
-	if (settings.showSymbols && symbolList) {
+	if (settings.showSymbols && symbolList && mcu) {
 		if (symbolList->size() > 0) {
 			const A32u4::SymbolTable::Symbol* symbol;
 			while (true) {
@@ -274,7 +274,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 				}
 
 				// highlight address stack indicators (indicators that bytes in ram are addresses pushed onto stack by instructions e.g. "call")
-				if (mcu != nullptr && addrOff >= A32u4::DataSpace::Consts::ISRAM_start && mcu->debugger.getAddressStackIndicators()[addrOff - A32u4::DataSpace::Consts::ISRAM_start]) {
+				if (dataType == DataType_Ram && mcu != nullptr && addrOff >= A32u4::DataSpace::Consts::ISRAM_start && mcu->debugger.getAddressStackIndicators()[addrOff - A32u4::DataSpace::Consts::ISRAM_start]) {
 					uint8_t val = mcu->debugger.getAddressStackIndicators()[addrOff - A32u4::DataSpace::Consts::ISRAM_start];
 					ImVec2 min = nextItemRect.Min, max = nextItemRect.Max;
 					if (val == 1)
