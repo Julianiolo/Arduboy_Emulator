@@ -346,11 +346,16 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 }
 void ABB::utils::AsmViewer::drawSymbolLabel(const char* lineStart, const char* lineEnd){
 	constexpr size_t addrEnd = 8;
+
+	constexpr size_t symbolNameStartOff = addrEnd + 1 + 1;
+	const size_t symbolNameEndOff = StringUtils::findCharInStrFromBack('>',lineStart,lineEnd);
+	MCU_ASSERT(symbolNameEndOff != (size_t)-1);
+
 	ImGuiExt::TextColored(syntaxColors.syntaxLabelAddr, lineStart,         lineStart+addrEnd);
 	ImGui::SameLine();
 	ImGuiExt::TextColored(syntaxColors.syntaxLabelText, lineStart+addrEnd, lineEnd);
 	if(ImGui::IsItemHovered()){
-		std::string symbolName = std::string(lineStart + addrEnd+2, lineEnd-3);
+		std::string symbolName = std::string(lineStart + symbolNameStartOff, lineStart+symbolNameEndOff);
 		const A32u4::SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
 		if (symbol) {
 			popFileStyle();

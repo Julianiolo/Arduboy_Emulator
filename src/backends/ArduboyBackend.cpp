@@ -6,11 +6,11 @@
 #include "../utils/icons.h"
 #include "../ArduEmu.h"
 
-ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) 
-: name(n), devWinName(std::string(n) + "devtools"), 
+ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
+	name(n), devWinName(std::string(n) + "devtools"), 
+	logBackend      (&ab,    (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen),
 	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
 	debuggerBackend (this,   (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen),
-	logBackend      (        (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen),
 	mcuInfoBackend  (&ab,    (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen),
 	analyticsBackend(&ab,    (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
 	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
@@ -18,7 +18,6 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id)
 	id(id)
 {
 	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
-	ab.setLogCallBSimple(LogBackend::log);
 
 	ab.execFlags |= A32u4::ATmega32u4::ExecFlags_Debug | A32u4::ATmega32u4::ExecFlags_Analyse;
 
@@ -26,7 +25,16 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id)
 }
 
 bool ABB::ArduboyBackend::isWinFocused() {
-	return displayBackend.isWinFocused() || debuggerBackend.isWinFocused() || logBackend.isWinFocused() || mcuInfoBackend.isWinFocused() || analyticsBackend.isWinFocused();
+	return ImGui::IsWindowFocused() || displayBackend.isWinFocused() || debuggerBackend.isWinFocused() || logBackend.isWinFocused() || mcuInfoBackend.isWinFocused() || analyticsBackend.isWinFocused();
+}
+
+void ABB::ArduboyBackend::enterFullscreen(){
+	fullScreen = true;
+	// TODO
+}
+void ABB::ArduboyBackend::exitFullscreen(){
+	fullScreen = false;
+	// TODO
 }
 
 void ABB::ArduboyBackend::update() {
@@ -107,6 +115,16 @@ void ABB::ArduboyBackend::draw() {
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu(ADD_ICON(ICON_FA_TV) "Display")) {
+				{
+					if(ImGui::MenuItem(fullScreen?(ADD_ICON(ICON_FA_COMPRESS) "Exit Fullscreen###FSSW") : (ADD_ICON(ICON_FA_EXPAND) "Fullscreen###FSSW"))){
+						if(!fullScreen){
+							enterFullscreen();
+						}else{
+							exitFullscreen();
+						}
+					}
+				}
+
 				if (ImGui::BeginMenu("Rotate Display")) {
 					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_UNDO,"CCW"))) {
 						displayBackend.rotateCCW();

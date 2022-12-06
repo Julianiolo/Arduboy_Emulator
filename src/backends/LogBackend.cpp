@@ -5,8 +5,10 @@
 
 #include "../Extensions/imguiExt.h"
 
-ABB::LogBackend::LogBackend(const char* winName, bool* open) : winName(winName), open(open) {
+ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
     activate();
+    ab->setLogCallBSimple(LogBackend::log);
+    ab->setLogCallB([](A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName , size_t lineNum, const char* Module){});
 
     logColors[A32u4::ATmega32u4::LogLevel_None] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
     logColors[A32u4::ATmega32u4::LogLevel_DebugOutput] = ImGui::GetStyleColorVec4(ImGuiCol_Text) * ImVec4{0.7f,0.7f,0.7f,1};
@@ -45,7 +47,7 @@ void ABB::LogBackend::draw() {
         if(ImGui::Button("Clear Logs")){
             clear();
         }
-        if(ImGui::BeginChild((winName+" logWin").c_str(), {0,0},true)){
+        if(ImGui::BeginChild((winName+" logWin").c_str(), {0,0},true, ImGuiWindowFlags_HorizontalScrollbar)){
             ImGuiListClipper clipper;
             clipper.Begin((int)cache.size());
             while (clipper.Step()) {
@@ -81,6 +83,7 @@ void ABB::LogBackend::addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* m
 ABB::LogBackend* ABB::LogBackend::activeLB = nullptr;
 void ABB::LogBackend::activate() {
     activeLB = this;
+    ab->activateLog();
 }
 void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg) {
     if(activeLB != nullptr) {

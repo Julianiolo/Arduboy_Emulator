@@ -25,9 +25,9 @@ namespace ABB {
 		std::string name;
 		std::string devWinName;
 
+		LogBackend logBackend;
 		DisplayBackend displayBackend;
 		DebuggerBackend debuggerBackend;
-		LogBackend logBackend;
 		McuInfoBackend mcuInfoBackend;
 		AnalyticsBackend analyticsBackend;
 		CompilerBackend compilerBackend;
@@ -37,7 +37,7 @@ namespace ABB {
 
 		size_t id;
 
-		
+		bool fullScreen = false;
 	private:
 		bool open = true;
 		bool open_try = true;
@@ -57,6 +57,8 @@ namespace ABB {
 		ArduboyBackend(const char* n, size_t id);
 
 		void tryClose();
+		void enterFullscreen();
+		void exitFullscreen();
 
 		void draw();
 

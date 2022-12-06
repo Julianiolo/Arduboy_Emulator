@@ -7,13 +7,18 @@
 #include "../Extensions/imguiExt.h"
 #include "ImGuiFD.h"
 
+ABB::McuInfoBackend::SaveLoadFDIPair::SaveLoadFDIPair(const char* bothName):
+	save((std::string("Save ") + bothName).c_str()), load((std::string("Load ") + bothName).c_str())
+{
 
+}
 
 ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open) :
 	ab(ab),
 	dataspaceDataHex(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, &ab->mcu, utils::HexViewer::DataType_Ram), 
 	dataspaceEEPROMHex(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, nullptr, utils::HexViewer::DataType_Eeprom),
 	flashHex(ab->mcu.flash.getData(), A32u4::Flash::sizeMax, &ab->mcu, utils::HexViewer::DataType_Rom),
+	fdiRam((std::string("Ram - ")+winName).c_str()), fdiEeprom((std::string("Eeprom - ")+winName).c_str()), fdiRom((std::string("Rom - ")+winName).c_str()),
 	winName(winName), open(open)
 {
 	dataspaceDataHex.setSymbolList(ab->mcu.symbolTable.getSymbolsRam());
@@ -25,25 +30,29 @@ ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open
 	flashHex.setEditCallback(setRomValue, this);
 }
 
-void ABB::McuInfoBackend::drawSaveLoadButtons(const char* module) {
+void ABB::McuInfoBackend::drawSaveLoadButtons(SaveLoadFDIPair* fdi) {
 	if(ImGui::Button("Save")){
-		char buf[256];
-		snprintf(buf, sizeof(buf), "%s_MIB_SAVE_%s",winName.c_str(),module);
-		ImGuiFD::OpenFileDialog(buf, "*", ".");
+		fdi->save.OpenFileDialog(".");
 	}
 	ImGui::SameLine();
 	if(ImGui::Button("Load")) {
-		char buf[256];
-		snprintf(buf, sizeof(buf), "MIB_LOADs_%s",module);
-		ImGuiFD::OpenFileDialog(buf, "*", ".");
+		fdi->load.OpenFileDialog(".");
 	}
 }
 
-void drawSaveDialog(const char* module){
-	
-}
-void drawLoadDialog(const char* module){
+void ABB::McuInfoBackend::drawDialog(ImGuiFD::FDInstance* fdi, std::function<void(const char* path)> callB){
+	if(fdi->Begin()) {
+		if (ImGuiFD::ActionDone()) {
+			if(ImGuiFD::SelectionMade()) {
+				std::string path = ImGuiFD::GetSelectionPathString(0);
+				std::string name = ImGuiFD::GetSelectionNameString(0);
 
+				callB(path.c_str());
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+		fdi->End();
+	}
 }
 
 void ABB::McuInfoBackend::draw() {
@@ -59,7 +68,7 @@ void ABB::McuInfoBackend::draw() {
 
 		if (ImGui::TreeNode("DataSpace")) {
 			if (ImGui::TreeNode("Data")) {
-				drawSaveLoadButtons("Data");
+				drawSaveLoadButtons(&fdiRam);
 
 				if (!dataSpaceSplitHexView) {
 					dataspaceDataHex.draw();
@@ -78,6 +87,7 @@ void ABB::McuInfoBackend::draw() {
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("EEPROM")) {
+				drawSaveLoadButtons(&fdiEeprom);
 				dataspaceEEPROMHex.draw();
 				ImGui::TreePop();
 			}
@@ -85,6 +95,7 @@ void ABB::McuInfoBackend::draw() {
 		}
 
 		if (ImGui::TreeNode("Flash")) {
+			drawSaveLoadButtons(&fdiRom);
 			flashHex.draw();
 			ImGui::TreePop();
 		}
@@ -136,21 +147,29 @@ void ABB::McuInfoBackend::draw() {
 	}
 	ImGui::End();
 
-	char buf[256];
-	snprintf(buf, sizeof(buf), "%s_MIB_SAVE_Data",winName.c_str());
-	if (ImGuiFD::BeginDialog(buf)) {
-		if (ImGuiFD::ActionDone()) {
-			if(ImGuiFD::SelectionMade()) {
-				std::string path = ImGuiFD::GetSelectionPathString(0);
-				std::string name = ImGuiFD::GetSelectionNameString(0);
+	drawDialog(&fdiRam.save, [&](const char* path){
+		StringUtils::writeBytesToFile(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, path);
+	});
+	drawDialog(&fdiRam.load, [&](const char* path){
+		// TODO
+		abort();
+	});
 
-				StringUtils::writeBytesToFile(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, path.c_str());
-			}
-			ImGuiFD::CloseCurrentDialog();
-		}
+	drawDialog(&fdiEeprom.save, [&](const char* path){
+		StringUtils::writeBytesToFile(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, path);
+	});
+	drawDialog(&fdiEeprom.load, [&](const char* path){
+		// TODO
+		abort();
+	});
 
-		ImGuiFD::EndDialog();
-	}
+	drawDialog(&fdiRom.save, [&](const char* path){
+		StringUtils::writeBytesToFile(ab->mcu.flash.getData(), A32u4::Flash::sizeMax, path);
+	});
+	drawDialog(&fdiRom.load, [&](const char* path){
+		// TODO
+		abort();
+	});
 }
 
 const char* ABB::McuInfoBackend::getWinName() const {

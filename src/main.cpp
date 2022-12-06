@@ -144,6 +144,10 @@ void setup() {
 
 #elif 0
     abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
+#elif 1
+    abb.ab.loadFromHexFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.hex");
+    abb.ab.mcu.symbolTable.loadFromDumpFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/symbs.asm");
+    abb.debuggerBackend.addSrcFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/srcMix.asm");
 #elif 0
     abb.loadFromELFFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.elf");
 #elif 0

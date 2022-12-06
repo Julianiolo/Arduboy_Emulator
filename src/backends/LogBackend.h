@@ -6,12 +6,15 @@
 #include "ATmega32u4.h"
 #include "imgui.h"
 #include "StringUtils.h"
+#include "Arduboy.h"
 
 namespace ABB {
     class LogBackend{
     private:
         std::vector<size_t> cache;
         std::vector<std::pair<A32u4::ATmega32u4::LogLevel,std::string>> logs;
+
+        Arduboy* ab;
     public:
         enum LogLevel_ {
             LogLevel_None        = A32u4::ATmega32u4::LogLevel_None,
@@ -27,7 +30,7 @@ namespace ABB {
         ImVec4 logColors[A32u4::ATmega32u4::LogLevel_COUNT];
         uint8_t filterLevel = LogLevel_None;
 
-        LogBackend(const char* winName, bool* open);
+        LogBackend(Arduboy* ab, const char* winName, bool* open);
 
         void draw();
         void clear();

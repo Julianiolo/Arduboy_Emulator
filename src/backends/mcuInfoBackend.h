@@ -1,10 +1,13 @@
 #ifndef _ABB_MCUINFO_BACKEND
 #define _ABB_MCUINFO_BACKEND
 
+#include <string>
+#include <functional>
 #include "Arduboy.h"
 #include "imgui.h"
 #include "../utils/hexViewer.h"
-#include <string>
+#include "ImGuiFD.h"
+#include "ImGuiFD_internal.h"
 
 #include "SymbolBackend.h"
 
@@ -24,9 +27,18 @@ namespace ABB {
 		std::vector<std::pair<size_t,std::string>> eepromStrings;
 		std::vector<std::pair<size_t,std::string>> romStrings;
 
-		void drawSaveLoadButtons(const char* module);
-		void drawSaveDialog(const char* module);
-		void drawLoadDialog(const char* module);
+		struct SaveLoadFDIPair {
+			ImGuiFD::FDInstance save;
+			ImGuiFD::FDInstance load;
+
+			SaveLoadFDIPair(const char* bothName);
+		};
+		SaveLoadFDIPair fdiRam;
+		SaveLoadFDIPair fdiEeprom;
+		SaveLoadFDIPair fdiRom;
+
+		void drawSaveLoadButtons(SaveLoadFDIPair* fdi);
+		void drawDialog(ImGuiFD::FDInstance* fdi, std::function<void(const char* path)> callB);
 
 		static void setRamValue(size_t addr, uint8_t val, void* userData);
 		static void setEepromValue(size_t addr, uint8_t val, void* userData);

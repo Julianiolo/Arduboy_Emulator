@@ -307,7 +307,7 @@ bool ABB::DebuggerBackend::drawLoadGenerateButtons() {
 	
 	if(ImGui::Button("Load")){
 		pressed = true;
-		ImGuiFD::OpenFileDialog(loadSrcMixFileDialogTitle.c_str(), NULL, ".", ImGuiFD::ImGuiFDDialogFlags_Modal);
+		ImGuiFD::OpenFileDialog(loadSrcMixFileDialogTitle.c_str(), ".", NULL, ImGuiFD::ImGuiFDDialogFlags_Modal);
 	}
 
 	bool programLoaded = abb->ab.mcu.flash.isProgramLoaded();
