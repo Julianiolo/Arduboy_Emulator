@@ -21,3 +21,4 @@ benchmark_res/*
 *.bin
 *.7z
 *.bat
+*.stackdump
