@@ -8,10 +8,10 @@
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	name(n), devWinName(std::string(n) + "devtools"), 
-	logBackend      (&ab,    (name + " - " ADD_ICON(ICON_FA_STREAM)      "Log"      ).c_str(), &devToolsOpen),
+	logBackend      (&ab,    (name + " - " ADD_ICON(ICON_FA_LIST)      "Log"      ).c_str(), &devToolsOpen),
 	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
 	debuggerBackend (this,   (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen),
-	mcuInfoBackend  (&ab,    (name + " - " ADD_ICON(ICON_FA_INFO_CIRCLE) "Mcu Info" ).c_str(), &devToolsOpen),
+	mcuInfoBackend  (&ab,    (name + " - " ADD_ICON(ICON_FA_CIRCLE_INFO) "Mcu Info" ).c_str(), &devToolsOpen),
 	analyticsBackend(&ab,    (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
 	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
 	symbolBackend   (&ab.mcu,(name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
@@ -126,11 +126,11 @@ void ABB::ArduboyBackend::draw() {
 				}
 
 				if (ImGui::BeginMenu("Rotate Display")) {
-					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_UNDO,"CCW"))) {
+					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_LEFT,"CCW"))) {
 						displayBackend.rotateCCW();
 					}
 					ImGui::SameLine();
-					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_REDO,"CW"))) {
+					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_RIGHT,"CW"))) {
 						displayBackend.rotateCW();
 					}
 					

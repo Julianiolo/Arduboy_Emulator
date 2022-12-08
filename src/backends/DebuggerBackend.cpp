@@ -32,14 +32,14 @@ void ABB::DebuggerBackend::drawControls(){
 	bool isHalted = abb->ab.mcu.debugger.isHalted(); // caching, but also so it cant change while something is disabled, not reenabling it as a result
 
 	if (!isHalted) ImGui::BeginDisabled();
-		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_STEP_FORWARD,"Step"))) {
+		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_FORWARD_STEP,"Step"))) {
 			abb->ab.mcu.debugger.step();
 		}
 		if (USE_ICONS && ImGui::IsItemHovered())
 			ImGui::SetTooltip("Step");
 
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_FAST_FORWARD,"Step Frame"))) {
+		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_FORWARD_FAST,"Step Frame"))) {
 			stepFrame = true;
 			abb->ab.mcu.debugger.continue_();
 		}
@@ -65,7 +65,7 @@ void ABB::DebuggerBackend::drawControls(){
 	if (isHalted) ImGui::EndDisabled();
 
 	ImGui::SameLine();
-	if (ImGui::Button(ICON_OR_TEXT(ICON_FA_UNDO,"Reset"))) {
+	if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ROTATE_LEFT,"Reset"))) {
 		abb->resetMachine();
 		if(haltOnReset)
 			abb->ab.mcu.debugger.halt();

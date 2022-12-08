@@ -6,7 +6,7 @@
 
 #include "raylib.h"
 #include "imgui.h"
-#include "rlImGui/rlImGui.h"
+#include "rlImGui.h"
 #include "oneHeaderLibs/VectorOperators.h"
 
 #include "ArduEmu.h"
@@ -111,14 +111,7 @@ void setup() {
     lastMousePos = GetMousePosition();
     mouseDelta = { 0,0 };
 
-#if !USE_ICONS
-    SetupRLImGui(true);
-#else
-    InitRLGLImGui();
-    ImGui::StyleColorsDark();
-    AddRLImGuiIconFonts(12,true);
-    FinishRLGLImguSetup();
-#endif
+    rlImGuiSetup(true);
     
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -205,11 +198,11 @@ void draw() {
 
     ClearBackground(DARKGRAY);
 
-    BeginRLImGui();
+    rlImGuiBegin();
 
     ArduEmu::draw();
 
-    EndRLImGui();
+    rlImGuiEnd();
 
     lastMousePos = GetMousePosition();
 
@@ -220,7 +213,7 @@ void draw() {
     frameCnt++;
 }
 void destroy() {
-    ShutdownRLImGui();
+    rlImGuiShutdown();
     ArduEmu::destroy();
     CloseWindow();
 }

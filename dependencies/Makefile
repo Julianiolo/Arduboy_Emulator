@@ -95,11 +95,29 @@ IMGUIFD_INCLUDE_DIRS:=$(addprefix -I,./imgui)
 IMGUIFD_OUTNAME:=libImGuiFD.a
 IMGUIFD_OUTPATH:=$(IMGUIFD_BUILD_DIR)$(IMGUIFD_OUTNAME)
 
+IMGUIFD_CXXSTD:=-std=gnu++17
 
 IMGUIFD_SRC_FILES:=$(shell cd $(IMGUIFD_SRC_DIR) && find . -maxdepth 1 -name '*.cpp')
 IMGUIFD_OBJ_FILES:=$(addprefix $(IMGUIFD_OBJ_DIR),$(notdir ${IMGUIFD_SRC_FILES:.cpp=.o}))
 IMGUIFD_DEP_FILES:=$(patsubst %.o,%.d,$(IMGUIFD_OBJ_FILES))
 
+# rlImGui
+
+RLIMGUI_DIR:=rlImGui/
+
+RLIMGUI_BUILD_DIR:=$(BUILD_DIR)libs/
+RLIMGUI_SRC_DIR:=$(RLIMGUI_DIR)
+RLIMGUI_OBJ_DIR:=$(RLIMGUI_BUILD_DIR)objs/rlImGui/
+
+RLIMGUI_INCLUDE_DIRS:=$(addprefix -I,./imgui ./raylib/src/)
+
+RLIMGUI_OUTNAME:=librlImGui.a
+RLIMGUI_OUTPATH:=$(RLIMGUI_BUILD_DIR)$(RLIMGUI_OUTNAME)
+
+
+RLIMGUI_SRC_FILES:=$(shell cd $(RLIMGUI_SRC_DIR) && find . -maxdepth 1 -name '*.cpp')
+RLIMGUI_OBJ_FILES:=$(addprefix $(RLIMGUI_OBJ_DIR),$(notdir ${RLIMGUI_SRC_FILES:.cpp=.o}))
+RLIMGUI_DEP_FILES:=$(patsubst %.o,%.d,$(RLIMGUI_OBJ_FILES))
 
 CFLAGS += $(BUILD_MODE_FLAGS)
 CXXFLAGS += $(BUILD_MODE_FLAGS)
@@ -108,7 +126,7 @@ CXXFLAGS += $(BUILD_MODE_FLAGS)
 
 .PHONY:all clean
 
-all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH) $(IMGUIFD_OUTPATH)
+all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH) $(IMGUIFD_OUTPATH) $(RLIMGUI_OUTPATH)
 	touch $(BUILD_DIR)Arduboy_Emulator_depFile.dep
 
 # raylib:
@@ -142,7 +160,18 @@ $(IMGUIFD_OUTPATH):$(IMGUIFD_OBJ_FILES)
 
 $(IMGUIFD_OBJ_DIR)%.o: $(IMGUIFD_SRC_DIR)%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(CXXSTD) $(DEF_FLAGS) $(IMGUIFD_INCLUDE_DIRS) -c $< -o $@ $(DEP_FLAGS)
+	$(CXX) $(CXXFLAGS) $(IMGUIFD_CXXSTD) $(DEF_FLAGS) $(IMGUIFD_INCLUDE_DIRS) -c $< -o $@ $(DEP_FLAGS)
+
+# rlImGui:
+$(RLIMGUI_OUTPATH):$(RLIMGUI_OBJ_FILES)
+	mkdir -p $(RLIMGUI_BUILD_DIR)
+	$(AR) rvs $@ $(RLIMGUI_OBJ_FILES)
+
+-include $(RLIMGUI_DEP_FILES)
+
+$(RLIMGUI_OBJ_DIR)%.o: $(RLIMGUI_SRC_DIR)%.cpp
+	mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CXXSTD) $(DEF_FLAGS) $(RLIMGUI_INCLUDE_DIRS) -c $< -o $@ $(DEP_FLAGS)
 
 clean:
 	$(MAKE) -C "$(RAYLIB_DIR)/src" clean

@@ -4,7 +4,7 @@
 #define USE_ICONS 1
 
 #if USE_ICONS
-#include "../rlImGui/IconsFontAwesome5.h"
+#include "extras/IconsFontAwesome6.h"
 
 #define ADD_ICON(icon) icon " "
 #define ICON_OR_TEXT(icon,text) icon
@@ -12,6 +12,5 @@
 #define ADD_ICON(icon) 
 #define ICON_OR_TEXT(icon,text) text
 #endif
-
 
 #endif
