@@ -10,3 +10,7 @@
 [submodule "dependencies/ImGuiFD"]
 	path = dependencies/ImGuiFD
 	url = https://github.com/Julianiolo/ImGuiFD.git
+[submodule "dependencies/rlImGui"]
+	path = dependencies/rlImGui
+	url = https://github.com/Julianiolo/rlImGui.git
+	branch = no-deps
