@@ -10,6 +10,8 @@ private:
 	static std::vector<ABB::ArduboyBackend*> instances;
 	static size_t idCounter;
 	static size_t lastOpenDialogId;
+	static size_t activeInd;
+
 
 #if defined(__EMSCRIPTEN__)
 	static bool isSimpleLoadDialogOpen;
@@ -34,10 +36,9 @@ public:
 	static ABB::ArduboyBackend* getInstance(size_t ind);
 	static ABB::ArduboyBackend* getInstanceById(size_t id);
 	static void openLoadProgramDialog(size_t ownId);
-
 private:
 	static void drawBenchmark();
-	static void drawMenu();
+	static void drawMenu(size_t activeInstanceInd);
 	static void drawLoadProgramDialog();
 	static void drawSettings();
 	static void drawAbout();

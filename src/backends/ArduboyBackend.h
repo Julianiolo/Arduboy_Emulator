@@ -38,17 +38,17 @@ namespace ABB {
 		size_t id;
 
 		bool fullScreen = false;
+
 	private:
 		bool open = true;
 		bool open_try = true;
 
-		bool winActive = false;
+		bool winFocused = false;
 
 		bool devToolsOpen = true;
 		bool execMenuOpen = false;
 		bool firstFrame = true; // whether this is the first frame ever displayed
 
-		bool isWinFocused(); // is one of the windows associated with this instance focused
 		void update();
 
 		void drawExecMenu();
@@ -56,11 +56,13 @@ namespace ABB {
 
 		ArduboyBackend(const char* n, size_t id);
 
+		bool isWinFocused(); // is one of the windows associated with this instance focused
 		void tryClose();
 		void enterFullscreen();
 		void exitFullscreen();
 
 		void draw();
+		void _drawMenuContents();
 
 		void resetMachine();
 
@@ -73,6 +75,7 @@ namespace ABB {
 		bool loadFromELFFile(const char* path);
 
 		bool _wantsToBeClosed();
+		//bool _wantsFullScreen();
 	};
 }
 

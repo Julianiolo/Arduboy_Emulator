@@ -28,6 +28,7 @@
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 size_t ArduEmu::idCounter = 0;
 size_t ArduEmu::lastOpenDialogId = -1;
+size_t ArduEmu::activeInd = -1;
 
 
 #if defined(__EMSCRIPTEN__)
@@ -61,14 +62,17 @@ void ArduEmu::draw() {
 		if (i->_wantsToBeClosed()) {
 			delete i;
 			it = instances.erase(it);
+			activeInd = -1;
 		}
 		else {
 			i->draw();
+			if(i->isWinFocused())
+				activeInd = std::distance(instances.begin(), it);
 			it++;
 		}
 	}
+	drawMenu(activeInd);
 	drawBenchmark();
-	drawMenu();
 	drawSettings();
 	drawAbout();
 
@@ -138,7 +142,7 @@ void ArduEmu::drawBenchmark(){
 	ImGui::End();
 }
 
-void ArduEmu::drawMenu() {
+void ArduEmu::drawMenu(size_t activeInstanceInd) {
 	if(ImGui::BeginMainMenuBar()){
 		if(ImGui::BeginMenu("File")){
 			if(ImGui::MenuItem("Open game")){
@@ -154,6 +158,11 @@ void ArduEmu::drawMenu() {
 			ImGui::MenuItem("Benchmark", nullptr, &showBenchmark);
 			ImGui::MenuItem("Dear ImGui Demo Window", nullptr, &showImGuiDemo);
 			ImGui::MenuItem("About", nullptr, &showAbout);
+			ImGui::EndMenu();
+		}
+		if(activeInstanceInd != (size_t)-1 && ImGui::BeginMenu("Active")){
+			ABB::ArduboyBackend* abb = instances[activeInstanceInd];
+			abb->_drawMenuContents();
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();

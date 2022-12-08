@@ -8,8 +8,8 @@
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	name(n), devWinName(std::string(n) + "devtools"), 
-	logBackend      (&ab,    (name + " - " ADD_ICON(ICON_FA_LIST)      "Log"      ).c_str(), &devToolsOpen),
-	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display), 
+	logBackend      (&ab,    (name + " - " ADD_ICON(ICON_FA_LIST)        "Log"      ).c_str(), &devToolsOpen),
+	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display  ), 
 	debuggerBackend (this,   (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen),
 	mcuInfoBackend  (&ab,    (name + " - " ADD_ICON(ICON_FA_CIRCLE_INFO) "Mcu Info" ).c_str(), &devToolsOpen),
 	analyticsBackend(&ab,    (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
@@ -25,7 +25,7 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 }
 
 bool ABB::ArduboyBackend::isWinFocused() {
-	return ImGui::IsWindowFocused() || displayBackend.isWinFocused() || debuggerBackend.isWinFocused() || logBackend.isWinFocused() || mcuInfoBackend.isWinFocused() || analyticsBackend.isWinFocused();
+	return winFocused || displayBackend.isWinFocused() || debuggerBackend.isWinFocused() || logBackend.isWinFocused() || mcuInfoBackend.isWinFocused() || analyticsBackend.isWinFocused();
 }
 
 void ABB::ArduboyBackend::enterFullscreen(){
@@ -101,46 +101,9 @@ void ABB::ArduboyBackend::draw() {
 		name.c_str()
 	);
 	if (ImGui::Begin(nameBuf, &open_try, ImGuiWindowFlags_MenuBar)) {
+		winFocused = ImGui::IsWindowFocused();
 		if (ImGui::BeginMenuBar()) {
-			if (ImGui::BeginMenu(ADD_ICON(ICON_FA_BARS) "Menu")) {
-				if (!ab.mcu.flash.isProgramLoaded()) {
-					if (ImGui::MenuItem(ADD_ICON(ICON_FA_FILE) "Load Program")) {
-						ArduEmu::openLoadProgramDialog(id);
-					}
-				}
-					
-
-				if(ImGui::MenuItem(ADD_ICON(ICON_FA_WRENCH) "Exec Menu", NULL, &execMenuOpen)) {}
-				if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu(ADD_ICON(ICON_FA_TV) "Display")) {
-				{
-					if(ImGui::MenuItem(fullScreen?(ADD_ICON(ICON_FA_COMPRESS) "Exit Fullscreen###FSSW") : (ADD_ICON(ICON_FA_EXPAND) "Fullscreen###FSSW"))){
-						if(!fullScreen){
-							enterFullscreen();
-						}else{
-							exitFullscreen();
-						}
-					}
-				}
-
-				if (ImGui::BeginMenu("Rotate Display")) {
-					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_LEFT,"CCW"))) {
-						displayBackend.rotateCCW();
-					}
-					ImGui::SameLine();
-					if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_RIGHT,"CW"))) {
-						displayBackend.rotateCW();
-					}
-					
-					ImGui::EndMenu();
-				}
-				if (ImGui::MenuItem("Set Colors")) {
-					displayBackend.openSetColorWin();
-				}
-				ImGui::EndMenu();
-			}
+			_drawMenuContents();
 			ImGui::EndMenuBar();
 		}
 
@@ -200,6 +163,48 @@ void ABB::ArduboyBackend::draw() {
 
 	if (!open_try) {
 		tryClose();
+	}
+}
+
+void ABB::ArduboyBackend::_drawMenuContents() {
+	if (ImGui::BeginMenu(ADD_ICON(ICON_FA_BARS) "Menu")) {
+		if (!ab.mcu.flash.isProgramLoaded()) {
+			if (ImGui::MenuItem(ADD_ICON(ICON_FA_FILE) "Load Program")) {
+				ArduEmu::openLoadProgramDialog(id);
+			}
+		}
+			
+
+		if(ImGui::MenuItem(ADD_ICON(ICON_FA_WRENCH) "Exec Menu", NULL, &execMenuOpen)) {}
+		if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu(ADD_ICON(ICON_FA_TV) "Display")) {
+		{
+			if(ImGui::MenuItem(fullScreen?(ADD_ICON(ICON_FA_COMPRESS) "Exit Fullscreen###FSSW") : (ADD_ICON(ICON_FA_EXPAND) "Fullscreen###FSSW"))){
+				if(!fullScreen){
+					enterFullscreen();
+				}else{
+					exitFullscreen();
+				}
+			}
+		}
+
+		if (ImGui::BeginMenu("Rotate Display")) {
+			if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_LEFT,"CCW"))) {
+				displayBackend.rotateCCW();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_RIGHT,"CW"))) {
+				displayBackend.rotateCW();
+			}
+			
+			ImGui::EndMenu();
+		}
+		if (ImGui::MenuItem("Set Colors")) {
+			displayBackend.openSetColorWin();
+		}
+		ImGui::EndMenu();
 	}
 }
 
