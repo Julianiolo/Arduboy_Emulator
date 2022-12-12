@@ -87,72 +87,78 @@ void ABB::ArduboyBackend::draw() {
 	displayBackend.drawSetColorWin();
 
 	
-	ImGui::SetNextWindowSize({ 800,450 }, ImGuiCond_FirstUseEver);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+	if(!fullScreen){
+		ImGui::SetNextWindowSize({ 800,450 }, ImGuiCond_FirstUseEver);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
 
-	char nameBuf[512];
-	snprintf(nameBuf, sizeof(nameBuf), "%s %s%s%s###%s", 
-		name.c_str(),
-		isWinFocused() ? "[Active]" : "",
-		ab.mcu.debugger.isHalted() ? "[HALTED]" : "",
-		ab.mcu.flash.isProgramLoaded() ? "" : " - NO PROGRAM LOADED!", 
-		
-		name.c_str()
-	);
-	if (ImGui::Begin(nameBuf, &open_try, ImGuiWindowFlags_MenuBar)) {
-		winFocused = ImGui::IsWindowFocused();
-		if (ImGui::BeginMenuBar()) {
-			_drawMenuContents();
-			ImGui::EndMenuBar();
+		char nameBuf[512];
+		snprintf(nameBuf, sizeof(nameBuf), "%s %s%s%s###%s", 
+			name.c_str(),
+			isWinFocused() ? "[Active]" : "",
+			ab.mcu.debugger.isHalted() ? "[HALTED]" : "",
+			ab.mcu.flash.isProgramLoaded() ? "" : " - NO PROGRAM LOADED!", 
+			
+			name.c_str()
+		);
+
+		if (ImGui::Begin(nameBuf, &open_try, ImGuiWindowFlags_MenuBar)) {
+			winFocused = ImGui::IsWindowFocused();
+			if (ImGui::BeginMenuBar()) {
+				_drawMenuContents();
+				ImGui::EndMenuBar();
+			}
+
+			ImVec2 initialPos = ImGui::GetCursorScreenPos();
+
+			ImVec2 contentSize = ImGui::GetContentRegionAvail();
+			//contentSize.y = ImMax(contentSize.y - devToolSpace, 0.0f);
+
+			bool loaded = ab.mcu.flash.isProgramLoaded();
+
+			if (!loaded) ImGui::BeginDisabled();
+
+			displayBackend.draw(ImGui::GetCursorScreenPos(), contentSize, devToolsOpen);
+
+			if (!loaded) ImGui::EndDisabled();
+
+			if (!loaded) {
+				ImGuiStyle& style = ImGui::GetStyle();
+				ImDrawList* drawlist = ImGui::GetWindowDrawList();
+				/*
+				ImGui::GetWindowDrawList()->AddRectFilled(
+					initialPos - style.WindowPadding, initialPos + contentSize + style.WindowPadding,
+					ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ModalWindowDimBg))
+				);
+				*/
+
+				constexpr float h = 50;
+				float off = contentSize.y / 2 - h / 2;
+				drawlist->AddRectFilled(
+					initialPos + ImVec2{ 0,off }, initialPos + contentSize + ImVec2{ 0,-off },
+					ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ModalWindowDimBg))
+				);
+
+				const char* text = "No Program Loaded!";
+				const ImVec2 textSize = ImGui::CalcTextSize(text);
+				drawlist->AddRectFilled(
+					initialPos + (contentSize/2) - (textSize/2) - style.FramePadding, initialPos + (contentSize/2) + (textSize/2) + style.FramePadding,
+					ImColor(ImGui::GetStyleColorVec4(ImGuiCol_WindowBg))
+				);
+				drawlist->AddText(
+					initialPos + (contentSize/2) - (textSize/2),
+					ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)),
+					text
+				);
+			}
 		}
-
-		ImVec2 initialPos = ImGui::GetCursorScreenPos();
-
-		ImVec2 contentSize = ImGui::GetContentRegionAvail();
-		//contentSize.y = ImMax(contentSize.y - devToolSpace, 0.0f);
-
-		bool loaded = ab.mcu.flash.isProgramLoaded();
-
-		if (!loaded) ImGui::BeginDisabled();
-
-		displayBackend.draw(contentSize);
-
-		if (!loaded) ImGui::EndDisabled();
-
-		if (!loaded) {
-			ImGuiStyle& style = ImGui::GetStyle();
-			ImDrawList* drawlist = ImGui::GetWindowDrawList();
-			/*
-			ImGui::GetWindowDrawList()->AddRectFilled(
-				initialPos - style.WindowPadding, initialPos + contentSize + style.WindowPadding,
-				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ModalWindowDimBg))
-			);
-			*/
-
-			constexpr float h = 50;
-			float off = contentSize.y / 2 - h / 2;
-			drawlist->AddRectFilled(
-				initialPos + ImVec2{ 0,off }, initialPos + contentSize + ImVec2{ 0,-off },
-				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ModalWindowDimBg))
-			);
-
-			const char* text = "No Program Loaded!";
-			const ImVec2 textSize = ImGui::CalcTextSize(text);
-			drawlist->AddRectFilled(
-				initialPos + (contentSize/2) - (textSize/2) - style.FramePadding, initialPos + (contentSize/2) + (textSize/2) + style.FramePadding,
-				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_WindowBg))
-			);
-			drawlist->AddText(
-				initialPos + (contentSize/2) - (textSize/2),
-				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)),
-				text
-			);
-		}
+		ImGui::End();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
+	}else{
+		// TODO: maybe decouple size from raylib by using imgui viewport size?
+		displayBackend.draw({0,0}, {GetScreenWidth(), GetScreenHeight()}, devToolsOpen, ImGui::GetBackgroundDrawList());
 	}
-	ImGui::End();
-	ImGui::PopStyleVar();
-	ImGui::PopStyleVar();
 	
 	if (firstFrame) {
 		buildDefaultLayout();
@@ -259,8 +265,11 @@ void ABB::ArduboyBackend::drawExecMenu() {
 void ABB::ArduboyBackend::tryClose() {
 	open = false;
 }
-bool ABB::ArduboyBackend::_wantsToBeClosed() {
+bool ABB::ArduboyBackend::_wantsToBeClosed() const {
 	return !open;
+}
+bool ABB::ArduboyBackend::_wantsFullScreen() const {
+	return fullScreen;
 }
 
 bool ABB::ArduboyBackend::load(const uint8_t* data, size_t dataLen){

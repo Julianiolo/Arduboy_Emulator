@@ -29,6 +29,7 @@ std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 size_t ArduEmu::idCounter = 0;
 size_t ArduEmu::lastOpenDialogId = -1;
 size_t ArduEmu::activeInd = -1;
+size_t ArduEmu::wantsFullscreenInd = -1;
 
 
 #if defined(__EMSCRIPTEN__)
@@ -57,21 +58,34 @@ void ArduEmu::destroy() {
 void ArduEmu::draw() {
 	drawLoadProgramDialog();
 
-	for (auto it = instances.begin(); it != instances.end();) {
-		auto& i = *it;
-		if (i->_wantsToBeClosed()) {
-			delete i;
-			it = instances.erase(it);
-			activeInd = -1;
+	if(wantsFullscreenInd == (size_t)-1){
+		for (auto it = instances.begin(); it != instances.end();) {
+			auto& i = *it;
+			if (i->_wantsToBeClosed()) {
+				delete i;
+				it = instances.erase(it);
+				activeInd = -1;
+			}
+			else {
+				i->draw();
+				if(i->isWinFocused())
+					activeInd = std::distance(instances.begin(), it);
+				if(i->_wantsFullScreen()) {
+					wantsFullscreenInd = std::distance(instances.begin(), it);
+				}
+				
+				it++;
+			}
 		}
-		else {
-			i->draw();
-			if(i->isWinFocused())
-				activeInd = std::distance(instances.begin(), it);
-			it++;
-		}
+		drawMenu(activeInd);
+	}else{
+		instances[wantsFullscreenInd]->draw();
+		if(!instances[wantsFullscreenInd]->_wantsFullScreen())
+			wantsFullscreenInd = -1;
+
+		drawMenu(wantsFullscreenInd);
 	}
-	drawMenu(activeInd);
+
 	drawBenchmark();
 	drawSettings();
 	drawAbout();

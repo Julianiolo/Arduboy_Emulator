@@ -11,6 +11,7 @@ private:
 	static size_t idCounter;
 	static size_t lastOpenDialogId;
 	static size_t activeInd;
+	static size_t wantsFullscreenInd;
 
 
 #if defined(__EMSCRIPTEN__)

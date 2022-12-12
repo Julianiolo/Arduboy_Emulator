@@ -82,7 +82,7 @@ bool ABB::DisplayBackend::getPixelOfImage(uint8_t x, uint8_t y) {
 	return ((Color3*)displayImg.data)[(y+1)*displayImg.width + x + 1].r ? 1 : 0;
 }
 
-void ABB::DisplayBackend::draw(const ImVec2& contentSize) {
+void ABB::DisplayBackend::draw(const ImVec2& screenPos, const ImVec2& contentSize, bool showToolTip, ImDrawList* drawList) {
 	if (ImGui::IsWindowFocused()) {
 		lastWinFocused = ImGui::GetCurrentContext()->FrameCount;
 	}
@@ -92,6 +92,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize) {
 	bool flipDims = rotation == 1 || rotation == 3;
 
 	ImVec2 size;
+	ImVec2 texPos;
 	{
 		float ratio = (float)AB::Display::WIDTH / (float)AB::Display::HEIGHT;
 		if (flipDims) ratio = 1 / ratio;
@@ -99,27 +100,25 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize) {
 		ImVec2 pos;
 		if (contentSize.x < contentSize.y * ratio) {
 			size = { contentSize.x, contentSize.x / ratio };
-			pos = { 0, (contentSize.y - size.y) / 2 };
+			texPos = { 0, (contentSize.y - size.y) / 2 };
 		}
 		else {
 			size = { contentSize.y * ratio,contentSize.y };
-			pos = { (contentSize.x - size.x) / 2, 0 };
+			texPos = { (contentSize.x - size.x) / 2, 0 };
 		}
-		ImVec2 cursor = ImGui::GetCursorPos();
-		ImGui::SetCursorPos({ cursor.x + pos.x, cursor.y + pos.y });
 	}
 	
-	const ImVec2 pos = ImGui::GetCursorScreenPos();
+	const ImVec2 pos = ImGui::GetCursorScreenPos() + texPos;
 
 	{
 		ImVec2 uvMin(1.0f / displayTex.width, 1.0f / displayTex.height), uvMax(1 - 1.0f / displayTex.width, 1 - 1.0f / displayTex.height);
 
-		ImGuiExt::ImageRot90(&displayTex, size, rotation, uvMin, uvMax);//ImVec2(!flipDims ? size.x : size.y, !flipDims ? size.y : size.x)
+		ImGuiExt::ImageRot90(&displayTex, size, rotation, uvMin, uvMax, {1,1,1,1}, {0,0,0,0}, pos, drawList);//ImVec2(!flipDims ? size.x : size.y, !flipDims ? size.y : size.x)
 	}
 	
 
 	// draw Magnification
-	if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+	if (showToolTip && ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		ImGui::BeginTooltip();
 		ImGuiIO& io = ImGui::GetIO();
 		ImVec2 region = { 32, 16 };

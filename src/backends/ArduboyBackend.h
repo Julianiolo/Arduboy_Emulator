@@ -74,8 +74,8 @@ namespace ABB {
 		bool loadFromELF(const uint8_t* data, size_t dataLen);
 		bool loadFromELFFile(const char* path);
 
-		bool _wantsToBeClosed();
-		//bool _wantsFullScreen();
+		bool _wantsToBeClosed() const;
+		bool _wantsFullScreen() const;
 	};
 }
 
