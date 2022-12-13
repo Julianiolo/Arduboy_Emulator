@@ -200,6 +200,7 @@ void setup() {
 }
 void draw() {
     BeginDrawing();
+    //printf("SF:%4d      @%fs\n", frameCnt, GetTime());
 
     mouseDelta = GetMousePosition() - lastMousePos;
 
@@ -215,7 +216,9 @@ void draw() {
 
     DrawFPSRL(GetScreenWidth(),0);
 
-    //drawClickDebug(MOUSE_BUTTON_LEFT);
+    drawClickDebug(MOUSE_BUTTON_LEFT);
+
+    //printf("EF:%4d      @%fs\n", frameCnt, GetTime());
 
     EndDrawing();
 

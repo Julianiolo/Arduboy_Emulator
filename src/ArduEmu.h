@@ -46,6 +46,11 @@ private:
 	static void drawBenchmark();
 	static bool drawMenuContents(size_t activeInstanceInd); // returns true if menu is active
 	static void drawLoadProgramDialog();
+
+	enum {
+		SETTING_SECTION_MAIN = 0,
+		SETTING_SECTION_ASMVIEWER
+	};
 	static void drawSettings();
 	static void drawAbout();
 };

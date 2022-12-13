@@ -81,6 +81,8 @@ namespace ABB{
             void setMcu(A32u4::ATmega32u4* mcuPtr);
 
             size_t numOfDisasmLines();
+
+            static void drawSettings();
         private:
             void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked);
             void drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked);

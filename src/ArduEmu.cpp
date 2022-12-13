@@ -356,13 +356,36 @@ void ArduEmu::drawSettings() {
 	if(!showSettings) return;
 
 	if(ImGui::Begin("Settings",&showSettings)) {
-		ImGui::Checkbox("Always show Menubar in fullscreen", &settings.alwaysShowMenuFullscreen);
+		ImVec2 size = ImGui::GetContentRegionAvail();
 
-		if(ImGui::TreeNode("AsmViewer")){
-			ImGui::SliderFloat("Branch Width", &ABB::utils::AsmViewer::branchWidth, 0, 10);
-			ImGui::SliderFloat("Branch Spacing", &ABB::utils::AsmViewer::branchSpacing, 0, 10);
-			ImGui::TreePop();
+		ImGui::PushItemWidth(-1);
+		static size_t selectedInd = SETTING_SECTION_MAIN;
+		if(ImGui::BeginListBox("##SubSectionSel", {std::min(ImGui::GetFrameHeight()*5.f,size.x*0.3f),size.y})){
+			constexpr char * labels[] = {"Main","Asmviewer"};
+			for(size_t i = 0; i<DU_ARRAYSIZE(labels); i++) {
+				if(ImGui::Selectable(labels[i]))
+					selectedInd = i;
+			}
+			ImGui::EndListBox();
 		}
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+
+		if(ImGui::BeginChild("Section", {0,0}, true)){
+			switch(selectedInd) {
+				case SETTING_SECTION_MAIN: {
+					ImGui::Checkbox("Always show Menubar in fullscreen", &settings.alwaysShowMenuFullscreen);
+				}
+				break;
+
+				case SETTING_SECTION_ASMVIEWER: {
+					ABB::utils::AsmViewer::drawSettings();
+				}
+				break;
+			}
+		}
+		ImGui::EndChild();
 	}
 	ImGui::End();
 }

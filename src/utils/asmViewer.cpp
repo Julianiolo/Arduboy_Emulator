@@ -727,6 +727,47 @@ void ABB::utils::AsmViewer::setMcu(A32u4::ATmega32u4* mcuPtr) {
 	mcu = mcuPtr;
 }
 
+void ABB::utils::AsmViewer::drawSettings() {
+	ImGui::SliderFloat("Branch Width", &branchWidth, 0, 10);
+	ImGui::SliderFloat("Branch Spacing", &branchSpacing, 0, 10);
+
+	if(ImGui::TreeNode("Syntax colors")){
+		ImGui::ColorEdit3("PC Addr", (float*)&syntaxColors.PCAddr, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Raw Inst Bytes", (float*)&syntaxColors.rawInstBytes, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Inst Name", (float*)&syntaxColors.instName, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Inst Parameter", (float*)&syntaxColors.instParams, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		
+		ImGui::Separator();
+
+		ImGui::ColorEdit3("Comment", (float*)&syntaxColors.asmComment, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Comment Symbol", (float*)&syntaxColors.asmCommentSymbol, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Comment Symbol Brackets", (float*)&syntaxColors.asmCommentSymbolBrackets, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Comment Symbol Offset", (float*)&syntaxColors.asmCommentSymbolOffset, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		
+		ImGui::Separator();
+		
+		ImGui::ColorEdit3("Syntax Label", (float*)&syntaxColors.syntaxLabelText, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Syntax Label Addr", (float*)&syntaxColors.syntaxLabelAddr, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		
+		ImGui::Separator();
+
+		ImGui::ColorEdit3("Data Block", (float*)&syntaxColors.dataBlock, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Data Block String Interpretation", (float*)&syntaxColors.dataBlockText, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+
+		ImGui::Separator();
+
+		ImGui::ColorEdit3("Source Code", (float*)&syntaxColors.srcCodeText, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+
+		ImGui::Separator();
+
+		ImGui::ColorEdit3("Branch", (float*)&syntaxColors.branch, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Branch Clipped", (float*)&syntaxColors.branchClipped, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		
+
+		ImGui::TreePop();
+	}
+}
+
 /*
 
 float width = ImGui::GetContentRegionAvail().x;
