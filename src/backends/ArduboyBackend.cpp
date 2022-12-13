@@ -157,7 +157,7 @@ void ABB::ArduboyBackend::draw() {
 		ImGui::PopStyleVar();
 	}else{
 		// TODO: maybe decouple size from raylib by using imgui viewport size?
-		displayBackend.draw({0,0}, {GetScreenWidth(), GetScreenHeight()}, devToolsOpen, ImGui::GetBackgroundDrawList());
+		displayBackend.draw(ImGui::GetCursorScreenPos(), ImGui::GetContentRegionAvail(), devToolsOpen);
 	}
 	
 	if (firstFrame) {

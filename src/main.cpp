@@ -99,6 +99,13 @@ void DrawFPSRL(int x, int y){
     DrawText(str, x-MeasureText(str, 20), y, 20, color);
 }
 
+void drawClickDebug(int button) {
+    bool clicks[] = {IsMouseButtonPressed(button), IsMouseButtonReleased(button), IsMouseButtonDown(button), IsMouseButtonUp(button)};
+    for(size_t i = 0; i<4; i++) {
+        DrawRectangle(GetScreenWidth()-(4-i)*20, 25, 20, 20, clicks[i]?WHITE:BLACK);
+    }
+}
+
 void setup() {
     SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );
     InitWindow(1200, 800, "ABemu");
@@ -207,6 +214,8 @@ void draw() {
     lastMousePos = GetMousePosition();
 
     DrawFPSRL(GetScreenWidth(),0);
+
+    //drawClickDebug(MOUSE_BUTTON_LEFT);
 
     EndDrawing();
 
@@ -346,15 +355,6 @@ uint64_t benchmark_step(double secs ,const char* gamePath, uint8_t flags) {
 //abb.ab.load("C:/Users/Julian/Desktop/Dateien/Arduino/Arduboy_supersimple2/arduino_build_737976/HelloWorld.ino.hex");
 //abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/Processing 3 sketche/arduboyHexToImg/data/CastleBoy.hex"); // Chrashes
 //abb.ab.load("C:/Users/Julian/Desktop/Dateien/scriipts/Processing 3 sketche/arduboyHexToImg/data/UnicornDash.hex");
-
-
-
-
-
-
-
-
-
 
 
 /*

@@ -25,12 +25,15 @@
 
 #include "utils/icons.h"
 
+ArduEmu::Settings ArduEmu::settings = {false};
+
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 size_t ArduEmu::idCounter = 0;
 size_t ArduEmu::lastOpenDialogId = -1;
 size_t ArduEmu::activeInd = -1;
 size_t ArduEmu::wantsFullscreenInd = -1;
 
+bool ArduEmu::fullscreenMenuUsedLastFrame = false;
 
 #if defined(__EMSCRIPTEN__)
 bool ArduEmu::isSimpleLoadDialogOpen = false;
@@ -77,13 +80,44 @@ void ArduEmu::draw() {
 				it++;
 			}
 		}
-		drawMenu(activeInd);
-	}else{
-		instances[wantsFullscreenInd]->draw();
-		if(!instances[wantsFullscreenInd]->_wantsFullScreen())
-			wantsFullscreenInd = -1;
+		if(ImGui::BeginMainMenuBar()){
+			drawMenuContents(activeInd);
+			ImGui::EndMainMenuBar();
+		}
 
-		drawMenu(wantsFullscreenInd);
+		fullscreenMenuUsedLastFrame = false;
+	}else{
+		constexpr ImGuiWindowFlags flags =
+			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar;
+		ImGui::SetNextWindowPos({0,0}, ImGuiCond_Always);
+		ImGui::SetNextWindowSize({GetScreenWidth(), GetScreenHeight()}, ImGuiCond_Always);
+
+		bool showMenu = settings.alwaysShowMenuFullscreen || 
+			(fullscreenMenuUsedLastFrame || (ImGui::GetMousePos().y <= ImGui::GetFrameHeightWithSpacing()*2));
+		bool menuUsed = false;
+		if(ImGui::Begin("AEFullscreen", NULL, flags | (showMenu ? ImGuiWindowFlags_MenuBar : 0))){
+			if(ImGui::BeginMenuBar()) {
+				if(drawMenuContents(wantsFullscreenInd)) {
+					menuUsed = true;
+				}
+				if(ImGui::BeginMenu("Fullscreen")){
+					menuUsed = true;
+					if(ImGui::MenuItem(ADD_ICON(ICON_FA_COMPRESS) "Exit Fullscreen")) {
+						wantsFullscreenInd = -1;
+					}
+					ImGui::EndMenu();
+				}
+				ImGui::EndMenuBar();
+			}
+
+			instances[wantsFullscreenInd]->draw();
+			if(!instances[wantsFullscreenInd]->_wantsFullScreen())
+				wantsFullscreenInd = -1;
+		}
+		ImGui::End();
+
+		fullscreenMenuUsedLastFrame = menuUsed;
 	}
 
 	drawBenchmark();
@@ -156,31 +190,35 @@ void ArduEmu::drawBenchmark(){
 	ImGui::End();
 }
 
-void ArduEmu::drawMenu(size_t activeInstanceInd) {
-	if(ImGui::BeginMainMenuBar()){
-		if(ImGui::BeginMenu("File")){
-			if(ImGui::MenuItem("Open game")){
-				openLoadProgramDialog(-1);
-			}
-			ImGui::EndMenu();
+bool ArduEmu::drawMenuContents(size_t activeInstanceInd) {
+	bool menuUsed = false;
+	if(ImGui::BeginMenu("File")){
+		menuUsed = true;
+		if(ImGui::MenuItem("Open game")){
+			openLoadProgramDialog(-1);
 		}
-		if(ImGui::BeginMenu("Edit")){
-			ImGui::MenuItem("Settings", nullptr, &showSettings);
-			ImGui::EndMenu();
-		}
-		if(ImGui::BeginMenu("Info")){
-			ImGui::MenuItem("Benchmark", nullptr, &showBenchmark);
-			ImGui::MenuItem("Dear ImGui Demo Window", nullptr, &showImGuiDemo);
-			ImGui::MenuItem("About", nullptr, &showAbout);
-			ImGui::EndMenu();
-		}
-		if(activeInstanceInd != (size_t)-1 && ImGui::BeginMenu("Active")){
-			ABB::ArduboyBackend* abb = instances[activeInstanceInd];
-			abb->_drawMenuContents();
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
+		ImGui::EndMenu();
 	}
+	if(ImGui::BeginMenu("Edit")){
+		menuUsed = true;
+		ImGui::MenuItem("Settings", nullptr, &showSettings);
+		ImGui::EndMenu();
+	}
+	if(ImGui::BeginMenu("Info")){
+		menuUsed = true;
+		ImGui::MenuItem("Benchmark", nullptr, &showBenchmark);
+		ImGui::MenuItem("Dear ImGui Demo Window", nullptr, &showImGuiDemo);
+		ImGui::MenuItem("About", nullptr, &showAbout);
+		ImGui::EndMenu();
+	}
+	if(activeInstanceInd != (size_t)-1 && ImGui::BeginMenu("Active")){
+		menuUsed = true;
+		ABB::ArduboyBackend* abb = instances[activeInstanceInd];
+		abb->_drawMenuContents();
+		ImGui::EndMenu();
+	}
+
+	return menuUsed;
 }
 
 
@@ -318,6 +356,8 @@ void ArduEmu::drawSettings() {
 	if(!showSettings) return;
 
 	if(ImGui::Begin("Settings",&showSettings)) {
+		ImGui::Checkbox("Always show Menubar in fullscreen", &settings.alwaysShowMenuFullscreen);
+
 		if(ImGui::TreeNode("AsmViewer")){
 			ImGui::SliderFloat("Branch Width", &ABB::utils::AsmViewer::branchWidth, 0, 10);
 			ImGui::SliderFloat("Branch Spacing", &ABB::utils::AsmViewer::branchSpacing, 0, 10);
@@ -330,7 +370,7 @@ void ArduEmu::drawSettings() {
 void ArduEmu::drawAbout(){
 	if(!showAbout) return;
 
-	if(ImGui::Begin("About Arduboy_Emulator")) {
+	if(ImGui::Begin("About Arduboy_Emulator", &showAbout)) {
 		ImGui::TextUnformatted("TODO");
 	}
 	ImGui::End();

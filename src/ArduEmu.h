@@ -6,12 +6,17 @@
 #include "backends/ArduboyBackend.h"
 
 class ArduEmu {
+	static struct Settings {
+		bool alwaysShowMenuFullscreen;
+	} settings;
 private:
 	static std::vector<ABB::ArduboyBackend*> instances;
 	static size_t idCounter;
 	static size_t lastOpenDialogId;
 	static size_t activeInd;
 	static size_t wantsFullscreenInd;
+
+	static bool fullscreenMenuUsedLastFrame;
 
 
 #if defined(__EMSCRIPTEN__)
@@ -39,7 +44,7 @@ public:
 	static void openLoadProgramDialog(size_t ownId);
 private:
 	static void drawBenchmark();
-	static void drawMenu(size_t activeInstanceInd);
+	static bool drawMenuContents(size_t activeInstanceInd); // returns true if menu is active
 	static void drawLoadProgramDialog();
 	static void drawSettings();
 	static void drawAbout();
