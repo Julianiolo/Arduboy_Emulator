@@ -31,7 +31,7 @@ namespace ABB{
 
             static float branchWidth;
             static float branchSpacing;
-            static constexpr float branchArrowSpace = 10;
+            static constexpr float branchArrowSpace = 10; // TODO: adj this to fit bigger fonts
             
         public:
             bool breakpointsEnabled = true;
@@ -55,7 +55,6 @@ namespace ABB{
 
                 ImVec4 srcCodeText;
 
-                ImVec4 branch;
                 ImVec4 branchClipped;
             };
             static SyntaxColors syntaxColors;

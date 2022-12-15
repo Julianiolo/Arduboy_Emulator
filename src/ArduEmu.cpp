@@ -355,14 +355,17 @@ __attribute__((used)) void ArduEmu_loadFile(const char* name, const uint8_t* dat
 void ArduEmu::drawSettings() {
 	if(!showSettings) return;
 
+	ImGui::SetNextWindowSize({600,400},ImGuiCond_Appearing);
 	if(ImGui::Begin("Settings",&showSettings)) {
 		ImVec2 size = ImGui::GetContentRegionAvail();
 
 		ImGui::PushItemWidth(-1);
-		static size_t selectedInd = SETTING_SECTION_MAIN;
+		static size_t selectedInd = SettingsSection_main;
 		if(ImGui::BeginListBox("##SubSectionSel", {std::min(ImGui::GetFrameHeight()*5.f,size.x*0.3f),size.y})){
-			constexpr char * labels[] = {"Main","Asmviewer"};
-			for(size_t i = 0; i<DU_ARRAYSIZE(labels); i++) {
+			constexpr const char * labels[] = {"Main","Asmviewer","Hexviewer","Keybinds"};
+			MCU_STATIC_ASSERT(DU_ARRAYSIZE(labels) == SettingsSection_COUNT);
+			
+			for(size_t i = 0; i<SettingsSection_COUNT; i++) {
 				if(ImGui::Selectable(labels[i]))
 					selectedInd = i;
 			}
@@ -374,13 +377,27 @@ void ArduEmu::drawSettings() {
 
 		if(ImGui::BeginChild("Section", {0,0}, true)){
 			switch(selectedInd) {
-				case SETTING_SECTION_MAIN: {
+				case SettingsSection_main: {
 					ImGui::Checkbox("Always show Menubar in fullscreen", &settings.alwaysShowMenuFullscreen);
+					if(ImGui::TreeNode("Style")){
+						ImGui::ShowStyleEditor();
+						ImGui::TreePop();
+					}
 				}
 				break;
 
-				case SETTING_SECTION_ASMVIEWER: {
+				case SettingsSection_asmviewer: {
 					ABB::utils::AsmViewer::drawSettings();
+				}
+				break;
+
+				case SettingsSection_hexviewer: {
+					ABB::utils::HexViewer::drawSettings();
+				}
+				break;
+
+				case SettingsSection_keybinds: {
+					ImGui::TextUnformatted("TODO");
 				}
 				break;
 			}

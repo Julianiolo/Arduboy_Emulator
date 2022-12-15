@@ -15,7 +15,8 @@ namespace ABB {
 	namespace utils {
 		class HexViewer {
 		public:
-			struct Settings {
+			static struct Settings {
+				float vertSpacing = 0;
 				bool showTex = true;
 
 				bool showAscii = true;
@@ -23,9 +24,16 @@ namespace ABB {
 				bool invertTextColOverSymbols = true;
 				bool upperCaseHex = false;
 
+
 				bool showDiagram = true;
 				float diagramScale = 1;
 			} settings;
+
+			static struct SyntaxColors{
+				ImVec4 Addr;
+				ImVec4 bytes;
+				ImVec4 ascii;
+			} syntaxColors;
 
 			class EditBytes {
 			private:
@@ -91,7 +99,6 @@ namespace ABB {
 
 			const A32u4::SymbolTable::SymbolList* symbolList = nullptr;
 
-			float vertSpacing = 0;
 			size_t popupAddr = -1; // symbol popup address
 			const A32u4::SymbolTable::Symbol* popupSymbol = nullptr;
 
@@ -101,19 +108,12 @@ namespace ABB {
 			size_t getBytesPerRow(float widthAvail, const ImVec2& charSize);
 			bool newSymbol(A32u4::SymbolTable::symb_size_t addr, size_t* symbolPtr, A32u4::SymbolTable::symb_size_t nextSymbolAddrEnd);
 
-			void drawSettings();
 			void drawHoverInfo(size_t addr, const A32u4::SymbolTable::Symbol* symbol);
 			
 			void drawEditPopup();
 		public:
 			HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu = nullptr, uint8_t dataType = DataType_None);
 
-			struct SyntaxColors{
-				ImVec4 Addr;
-				ImVec4 bytes;
-				ImVec4 ascii;
-			};
-			static SyntaxColors syntaxColors;
 
 			bool isSelected(size_t addr) const;
 
@@ -123,7 +123,7 @@ namespace ABB {
 			void setSymbolList(const A32u4::SymbolTable::SymbolList& list);
 			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
 
-			
+			static void drawSettings();
 		};
 	}
 }

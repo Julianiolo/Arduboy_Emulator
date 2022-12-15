@@ -28,7 +28,7 @@ ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 	{1,0.7f,1,1}, {1,0,1,1},
 	{0,1,1,1}, {0.5f,1,0.5f,1},
 	{0.6f,0.6f,0.7f,1},
-	{52/255.0f, 235/255.0f, 216/255.0f, 1}, {70/255.0f, 245/255.0f, 130/255.0f, 1}
+	{70/255.0f, 245/255.0f, 130/255.0f, 1}
 };
 
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
@@ -430,11 +430,8 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		
 
 		ImVec4 col;
-		if (0) {
-			col = clip ? syntaxColors.branchClipped : syntaxColors.branch;
-		}
-		else {
-			float h = (float)(DataUtils::simpleHash(branchRoot.destLine)&0xFFFF)/0xFFFF;
+		{
+			float h = (float)(DataUtils::simpleHash(branchRoot.dest)&0xFFFF)/0xFFFF;
 			ImGui::ColorConvertHSVtoRGB(h, 0.5, !clip?0.9:0.5, col.x, col.y, col.z);
 			col.w = 1;
 		}
@@ -731,6 +728,7 @@ void ABB::utils::AsmViewer::drawSettings() {
 	ImGui::SliderFloat("Branch Width", &branchWidth, 0, 10);
 	ImGui::SliderFloat("Branch Spacing", &branchSpacing, 0, 10);
 
+	ImGui::Separator();
 	if(ImGui::TreeNode("Syntax colors")){
 		ImGui::ColorEdit3("PC Addr", (float*)&syntaxColors.PCAddr, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
 		ImGui::ColorEdit3("Raw Inst Bytes", (float*)&syntaxColors.rawInstBytes, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
@@ -760,9 +758,7 @@ void ABB::utils::AsmViewer::drawSettings() {
 
 		ImGui::Separator();
 
-		ImGui::ColorEdit3("Branch", (float*)&syntaxColors.branch, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
 		ImGui::ColorEdit3("Branch Clipped", (float*)&syntaxColors.branchClipped, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		
 
 		ImGui::TreePop();
 	}

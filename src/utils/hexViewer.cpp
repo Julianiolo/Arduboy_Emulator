@@ -14,6 +14,7 @@
 ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { 
 	{1,1,0,1}, {0.7f,0.7f,0.9f,1}, {0.5f,0.6f,0.5f,1} 
 };
+ABB::utils::HexViewer::Settings ABB::utils::HexViewer::settings;
 
 ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu, uint8_t dataType) : mcu(mcu), data(data), dataLen(dataLen), dataType(dataType) {
 
@@ -114,7 +115,7 @@ size_t ABB::utils::HexViewer::getBytesPerRow(float widthAvail, const ImVec2& cha
 			bytesPerRow = (numCharsFit - 2) / 4;
 	}
 	else {
-		const float lineHeight = charSize.y + vertSpacing;
+		const float lineHeight = charSize.y + settings.vertSpacing;
 		const float texPixWidth = lineHeight / 8;
 		const float texPixWidthRel = texPixWidth / charSize.x;
 
@@ -156,10 +157,12 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		popupAddr = -1;
 
 	if (newFrame) {
+#if 0
 		std::string settingsPopupName = "hexViewerSettings" + std::to_string((size_t)data);
 
 		if (ImGui::Button(" Options ", {0, 25}))
 			ImGui::OpenPopup(settingsPopupName.c_str());
+#endif
 
 		if (settings.showDiagram && symbolList && mcu) {
 			float buttonHeight = ImGui::GetItemRectSize().y;
@@ -167,10 +170,12 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 			SymbolBackend::drawSymbolListSizeDiagramm(mcu->symbolTable, *symbolList, dataLen, &settings.diagramScale, data, ImVec2{0, buttonHeight});
 		}
 
+#if 0
 		if (ImGui::BeginPopup(settingsPopupName.c_str())) {
 			drawSettings();
 			ImGui::EndPopup();
 		}
+#endif
 	}
 
 	A32u4::SymbolTable::symb_size_t nextSymbolAddr = -1, nextSymbolAddrEnd = -1;
@@ -207,7 +212,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 	//const ImVec4 defTexCol = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, vertSpacing));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, settings.vertSpacing));
 
 	ImGuiListClipper clipper;
 	clipper.Begin((int)numOfRows);
@@ -267,7 +272,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 						}
 
 						//if (nextSymbolAddrEnd > (lineAddr + bytesPerRow))
-							max.y += vertSpacing;
+							max.y += settings.vertSpacing;
 						
 						drawList->AddRectFilled( min, max, ImColor(*SymbolBackend::getSymbolColor(symbol)) );
 					}
@@ -342,7 +347,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 							drawHoverInfo(addrOff, symbol);
 
 							ImGuiExt::PushTextColor(syntaxColors.bytes);
-							ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, vertSpacing));
+							ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, settings.vertSpacing));
 							ImGui::EndTooltip();
 						}
 					}
@@ -417,26 +422,6 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 	newFrame = true;
 }
 
-void ABB::utils::HexViewer::drawSettings() {
-	ImGui::Checkbox("Show Space Diagram", &settings.showDiagram);
-	ImGui::Checkbox("Show Ascii", &settings.showAscii);
-	ImGui::Checkbox("Show Symbols", &settings.showSymbols);
-		if (!settings.showSymbols) ImGui::BeginDisabled();
-		ImGui::Indent();
-		ImGui::Checkbox("Invert Text Color", &settings.invertTextColOverSymbols);
-		ImGui::Unindent();
-		if (!settings.showSymbols) ImGui::EndDisabled();
-
-	ImGui::Checkbox("Show Texture", &settings.showTex);
-
-	ImGui::Spacing();
-
-	ImGui::TextUnformatted("Hex:");
-	ImGui::Indent();
-	const char* labels[] = { "LowerCase", "UpperCase" };
-	settings.upperCaseHex = ImGuiExt::SelectSwitch(labels, 2, settings.upperCaseHex);
-	ImGui::Unindent();
-}
 void ABB::utils::HexViewer::drawEditPopup() {
 	eb.draw();
 }
@@ -624,6 +609,38 @@ void ABB::utils::HexViewer::EditBytes::draw() {
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
+	}
+}
+
+
+void ABB::utils::HexViewer::drawSettings() {
+	ImGui::SliderFloat("Vertical Spacing", &settings.vertSpacing, 0, 10);
+	ImGui::Checkbox("Show Space Diagram", &settings.showDiagram);
+	ImGui::Checkbox("Show Ascii", &settings.showAscii);
+	ImGui::Checkbox("Show Symbols", &settings.showSymbols);
+		if (!settings.showSymbols) ImGui::BeginDisabled();
+		ImGui::Indent();
+		ImGui::Checkbox("Invert Text Color", &settings.invertTextColOverSymbols);
+		ImGui::Unindent();
+		if (!settings.showSymbols) ImGui::EndDisabled();
+
+	ImGui::Checkbox("Show Texture", &settings.showTex);
+
+	ImGui::Spacing();
+
+	ImGui::TextUnformatted("Hex:");
+	ImGui::Indent();
+	const char* labels[] = { "LowerCase", "UpperCase" };
+	settings.upperCaseHex = ImGuiExt::SelectSwitch(labels, 2, settings.upperCaseHex);
+	ImGui::Unindent();
+
+	ImGui::Separator();
+	if(ImGui::TreeNode("Syntax colors")){
+		ImGui::ColorEdit3("Addr", (float*)&syntaxColors.Addr, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Bytes", (float*)&syntaxColors.bytes, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		ImGui::ColorEdit3("Ascii", (float*)&syntaxColors.ascii, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+
+		ImGui::TreePop();
 	}
 }
 

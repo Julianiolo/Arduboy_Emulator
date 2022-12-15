@@ -48,8 +48,11 @@ private:
 	static void drawLoadProgramDialog();
 
 	enum {
-		SETTING_SECTION_MAIN = 0,
-		SETTING_SECTION_ASMVIEWER
+		SettingsSection_main = 0,
+		SettingsSection_asmviewer,
+		SettingsSection_hexviewer,
+		SettingsSection_keybinds,
+		SettingsSection_COUNT
 	};
 	static void drawSettings();
 	static void drawAbout();
