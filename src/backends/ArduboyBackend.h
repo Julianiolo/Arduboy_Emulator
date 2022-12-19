@@ -55,6 +55,8 @@ namespace ABB {
 	public:
 
 		ArduboyBackend(const char* n, size_t id);
+		ArduboyBackend(const ArduboyBackend& src);
+		ArduboyBackend& operator=(const ArduboyBackend& src);
 
 		bool isWinFocused(); // is one of the windows associated with this instance focused
 		void tryClose();
