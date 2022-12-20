@@ -11,6 +11,8 @@
 namespace ABB {
     class LogBackend{
     private:
+        friend class ArduboyBackend;
+
         std::vector<size_t> cache;
         std::vector<std::pair<A32u4::ATmega32u4::LogLevel,std::string>> logs;
 

@@ -24,6 +24,37 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	//ImGui::DockBuilderSplitNode(ImGuiID(ImGui::GetID(devWinName.c_str())), ImGuiDir_Left, 0.5, );
 }
 
+ABB::ArduboyBackend::ArduboyBackend(const ArduboyBackend& src):
+ab(src.ab),
+name(src.name), devWinName(src.devWinName),
+logBackend(src.logBackend), displayBackend(src.displayBackend), debuggerBackend(src.debuggerBackend),
+mcuInfoBackend(src.mcuInfoBackend), analyticsBackend(src.analyticsBackend), compilerBackend(src.compilerBackend), symbolBackend(src.symbolBackend),
+elf(src.elf), id(src.id), fullScreen(src.fullScreen),
+open(src.open), open_try(src.open_try), winFocused(src.winFocused),
+devToolsOpen(src.devToolsOpen), execMenuOpen(src.execMenuOpen), firstFrame(src.firstFrame)
+{
+	setMcu();
+}
+ABB::ArduboyBackend& ABB::ArduboyBackend::operator=(const ArduboyBackend& src){
+	ab = src.ab;
+	name = src.name; devWinName = src.name;
+	logBackend = src.logBackend; displayBackend = src.displayBackend; debuggerBackend = src.debuggerBackend;
+	mcuInfoBackend = src.mcuInfoBackend; analyticsBackend = src.analyticsBackend; compilerBackend = src.compilerBackend;
+	symbolBackend = src.symbolBackend;
+	setMcu();
+	return *this;
+}
+
+void ABB::ArduboyBackend::setMcu() {
+	logBackend.ab = &ab;
+	displayBackend.display = &ab.display;
+	debuggerBackend.abb = this;
+	mcuInfoBackend.ab = &ab;
+	analyticsBackend.ab = &ab;
+	compilerBackend.abb = this;
+	symbolBackend.mcu = &ab.mcu;
+}
+
 bool ABB::ArduboyBackend::isWinFocused() {
 	return winFocused || displayBackend.isWinFocused() || debuggerBackend.isWinFocused() || logBackend.isWinFocused() || mcuInfoBackend.isWinFocused() || analyticsBackend.isWinFocused();
 }

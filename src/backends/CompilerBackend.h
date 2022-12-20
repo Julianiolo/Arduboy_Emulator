@@ -10,16 +10,18 @@ namespace ABB {
     class ArduboyBackend;
     class CompilerBackend {
     private:
+        friend class ArduboyBackend;
+
         ArduboyBackend* abb;
         std::string inoPath;
 
-        std::unique_ptr<SystemUtils::CallProcThread> callProc;
+        std::shared_ptr<SystemUtils::CallProcThread> callProc;
         std::string compileOutput;
 
         bool autoLoad = true;
 
     public:
-        const std::string winName;
+        std::string winName;
         bool* open;
 
         CompilerBackend (ArduboyBackend* abb, const char* winName, bool* open);

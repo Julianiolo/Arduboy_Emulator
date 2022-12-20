@@ -401,9 +401,6 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 			}
 		}
 	}
-	
-
-	constexpr size_t maxDepth = 16;
 
 	for (auto& b : branchRootInds) {
 		auto& branchRoot = file.branchRoots[b];

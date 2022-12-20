@@ -14,6 +14,8 @@
 namespace ABB {
 	class McuInfoBackend {
 	private:
+		friend class ArduboyBackend;
+
 		Arduboy* ab;
 
 		utils::HexViewer dataspaceDataHex;
@@ -44,7 +46,7 @@ namespace ABB {
 		static void setEepromValue(size_t addr, uint8_t val, void* userData);
 		static void setRomValue(size_t addr, uint8_t val, void* userData);
 	public:
-		const std::string winName;
+		std::string winName;
 		bool* open;
 
 		McuInfoBackend(Arduboy* ab, const char* winName, bool* open);

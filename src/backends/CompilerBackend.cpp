@@ -35,7 +35,7 @@ void ABB::CompilerBackend::draw() {
             if(!hasInoPath) ImGui::BeginDisabled();
             if(ImGui::Button("Compile")){
                 compileOutput = "";
-                callProc = std::make_unique<SystemUtils::CallProcThread>(std::string("arduino-cli compile --fqbn arduino:avr:leonardo --build-path ./temp/ 2>&1") + inoPath);
+                callProc = std::make_shared<SystemUtils::CallProcThread>(std::string("arduino-cli compile --fqbn arduino:avr:leonardo --build-path ./temp/ 2>&1") + inoPath);
                 callProc->start();
             }
             if(ImGui::IsItemHovered()) {

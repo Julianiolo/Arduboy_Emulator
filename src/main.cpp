@@ -142,7 +142,7 @@ void setup() {
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 
-#elif 0
+#elif 1
     abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
 #elif 1
     abb.ab.loadFromHexFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.hex");

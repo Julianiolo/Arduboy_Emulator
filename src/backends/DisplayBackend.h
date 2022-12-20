@@ -8,6 +8,8 @@
 namespace ABB {
 	class DisplayBackend {
 	private:
+		friend class ArduboyBackend;
+
 		std::string name;
 		AB::Display* display;
 

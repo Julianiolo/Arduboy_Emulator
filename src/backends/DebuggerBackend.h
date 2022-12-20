@@ -13,6 +13,8 @@ namespace ABB{
 
     class DebuggerBackend{
     private:
+        friend class ArduboyBackend;
+
         ArduboyBackend* abb;
         void drawControls();
         void drawDebugStack();

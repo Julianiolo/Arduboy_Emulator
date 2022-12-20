@@ -82,9 +82,9 @@ namespace ABB {
 
 		private:
 			const A32u4::ATmega32u4* mcu = nullptr;
-			const uint8_t* const data;
-			const size_t dataLen;
-			const uint8_t dataType;
+			const uint8_t* data;
+			size_t dataLen;
+			uint8_t dataType;
 
 			bool isSelecting = false;
 			size_t selectStart = 0;

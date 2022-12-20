@@ -10,9 +10,11 @@
 namespace ABB {
     class SymbolBackend {
     private:
+        friend class ArduboyBackend;
+
         A32u4::ATmega32u4* mcu;
     public:
-        const std::string winName;
+        std::string winName;
 		bool* open;
     private:
         enum {

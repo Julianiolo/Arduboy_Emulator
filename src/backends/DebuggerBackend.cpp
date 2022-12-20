@@ -443,18 +443,17 @@ ABB::utils::AsmViewer& ABB::DebuggerBackend::addSrcMix() {
 A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genDisamsInfo(){
 	A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo info;
 	info.analytics = &abb->ab.mcu.analytics;
-	bool (*funcLine)(addrmcu_t,std::string*,void*) = [](addrmcu_t addr, std::string* out, void* userData) {
-		A32u4::ELF::ELFFile* elf = (A32u4::ELF::ELFFile*)userData;
-		size_t entryInd = elf->dwarf.debug_line.getEntryIndByAddr(addr);
-		auto entry = entryInd != (size_t)-1 ? elf->dwarf.debug_line.getEntry(entryInd) : nullptr;
+	std::function<bool(addrmcu_t,std::string*)> funcLine = [&](addrmcu_t addr, std::string* out) {
+		size_t entryInd = abb->elf.dwarf.debug_line.getEntryIndByAddr(addr);
+		auto entry = entryInd != (size_t)-1 ? abb->elf.dwarf.debug_line.getEntry(entryInd) : nullptr;
 
 		if (entry && entry->file != (uint32_t)-1) {
-			const auto& file = elf->dwarf.debug_line.files[entry->file];
+			const auto& file = abb->elf.dwarf.debug_line.files[entry->file];
 			if (file.couldFind && entry->line < file.lines.size()) {
 				size_t lineFrom = entry->line;
 
 				if (entryInd > 0) {
-					auto lastEntry = elf->dwarf.debug_line.getEntry(entryInd - 1);
+					auto lastEntry = abb->elf.dwarf.debug_line.getEntry(entryInd - 1);
 					if (lastEntry->file == entry->file && lastEntry->line+1 < entry->line) {
 						lineFrom = lastEntry->line+1;
 					}
@@ -475,11 +474,10 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 		}
 		return false;
 	};
-	info.getLineInfoFromAddr = abb->elf.hasInfosLoaded() ? funcLine : NULL;
-	info.lineUserData = &abb->elf;
+	info.getLineInfoFromAddr = abb->elf.hasInfosLoaded() ? funcLine : nullptr;
 
-	bool (*funcSymb)(addrmcu_t,bool,std::string*,void*) = [](addrmcu_t addr, bool ramNotRom, std::string* out, void* userData) {
-		const A32u4::SymbolTable* symbolTable = (A32u4::SymbolTable*)userData;
+	info.getSymbolNameFromAddr = [&](addrmcu_t addr, bool ramNotRom, std::string* out) {
+		const A32u4::SymbolTable* symbolTable = &abb->ab.mcu.symbolTable;
 		const A32u4::SymbolTable::Symbol* symb = symbolTable->getSymbolByValue(addr, ramNotRom ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
 		if (symb != NULL) {
 			*out = symb->name;
@@ -487,8 +485,34 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 		}
 		return false;
 	};
-	info.getSymbolNameFromAddr = funcSymb;
-	info.symbolUserData = (void*)&abb->ab.mcu.symbolTable;
+
+	std::vector<uint32_t> dataSymbs;
+	{
+		auto symbs = abb->ab.mcu.symbolTable.getSymbolsBySection(".text");
+		for(size_t i = 0; i<symbs.size(); i++) {
+			const A32u4::SymbolTable::Symbol* symbol = abb->ab.mcu.symbolTable.getSymbolById(symbs[i]);
+			if(symbol && symbol->size > 0 && symbol->flags.funcFileObjectFlags & A32u4::SymbolTable::Symbol::Flags_FuncFileObj_Obj) {
+				dataSymbs.push_back(symbol->id);
+			}
+
+			if(symbol && !(symbol->flags.funcFileObjectFlags & A32u4::SymbolTable::Symbol::Flags_FuncFileObj_Obj)) {
+				info.additionalDisasmSeeds.push_back(symbol->value/2);
+			}
+		}
+	}
+	info.dataSymbol = [=](size_t ind) {
+		MCU_ASSERT(ind < dataSymbs.size());
+
+		const A32u4::SymbolTable::Symbol* symbol = abb->ab.mcu.symbolTable.getSymbolById(dataSymbs[ind]);
+
+		A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo::Symbol out;
+		out.value = symbol->value;
+		out.size = symbol->size;
+		out.name = symbol->name;
+
+		return out;
+	};
+	info.numOfDataSymbols = dataSymbs.size();
 
 	return info;
 }

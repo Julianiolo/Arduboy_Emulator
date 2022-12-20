@@ -52,6 +52,8 @@ namespace ABB {
 		void update();
 
 		void drawExecMenu();
+
+		void setMcu();
 	public:
 
 		ArduboyBackend(const char* n, size_t id);
