@@ -33,6 +33,8 @@ namespace ABB{
             static float branchSpacing;
             static constexpr float branchArrowSpace = 10; // TODO: adj this to fit bigger fonts
             
+            static bool showBranches;
+            static size_t maxBranchDepth;
         public:
             bool breakpointsEnabled = true;
 
@@ -64,10 +66,6 @@ namespace ABB{
             bool showScollBarHeat = true;
             bool showLineHeat = true;
             size_t selectedLine = -1;
-
-            bool showBranches = true;
-            size_t maxBranchDepth = 16;
-            size_t maxBranchLen = 256;
 
             void loadSrc(const char* str, const char* strEnd = NULL);
             bool loadSrcFile(const char* path);

@@ -18,6 +18,8 @@
 	#include "emscripten.h"
 #endif
 
+#include "backends/LogBackend.h"
+
 #include "utils/byteVisualiser.h"
 #include "utils/asmViewer.h"
 #include "Extensions/imguiExt.h"
@@ -362,7 +364,7 @@ void ArduEmu::drawSettings() {
 		ImGui::PushItemWidth(-1);
 		static size_t selectedInd = SettingsSection_main;
 		if(ImGui::BeginListBox("##SubSectionSel", {std::min(ImGui::GetFrameHeight()*5.f,size.x*0.3f),size.y})){
-			constexpr const char * labels[] = {"Main","Asmviewer","Hexviewer","Keybinds"};
+			constexpr const char * labels[] = {"Main","Logbackend","Asmviewer","Hexviewer","Keybinds"};
 			MCU_STATIC_ASSERT(DU_ARRAYSIZE(labels) == SettingsSection_COUNT);
 			
 			for(size_t i = 0; i<SettingsSection_COUNT; i++) {
@@ -383,6 +385,11 @@ void ArduEmu::drawSettings() {
 						ImGui::ShowStyleEditor();
 						ImGui::TreePop();
 					}
+				}
+				break;
+
+				case SettingsSection_logbackend: {
+					ABB::LogBackend::drawSettings();
 				}
 				break;
 

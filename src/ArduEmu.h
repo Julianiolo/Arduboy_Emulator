@@ -49,6 +49,7 @@ private:
 
 	enum {
 		SettingsSection_main = 0,
+		SettingsSection_logbackend,
 		SettingsSection_asmviewer,
 		SettingsSection_hexviewer,
 		SettingsSection_keybinds,

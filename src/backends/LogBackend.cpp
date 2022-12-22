@@ -5,23 +5,25 @@
 
 #include "../Extensions/imguiExt.h"
 
+ImVec4 ABB::LogBackend::logColors[] = {
+    {0,0,0,-1},
+    {0,0,0,-0.7},
+    {0,0,0,-1},
+    {1, 0.85f, 0, 1},
+    {255, 0, 0, 1}
+};
+
 ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
     activate();
     ab->setLogCallBSimple(LogBackend::log);
-    ab->setLogCallB([](A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName , size_t lineNum, const char* Module){});
-
-    logColors[A32u4::ATmega32u4::LogLevel_None] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-    logColors[A32u4::ATmega32u4::LogLevel_DebugOutput] = ImGui::GetStyleColorVec4(ImGuiCol_Text) * ImVec4{0.7f,0.7f,0.7f,1};
-    logColors[A32u4::ATmega32u4::LogLevel_Output] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-    logColors[A32u4::ATmega32u4::LogLevel_Warning] = {1, 0.85f, 0, 1};
-    logColors[A32u4::ATmega32u4::LogLevel_Error] = {255, 0, 0, 1};
+    ab->setLogCallB([](A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName , size_t lineNum, const char* Module){
+        MCU_UNUSED(logLevel); MCU_UNUSED(msg); MCU_UNUSED(fileName); MCU_UNUSED(lineNum); MCU_UNUSED(Module);
+    });
 }
 
 void ABB::LogBackend::draw() {
     if(ImGui::Begin(winName.c_str())){
         winFocused = ImGui::IsWindowFocused();
-
-        constexpr const char* logLevelNames[] = {"None", "Debug", "Output", "Warning", "Error"};
         bool changed = false;
         if (ImGui::BeginCombo("Filter Level", logLevelNames[filterLevel])) {
             for (size_t i = 0; i < A32u4::ATmega32u4::LogLevel_COUNT; i++) {
@@ -53,7 +55,13 @@ void ABB::LogBackend::draw() {
             while (clipper.Step()) {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
                     auto& line = logs[cache[line_no]];
-                    ImGuiExt::TextColored(logColors[line.first], line.second.c_str());
+
+                    ImVec4 col = logColors[line.first];
+                    if(col.w < 0) {
+                        col = ImGui::GetStyleColorVec4(ImGuiCol_Text) * ImVec4{-col.w,-col.w,-col.w,1};
+                    }
+
+                    ImGuiExt::TextColored(col, line.second.c_str());
                 }
             }
             clipper.End();
@@ -93,4 +101,31 @@ void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg)
 
 bool ABB::LogBackend::isWinFocused() const {
     return winFocused;
+}
+
+void ABB::LogBackend::drawSettings() {
+    for(size_t i = 0; i<LogLevel_COUNT; i++) {
+        if(i>0)
+            ImGui::Separator();
+        ImGui::PushID(i);
+        ImVec4& col = logColors[i];
+
+        {
+            bool v = col.w < 0;
+            if(ImGui::Checkbox("Use Text color",&v))
+                col.w = -col.w;
+        }
+        if(col.w < 0){
+            ImGui::ColorButton("##AAAAA", {col.x, col.y, col.z, -col.w});
+            ImGui::SameLine();
+            {
+                float v = -col.w;
+                if(ImGui::DragFloat("Brightness", &v, 0.001, 0.1, 1))
+                    col.w = -v;
+            }
+        }else{
+            ImGui::ColorEdit3(logLevelNames[i], (float*)&logColors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+        }
+        ImGui::PopID();
+    }
 }

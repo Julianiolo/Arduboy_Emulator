@@ -23,6 +23,10 @@
 float ABB::utils::AsmViewer::branchWidth = 2;
 float ABB::utils::AsmViewer::branchSpacing = 1;
 
+bool ABB::utils::AsmViewer::showBranches = true;
+size_t ABB::utils::AsmViewer::maxBranchDepth = 16;
+
+
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
 	{1,0.5f,0,1}, {1,1,0,1}, {0.2f,0.2f,0.7f,1}, {0.2f,0.4f,0.7f,1}, {0.4f,0.6f,0.4f,1}, {0.3f,0.4f,0.7f,1}, {0.5f,0.5f,0.7f,1}, {0.4f,0.4f,0.6f,1},
 	{1,0.7f,1,1}, {1,0,1,1},
@@ -222,6 +226,8 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 						param += c;
 				}
 
+				MCU_ASSERT(param.size() > 0);
+
 				switch (param[0]) {
 					case 'R':
 					case 'r': {
@@ -250,6 +256,28 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 						}
 
 						ImGui::SetTooltip("%c: 0x%04x => %d", param[0], regVal, regVal);
+					} break;
+
+					case '0': {
+						if(param.size() > 1 && param[1] == 'x'){
+							if(param.size() >= 2+4) {
+								popFileStyle();
+								ImGui::BeginTooltip();
+
+								addrmcu_t addr = StringUtils::hexStrToUIntLen(param.c_str()+2,4);
+
+								ImGui::Text("0x%04x => %u", addr, addr);
+
+								const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolByValue(addr, mcu->symbolTable.getSymbolsRom());
+								if(symbol) {
+									ImGui::Separator();
+									ABB::SymbolBackend::drawSymbol(symbol, addr, mcu->flash.getData());
+								}
+
+								ImGui::EndTooltip();
+								pushFileStyle();
+							}
+						}
 					} break;
 				}
 			}
@@ -409,12 +437,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 
 		float x;
 		bool clip = false;
-
-		if (std::max(branchRoot.startLine, branchRoot.destLine) - std::min(branchRoot.startLine, branchRoot.destLine) > maxBranchLen) {
-			clip = true;
-		}
-
-		if (branchRoot.displayDepth < maxBranchDepth && !clip) {
+		if (branchRoot.displayDepth < maxBranchDepth) {
 			x = baseX - branchArrowSpace - branchRoot.displayDepth * (branchWidth+branchSpacing) - branchSpacing ;
 		}
 		else {
@@ -724,6 +747,16 @@ void ABB::utils::AsmViewer::setMcu(A32u4::ATmega32u4* mcuPtr) {
 void ABB::utils::AsmViewer::drawSettings() {
 	ImGui::SliderFloat("Branch Width", &branchWidth, 0, 10);
 	ImGui::SliderFloat("Branch Spacing", &branchSpacing, 0, 10);
+
+	ImGui::Separator();
+
+	ImGui::Checkbox("Show Branches", &showBranches);
+
+	{
+		int v = maxBranchDepth;
+		if(ImGui::SliderInt("Branch Clip Amt", &v, 1, 512))
+			maxBranchDepth = v;
+	}
 
 	ImGui::Separator();
 	if(ImGui::TreeNode("Syntax colors")){

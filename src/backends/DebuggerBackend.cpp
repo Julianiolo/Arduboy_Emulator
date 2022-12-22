@@ -479,7 +479,7 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 	info.getSymbolNameFromAddr = [&](addrmcu_t addr, bool ramNotRom, std::string* out) {
 		const A32u4::SymbolTable* symbolTable = &abb->ab.mcu.symbolTable;
 		const A32u4::SymbolTable::Symbol* symb = symbolTable->getSymbolByValue(addr, ramNotRom ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
-		if (symb != NULL) {
+		if (symb != NULL && symb->value == addr) {
 			*out = symb->name;
 			return true;
 		}
@@ -489,14 +489,23 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 	std::vector<uint32_t> dataSymbs;
 	{
 		auto symbs = abb->ab.mcu.symbolTable.getSymbolsBySection(".text");
+		pc_t lastOverride = -1;
 		for(size_t i = 0; i<symbs.size(); i++) {
 			const A32u4::SymbolTable::Symbol* symbol = abb->ab.mcu.symbolTable.getSymbolById(symbs[i]);
-			if(symbol && symbol->size > 0 && symbol->flags.funcFileObjectFlags & A32u4::SymbolTable::Symbol::Flags_FuncFileObj_Obj) {
+			if(!symbol)
+				continue;
+
+			if(symbol->size > 0 && symbol->flags.funcFileObjectFlags == A32u4::SymbolTable::Symbol::Flags_FuncFileObj_Obj) {
 				dataSymbs.push_back(symbol->id);
 			}
 
-			if(symbol && !(symbol->flags.funcFileObjectFlags & A32u4::SymbolTable::Symbol::Flags_FuncFileObj_Obj)) {
-				info.additionalDisasmSeeds.push_back(symbol->value/2);
+			if(!(symbol->flags.funcFileObjectFlags == A32u4::SymbolTable::Symbol::Flags_FuncFileObj_Obj)) {
+				if(symbol->value/2 != lastOverride && (info.additionalDisasmSeeds.size() == 0 || info.additionalDisasmSeeds.back() != symbol->value/2))
+					info.additionalDisasmSeeds.push_back(symbol->value/2);
+			}else{
+				lastOverride = symbol->value/2;
+				if(info.additionalDisasmSeeds.size() > 0 && info.additionalDisasmSeeds.back() == lastOverride)
+					info.additionalDisasmSeeds.pop_back();
 			}
 		}
 	}

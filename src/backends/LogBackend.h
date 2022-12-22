@@ -10,13 +10,6 @@
 
 namespace ABB {
     class LogBackend{
-    private:
-        friend class ArduboyBackend;
-
-        std::vector<size_t> cache;
-        std::vector<std::pair<A32u4::ATmega32u4::LogLevel,std::string>> logs;
-
-        Arduboy* ab;
     public:
         enum LogLevel_ {
             LogLevel_None        = A32u4::ATmega32u4::LogLevel_None,
@@ -26,10 +19,19 @@ namespace ABB {
             LogLevel_Error       = A32u4::ATmega32u4::LogLevel_Error,
             LogLevel_COUNT
         };
+        static ImVec4 logColors[A32u4::ATmega32u4::LogLevel_COUNT];
+        static constexpr const char* logLevelNames[] = {"None", "Debug", "Output", "Warning", "Error"};
+    private:
+        friend class ArduboyBackend;
+
+        std::vector<size_t> cache;
+        std::vector<std::pair<A32u4::ATmega32u4::LogLevel,std::string>> logs;
+
+        Arduboy* ab;
+    public:
 
         std::string winName;
         bool* open;
-        ImVec4 logColors[A32u4::ATmega32u4::LogLevel_COUNT];
         uint8_t filterLevel = LogLevel_None;
 
         LogBackend(Arduboy* ab, const char* winName, bool* open);
@@ -55,6 +57,8 @@ namespace ABB {
         }
 
         bool isWinFocused() const;
+
+        static void drawSettings();
     };
 }
 
