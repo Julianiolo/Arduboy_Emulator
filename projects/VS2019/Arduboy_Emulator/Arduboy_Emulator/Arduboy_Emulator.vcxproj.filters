@@ -36,9 +36,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\src\rlImGui\rlImGui.cpp">
-      <Filter>Source Files\rlImGui</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp">
       <Filter>Source Files\backends</Filter>
     </ClCompile>
@@ -90,11 +87,11 @@
     <ClCompile Include="..\..\..\..\src\backends\SymbolBackend.cpp">
       <Filter>Source Files\backends</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\dependencies\rlImGui\rlImGui.cpp">
+      <Filter>Source Files\rlImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\src\rlImGui\rlImGui.h">
-      <Filter>Source Files\rlImGui</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h">
       <Filter>Source Files\oneHeaderLibs</Filter>
     </ClInclude>
@@ -157,6 +154,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\backends\SymbolBackend.h">
       <Filter>Source Files\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\dependencies\rlImGui\rlImGui.h">
+      <Filter>Source Files\rlImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\dependencies\rlImGui\rlImGuiColors.h">
+      <Filter>Source Files\rlImGui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

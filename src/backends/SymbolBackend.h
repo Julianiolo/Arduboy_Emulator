@@ -3,7 +3,7 @@
 
 #include "imgui.h"
 
-#include "extras/symbolTable.h"
+#include "extras/SymbolTable.h"
 
 #include "ATmega32u4.h"
 

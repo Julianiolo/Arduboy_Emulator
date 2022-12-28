@@ -4,7 +4,7 @@
 #include "Arduboy.h"
 #include "SymbolBackend.h"
 
-#include "RingBuffer.h"
+#include "ringBuffer.h"
 
 namespace ABB{
     class AnalyticsBackend{

@@ -154,7 +154,7 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 			word2 = (	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3,   2)) |
 					(	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3+3, 2) << 8);
 		}
-		ImGui::SetTooltip(A32u4::Disassembler::disassembleRaw(word, word2).c_str());
+		ImGui::SetTooltip("%s",A32u4::Disassembler::disassembleRaw(word, word2).c_str());
 	}
 	ImGui::SameLine();
 	// instruction name

@@ -111,7 +111,7 @@ size_t ABB::utils::HexViewer::getBytesPerRow(float widthAvail, const ImVec2& cha
 	if (!settings.showTex) {
 		if (!settings.showAscii)
 			bytesPerRow = numCharsFit / 3;
-		else if(settings.showAscii && !settings.showTex)
+		else
 			bytesPerRow = (numCharsFit - 2) / 4;
 	}
 	else {

@@ -14,7 +14,7 @@
 #include "SymbolBackend.h"
 
 
-#include "extras/elfReader.h"
+#include "extras/ElfReader.h"
 
 namespace ABB {
 	class ArduboyBackend {

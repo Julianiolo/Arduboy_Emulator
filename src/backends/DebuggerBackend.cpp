@@ -390,7 +390,7 @@ void ABB::DebuggerBackend::draw() {
 			if(srcMixs.size() > 0){
 				if(srcMixs[selectedSrcMix].file.isSelfDisassembled()){
 					ImGui::AlignTextToFramePadding();
-					ImGui::Text("Disassembled %" PRId64 " lines", srcMixs[selectedSrcMix].numOfDisasmLines());
+					ImGui::Text("Disassembled %" MCU_PRIdSIZE " lines", srcMixs[selectedSrcMix].numOfDisasmLines());
 					ImGui::SameLine();
 					if(ImGui::Button("Update with analytics data")) {
 						srcMixs[selectedSrcMix].generateDisasmFile(&abb->ab.mcu.flash, genDisamsInfo());

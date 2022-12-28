@@ -93,7 +93,7 @@ void ArduEmu::draw() {
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse |
 			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar;
 		ImGui::SetNextWindowPos({0,0}, ImGuiCond_Always);
-		ImGui::SetNextWindowSize({GetScreenWidth(), GetScreenHeight()}, ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2{(float)GetScreenWidth(), (float)GetScreenHeight()}, ImGuiCond_Always);
 
 		bool showMenu = settings.alwaysShowMenuFullscreen || 
 			(fullscreenMenuUsedLastFrame || (ImGui::GetMousePos().y <= ImGui::GetFrameHeightWithSpacing()*2));
@@ -368,8 +368,12 @@ void ArduEmu::drawSettings() {
 			MCU_STATIC_ASSERT(DU_ARRAYSIZE(labels) == SettingsSection_COUNT);
 			
 			for(size_t i = 0; i<SettingsSection_COUNT; i++) {
-				if(ImGui::Selectable(labels[i]))
+				const bool isSelected = selectedInd == i;
+				if(ImGui::Selectable(labels[i], isSelected))
 					selectedInd = i;
+
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndListBox();
 		}

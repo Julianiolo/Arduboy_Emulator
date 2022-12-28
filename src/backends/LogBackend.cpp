@@ -6,11 +6,11 @@
 #include "../Extensions/imguiExt.h"
 
 ImVec4 ABB::LogBackend::logColors[] = {
-    {0,0,0,-1},
-    {0,0,0,-0.7},
-    {0,0,0,-1},
-    {1, 0.85f, 0, 1},
-    {255, 0, 0, 1}
+    {  0.7,   0.7, 0.7,   -1},
+    {  0.7,   0.7, 0.7, -0.7},
+    {    1,     1,   1,   -1},
+    {    1, 0.85f,   0,    1},
+    {    1,     0,   0,    1}
 };
 
 ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
@@ -108,6 +108,11 @@ void ABB::LogBackend::drawSettings() {
         if(i>0)
             ImGui::Separator();
         ImGui::PushID(i);
+
+        ImGui::TextUnformatted(logLevelNames[i]);
+
+        ImGui::Indent();
+
         ImVec4& col = logColors[i];
 
         {
@@ -116,7 +121,10 @@ void ABB::LogBackend::drawSettings() {
                 col.w = -col.w;
         }
         if(col.w < 0){
-            ImGui::ColorButton("##AAAAA", {col.x, col.y, col.z, -col.w});
+
+            ImVec4 showCol = ImGui::GetStyleColorVec4(ImGuiCol_Text) * ImVec4{-col.w,-col.w,-col.w,1};
+
+            ImGui::ColorButton("##AAAAA", showCol);
             ImGui::SameLine();
             {
                 float v = -col.w;
@@ -124,8 +132,11 @@ void ABB::LogBackend::drawSettings() {
                     col.w = -v;
             }
         }else{
-            ImGui::ColorEdit3(logLevelNames[i], (float*)&logColors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+            ImGui::ColorEdit3("##edit", (float*)&logColors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
         }
+
+        ImGui::Unindent();
+
         ImGui::PopID();
     }
 }

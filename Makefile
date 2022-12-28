@@ -97,7 +97,7 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
 	endif
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
-	EXTRA_FLAGS:= -s USE_GLFW=3 --shell-file $(SHELL_HTML)
+	EXTRA_FLAGS:= -s USE_GLFW=3 --shell-file $(SHELL_HTML) --preload-file ./resources/device/regSymbs.txt
 	CFLAGS += -sEXPORTED_FUNCTIONS=_main,_ArduEmu_loadFile -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
 	CXXFLAGS += -sEXPORTED_FUNCTIONS=_main,_ArduEmu_loadFile -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
 endif

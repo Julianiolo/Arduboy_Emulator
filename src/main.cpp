@@ -137,7 +137,7 @@ void setup() {
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
-#if 0
+#if 1
     abb.ab.loadFromHexFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
@@ -216,7 +216,7 @@ void draw() {
 
     DrawFPSRL(GetScreenWidth(),0);
 
-    drawClickDebug(MOUSE_BUTTON_LEFT);
+    //drawClickDebug(MOUSE_BUTTON_LEFT);
 
     //printf("EF:%4d      @%fs\n", frameCnt, GetTime());
 

@@ -32,7 +32,11 @@
     
     <style>
         body { margin: 0px; }
-        canvas.emscripten { border: 0px none; background-color: black; }
+        canvas.emscripten { 
+            border: 0px none; 
+            background-color: black; 
+            user-select: none; /* prevents selection of text on doubleclick */
+        }
     </style>
     <script type='text/javascript' src="https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js"> </script>
     <script type='text/javascript'>
@@ -56,7 +60,7 @@
     </head>
     <body>
         <canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas>
-        <p id="output" />
+        <p id="output">
         <script>
             var Module = {
                 print: (function() {
@@ -74,7 +78,13 @@
                 canvas: (function() {
                     var canvas = document.getElementById('canvas');
                     return canvas;
-                })()
+                })(),
+                preRun: ([function(){
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if(urlParams.has("prog")){
+                        loadProgram(urlParams.get("prog"));
+                    }
+                }])
             };
         </script>
         {{{ SCRIPT }}}
@@ -86,12 +96,16 @@
 
             const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')
 
-            function loadProgram() {
+            function loadProgramBtn(){
+                let url = document.getElementById("LoadProgramDialog").value;
+                loadProgram(url);
+            }
+
+            function loadProgram(url) {
                 if(SendArrToMCU == null) {
                     SendArrToMCU = Module.cwrap("ArduEmu_loadFile", null, ["string","array","number"]);
                 }
 
-                let url = document.getElementById("LoadProgramDialog").value;
                 console.log(url);
                 fetch(url)
                 .then((response) => {
@@ -126,5 +140,9 @@
         </script>
         <input type="text" id="LoadProgramDialog"></input>
         <button onclick="loadProgram()">Load</button>
+
+        <script type="text/javascript">
+            
+        </script>
     </body>
 </html>
