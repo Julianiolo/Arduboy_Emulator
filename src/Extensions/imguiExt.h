@@ -32,6 +32,8 @@ namespace ImGuiExt {
 
 	void Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
 	void ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
+
+	ImVec4 BrightenColor(const ImVec4& col, float f);
 }
 
 #endif

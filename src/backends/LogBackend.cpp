@@ -22,9 +22,10 @@ ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(a
 }
 
 void ABB::LogBackend::draw() {
-    if(ImGui::Begin(winName.c_str())){
+    if(ImGui::Begin(winName.c_str(), open)){
         winFocused = ImGui::IsWindowFocused();
         bool changed = false;
+        ImGui::PushItemWidth(100);
         if (ImGui::BeginCombo("Filter Level", logLevelNames[filterLevel])) {
             for (size_t i = 0; i < A32u4::ATmega32u4::LogLevel_COUNT; i++) {
                 if (ImGui::Selectable(logLevelNames[i])) {
@@ -35,6 +36,7 @@ void ABB::LogBackend::draw() {
             }
             ImGui::EndCombo();
         }
+        ImGui::PopItemWidth();
 
         if (changed) {
             cache.clear();

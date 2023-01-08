@@ -8,6 +8,9 @@
 class ArduEmu {
 	static struct Settings {
 		bool alwaysShowMenuFullscreen;
+
+		ImVec4 accentColor;
+		ImVec4 frameColor;
 	} settings;
 private:
 	static std::vector<ABB::ArduboyBackend*> instances;
@@ -37,6 +40,7 @@ public:
 
 	static void draw();
 	
+	static void setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColor);
 
 	static ABB::ArduboyBackend& addEmulator(const char* n);
 	static ABB::ArduboyBackend* getInstance(size_t ind);

@@ -1,11 +1,7 @@
 #include "ArduEmu.h"
 
-
-
-#include "ImGuiFD.h"
-
-#include "imgui.h"
 #include <chrono>
+
 #ifndef __EMSCRIPTEN__
 	#ifdef _WIN32
 		#include <intrin.h> // for __rdtsc()
@@ -18,16 +14,29 @@
 	#include "emscripten.h"
 #endif
 
+
+#include "imgui.h"
+#define IMGUI_DEFINE_MATH_OPERATORS 1
+#include "imgui_internal.h"
+
+#include "ImGuiFD.h"
+
+#include "Extensions/imguiExt.h"
+#include "Extensions/imguiOperators.h"
+
+
 #include "backends/LogBackend.h"
 
 #include "utils/byteVisualiser.h"
 #include "utils/asmViewer.h"
-#include "Extensions/imguiExt.h"
 #include "StringUtils.h"
 
 #include "utils/icons.h"
 
-ArduEmu::Settings ArduEmu::settings = {false};
+ArduEmu::Settings ArduEmu::settings = {
+	false,
+	ImVec4{0.129f, 0.373f, 0.368f, 1},ImVec4{0.1f, 0.1f, 0.1f, 1}
+};
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 size_t ArduEmu::idCounter = 0;
@@ -50,6 +59,7 @@ bool ArduEmu::showImGuiDemo = true;
 bool ArduEmu::showAbout = false;
 
 void ArduEmu::init() {
+	setupImGuiStyle(settings.accentColor, settings.frameColor);
 	ABB::utils::ByteVisualiser::init();
 }
 
@@ -58,6 +68,57 @@ void ArduEmu::destroy() {
 		delete i;
 	}
 	ABB::utils::ByteVisualiser::destroy();
+}
+
+void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColor) {
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImVec4* colors = style.Colors;
+
+	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 1.5);
+	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.7);
+
+	colors[ImGuiCol_Button]        = ImGuiExt::BrightenColor(accentColor, 1.2);
+	colors[ImGuiCol_ButtonHovered] = ImGuiExt::BrightenColor(accentColor, 1.5);
+	colors[ImGuiCol_ButtonActive]  = accentActiveColor;
+
+	colors[ImGuiCol_TitleBg]       = ImGuiExt::BrightenColor(accentColor, 0.6);
+	colors[ImGuiCol_TitleBgActive] = ImGuiExt::BrightenColor(accentColor, 0.9);
+
+	colors[ImGuiCol_Tab]                = ImGuiExt::BrightenColor(accentColor, 0.8);
+	colors[ImGuiCol_TabHovered]         = ImGuiExt::BrightenColor(accentColor, 1.7);
+	colors[ImGuiCol_TabActive]          = accentActiveColor;
+	colors[ImGuiCol_TabUnfocused]       = ImGuiExt::BrightenColor(accentColor, 0.4);
+	colors[ImGuiCol_TabUnfocusedActive] = accentActiveColor;
+
+	colors[ImGuiCol_Header]        = ImGuiExt::BrightenColor(accentColor, 0.9);
+	colors[ImGuiCol_HeaderHovered] = ImGuiExt::BrightenColor(accentColor, 1.1);
+	colors[ImGuiCol_HeaderActive]  = accentActiveColor;
+
+	colors[ImGuiCol_CheckMark]  = ImGuiExt::BrightenColor(accentColor, 2);
+
+	colors[ImGuiCol_ScrollbarGrab]        = accentColor;
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImGuiExt::BrightenColor(accentColor, 1.3);
+	colors[ImGuiCol_ScrollbarGrabActive]  = accentActiveColor;
+
+	colors[ImGuiCol_SliderGrab]        = ImGuiExt::BrightenColor(accentColor, 1.3);
+	colors[ImGuiCol_SliderGrabActive]  = ImGuiExt::BrightenColor(accentColor, 1.7);
+
+	colors[ImGuiCol_SeparatorHovered] = accentColor;
+	colors[ImGuiCol_SeparatorActive] = accentActiveColor;
+
+	colors[ImGuiCol_ResizeGrip]        = accentColor;
+	colors[ImGuiCol_ResizeGripHovered] = ImGuiExt::BrightenColor(accentColor, 1.3);
+	colors[ImGuiCol_ResizeGripActive]  = accentActiveColor;
+
+	colors[ImGuiCol_DockingPreview]  = ImGuiExt::BrightenColor(accentColor, 2);
+
+	colors[ImGuiCol_TextSelectedBg]  = ImGuiExt::BrightenColor(accentColor, 2);
+
+	colors[ImGuiCol_NavHighlight]  = ImGuiExt::BrightenColor(accentColor, 2);
+
+	colors[ImGuiCol_FrameBg]        = frameColor;
+	colors[ImGuiCol_FrameBgHovered] = ImGuiExt::BrightenColor(frameColor, 1.3);
+	colors[ImGuiCol_FrameBgActive]  = frameActiveColor;
 }
 
 void ArduEmu::draw() {
@@ -385,7 +446,33 @@ void ArduEmu::drawSettings() {
 			switch(selectedInd) {
 				case SettingsSection_main: {
 					ImGui::Checkbox("Always show Menubar in fullscreen", &settings.alwaysShowMenuFullscreen);
-					if(ImGui::TreeNode("Style")){
+					
+					ImGui::Separator();
+
+					static bool autoUpdate = true;
+
+					bool update = false;
+					if (ImGui::ColorEdit3("Accent Color", (float*)&settings.accentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
+						if(autoUpdate)
+							update = true;
+					}
+					if (ImGui::ColorEdit3("Frame Color", (float*)&settings.frameColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
+						if(autoUpdate)
+							update = true;
+					}
+
+					ImGui::Checkbox("Autoupdate", &autoUpdate);
+					if (!autoUpdate && ImGui::Button("Update")) {
+						update = true;
+					}
+
+					if (update) {
+						setupImGuiStyle(settings.accentColor, settings.frameColor);
+					}
+
+					ImGui::Separator();
+
+					if(ImGui::TreeNode("Fine Tune Style")){
 						ImGui::ShowStyleEditor();
 						ImGui::TreePop();
 					}

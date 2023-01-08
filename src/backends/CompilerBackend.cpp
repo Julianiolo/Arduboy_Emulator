@@ -10,7 +10,7 @@ ABB::CompilerBackend::CompilerBackend(ArduboyBackend* abb, const char* winName, 
 }
 
 void ABB::CompilerBackend::draw() {
-    if(ImGui::Begin(winName.c_str())) {
+    if(ImGui::Begin(winName.c_str(), open)) {
 #if defined(__EMSCRIPTEN__)
         ImGui::TextUnformatted("Compilation is not supported on this platform :(");
 #else

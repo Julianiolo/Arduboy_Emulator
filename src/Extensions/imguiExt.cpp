@@ -280,3 +280,7 @@ void ImGuiExt::ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8
 
     ImGuiExt::Image(user_texture_id, size, uv0, uv1, uv2, uv3, tint_col, border_col, pos, drawList);
 }
+
+ImVec4 ImGuiExt::BrightenColor(const ImVec4& col, float f) {
+    return {col.x*f, col.y*f, col.z*f, col.w};
+}

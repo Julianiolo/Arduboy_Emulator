@@ -106,6 +106,7 @@ void drawClickDebug(int button) {
     }
 }
 
+
 void setup() {
     SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );
     InitWindow(1200, 800, "ABemu");
