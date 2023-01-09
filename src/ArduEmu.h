@@ -3,7 +3,10 @@
 
 #include <vector>
 #include <string>
+#include "ActionManager.h"
+
 #include "backends/ArduboyBackend.h"
+
 
 class ArduEmu {
 	static struct Settings {
@@ -35,6 +38,8 @@ public:
 	static bool showImGuiDemo;
 	static bool showAbout;
 
+	static ActionManager actionManager;
+
 	static void init();
 	static void destroy();
 
@@ -60,6 +65,8 @@ private:
 		SettingsSection_COUNT
 	};
 	static void drawSettings();
+	static void drawKeybindSettings();
+
 	static void drawAbout();
 };
 

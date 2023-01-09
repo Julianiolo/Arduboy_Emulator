@@ -19,6 +19,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui_internal.h"
 
+#define GLFW_INCLUDE_NONE
+#include "external/glfw/include/GLFW/glfw3.h"
+
 #include "ImGuiFD.h"
 
 #include "Extensions/imguiExt.h"
@@ -57,6 +60,8 @@ bool ArduEmu::showSettings = false;
 bool ArduEmu::showBenchmark = false;
 bool ArduEmu::showImGuiDemo = true;
 bool ArduEmu::showAbout = false;
+
+ActionManager ArduEmu::actionManager;
 
 void ArduEmu::init() {
 	setupImGuiStyle(settings.accentColor, settings.frameColor);
@@ -495,7 +500,7 @@ void ArduEmu::drawSettings() {
 				break;
 
 				case SettingsSection_keybinds: {
-					ImGui::TextUnformatted("TODO");
+					drawKeybindSettings();
 				}
 				break;
 			}
@@ -503,6 +508,49 @@ void ArduEmu::drawSettings() {
 		ImGui::EndChild();
 	}
 	ImGui::End();
+}
+
+void ArduEmu::drawKeybindSettings() {
+	if(ImGui::BeginTable("Table", 3)) {
+		for(auto& action : actionManager) {
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			std::string name;
+			for(size_t i = 0; i<action.parts.size(); i++) {
+				if(i>0)
+					name += " + ";
+				auto& part = action.parts[i];
+				if(part.type == ActionManager::Action::Part::Type_MouseButton){
+					constexpr const char* mouseButtonNames[] = {"LEFT","RIGHT","MIDDLE","SIDE","EXTRA","FORWARD","BACK"};
+					{
+						MCU_STATIC_ASSERT(MOUSE_BUTTON_LEFT==0);
+						MCU_STATIC_ASSERT(MOUSE_BUTTON_RIGHT==1);
+						MCU_STATIC_ASSERT(MOUSE_BUTTON_MIDDLE==2);
+						MCU_STATIC_ASSERT(MOUSE_BUTTON_SIDE==3);
+						MCU_STATIC_ASSERT(MOUSE_BUTTON_EXTRA==4);
+						MCU_STATIC_ASSERT(MOUSE_BUTTON_FORWARD==5);
+						MCU_STATIC_ASSERT(MOUSE_BUTTON_BACK==6);
+					}
+					name += mouseButtonNames[part.id];
+				}else if(part.type == ActionManager::Action::Part::Type_Key){
+					name += glfwGetKeyName(part.id, 0);
+				}
+			}
+
+			ImGui::TextUnformatted(name.c_str());
+
+			ImGui::TableNextColumn();
+			if(ImGui::Button("Change")) {
+
+			}
+
+			ImGui::TableNextColumn();
+			if(ImGui::Button("Clear")){
+
+			}
+		}
+		ImGui::EndTable();
+	}
 }
 
 void ArduEmu::drawAbout(){
