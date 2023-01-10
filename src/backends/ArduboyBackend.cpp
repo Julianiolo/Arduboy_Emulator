@@ -74,12 +74,12 @@ void ABB::ArduboyBackend::update() {
 
 	ab.buttonState = 0;
 	if (isWinFocused()) {
-		ab.buttonState |= IsKeyDown(KEY_LEFT)  << Arduboy::Button_Left_Bit;
-		ab.buttonState |= IsKeyDown(KEY_RIGHT) << Arduboy::Button_Right_Bit;
-		ab.buttonState |= IsKeyDown(KEY_UP)    << Arduboy::Button_Up_Bit;
-		ab.buttonState |= IsKeyDown(KEY_DOWN)  << Arduboy::Button_Down_Bit;
-		ab.buttonState |= IsKeyDown(KEY_A)     << Arduboy::Button_A_Bit;
-		ab.buttonState |= IsKeyDown(KEY_B)     << Arduboy::Button_B_Bit;
+		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Left,  ActionManager::ActivationState_Down) << Arduboy::Button_Left_Bit;  //IsKeyDown(KEY_LEFT) 
+		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Right, ActionManager::ActivationState_Down) << Arduboy::Button_Right_Bit; //IsKeyDown(KEY_RIGHT)
+		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Up,    ActionManager::ActivationState_Down) << Arduboy::Button_Up_Bit;    //IsKeyDown(KEY_UP)   
+		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Down,  ActionManager::ActivationState_Down) << Arduboy::Button_Down_Bit;  //IsKeyDown(KEY_DOWN) 
+		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_A,     ActionManager::ActivationState_Down) << Arduboy::Button_A_Bit;     //IsKeyDown(KEY_A)    
+		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_B,     ActionManager::ActivationState_Down) << Arduboy::Button_B_Bit;     //IsKeyDown(KEY_B)    
 	}
 	else {
 		ab.buttonState = Arduboy::Button_None;

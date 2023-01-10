@@ -226,60 +226,61 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 						param += c;
 				}
 
-				MCU_ASSERT(param.size() > 0);
-
-				switch (param[0]) {
-					case 'R':
-					case 'r': {
-						uint8_t regInd = (uint8_t)StringUtils::numBaseStrToUIntT<10,uint8_t>(param.c_str() + 1, param.c_str() + param.size());
-						if (regInd < A32u4::DataSpace::Consts::GPRs_size) {
-							uint8_t regVal = mcu->dataspace.getGPReg(regInd);
-							ImGui::SetTooltip("r%d: 0x%02x => %d (%d)", regInd, regVal, regVal, (int8_t)regVal);
-						}
-					} break;
-
-					case 'X':
-					case 'Y':
-					case 'Z':
-					{
-						uint16_t regVal = -1;
-						switch (param[0]) {
-							case 'X':
-								regVal = mcu->dataspace.getX();
-								break;
-							case 'Y':
-								regVal = mcu->dataspace.getY();
-								break;
-							case 'Z':
-								regVal = mcu->dataspace.getZ();
-								break;
-						}
-
-						ImGui::SetTooltip("%c: 0x%04x => %d", param[0], regVal, regVal);
-					} break;
-
-					case '0': {
-						if(param.size() > 1 && param[1] == 'x'){
-							if(param.size() >= 2+4) {
-								popFileStyle();
-								ImGui::BeginTooltip();
-
-								addrmcu_t addr = StringUtils::hexStrToUIntLen(param.c_str()+2,4);
-
-								ImGui::Text("0x%04x => %u", addr, addr);
-
-								const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolByValue(addr, mcu->symbolTable.getSymbolsRom());
-								if(symbol) {
-									ImGui::Separator();
-									ABB::SymbolBackend::drawSymbol(symbol, addr, mcu->flash.getData());
-								}
-
-								ImGui::EndTooltip();
-								pushFileStyle();
+				if(param.size() > 0){
+					switch (param[0]) {
+						case 'R':
+						case 'r': {
+							uint8_t regInd = (uint8_t)StringUtils::numBaseStrToUIntT<10,uint8_t>(param.c_str() + 1, param.c_str() + param.size());
+							if (regInd < A32u4::DataSpace::Consts::GPRs_size) {
+								uint8_t regVal = mcu->dataspace.getGPReg(regInd);
+								ImGui::SetTooltip("r%d: 0x%02x => %d (%d)", regInd, regVal, regVal, (int8_t)regVal);
 							}
-						}
-					} break;
+						} break;
+
+						case 'X':
+						case 'Y':
+						case 'Z':
+						{
+							uint16_t regVal = -1;
+							switch (param[0]) {
+								case 'X':
+									regVal = mcu->dataspace.getX();
+									break;
+								case 'Y':
+									regVal = mcu->dataspace.getY();
+									break;
+								case 'Z':
+									regVal = mcu->dataspace.getZ();
+									break;
+							}
+
+							ImGui::SetTooltip("%c: 0x%04x => %d", param[0], regVal, regVal);
+						} break;
+
+						case '0': {
+							if(param.size() > 1 && param[1] == 'x'){
+								if(param.size() >= 2+4) {
+									popFileStyle();
+									ImGui::BeginTooltip();
+
+									addrmcu_t addr = StringUtils::hexStrToUIntLen(param.c_str()+2,4);
+
+									ImGui::Text("0x%04x => %u", addr, addr);
+
+									const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolByValue(addr, mcu->symbolTable.getSymbolsRom());
+									if(symbol) {
+										ImGui::Separator();
+										ABB::SymbolBackend::drawSymbol(symbol, addr, mcu->flash.getData());
+									}
+
+									ImGui::EndTooltip();
+									pushFileStyle();
+								}
+							}
+						} break;
+					}
 				}
+
 			}
 
 			nextParamOff = comma+1;

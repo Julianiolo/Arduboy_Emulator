@@ -445,30 +445,57 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 	info.analytics = &abb->ab.mcu.analytics;
 	std::function<bool(addrmcu_t,std::string*)> funcLine = [&](addrmcu_t addr, std::string* out) {
 		size_t entryInd = abb->elf.dwarf.debug_line.getEntryIndByAddr(addr);
-		auto entry = entryInd != (size_t)-1 ? abb->elf.dwarf.debug_line.getEntry(entryInd) : nullptr;
+		
+		if(entryInd == (size_t)-1)
+			return false;
+
+		auto entry = abb->elf.dwarf.debug_line.getEntry(entryInd);
 
 		if (entry && entry->file != (uint32_t)-1) {
-			const auto& file = abb->elf.dwarf.debug_line.files[entry->file];
-			if (file.couldFind && entry->line < file.lines.size()) {
-				size_t lineFrom = entry->line;
+			std::string res;
+			while(entry->addr == addr) {
+				const auto& file = abb->elf.dwarf.debug_line.files[entry->file];
+				if (file.couldFind && entry->line < file.lines.size()) {
+					size_t lineFrom = entry->line;
 
-				if (entryInd > 0) {
-					auto lastEntry = abb->elf.dwarf.debug_line.getEntry(entryInd - 1);
-					if (lastEntry->file == entry->file && lastEntry->line+1 < entry->line) {
-						lineFrom = lastEntry->line+1;
+					if (entryInd > 0) {
+						auto lastEntry = abb->elf.dwarf.debug_line.getEntry(entryInd - 1);
+						if (lastEntry->file == entry->file && lastEntry->line+1 < entry->line) {
+							lineFrom = lastEntry->line+1;
+						}
 					}
+
+					const size_t lineTo = entry->line + 1;
+
+					if(lineTo - lineFrom > 64) { // TODO improve this, currently it just randomly cuts off at 64 lines
+						lineFrom = lineTo-64;
+					}
+
+					size_t charFrom = file.lines[lineFrom];
+					size_t charTo = ((lineTo < file.lines.size()) ? file.lines[lineTo]-1 : file.content.size());
+
+					#if 1
+						res += /*file.name + ":" + std::to_string(entry->line) +*/ std::string(
+							file.content.c_str() + charFrom, 
+							file.content.c_str() + charTo
+						) + '\n';
+					#else
+						*out = StringUtils::format("%d-%d @%d %d",lineFrom,lineTo,entry->file,entry->line);
+					#endif
+
+
 				}
 
-				const size_t lineTo = entry->line + 1;
-
-				if(lineTo - lineFrom > 64) { // TODO improve this, currently it just randomly cuts off at 64 lines
-					lineFrom = lineTo-64;
+				entryInd++;
+				if(entryInd >= abb->elf.dwarf.debug_line.getNumEntrys()){
+					break;
 				}
+				entry = abb->elf.dwarf.debug_line.getEntry(entryInd);
+				break;
+			}
 
-				*out = /*file.name + ":" + std::to_string(entry->line) +*/ std::string(
-					file.content.c_str() + file.lines[lineFrom], 
-					file.content.c_str() + ((lineTo < file.lines.size()) ? file.lines[lineTo]-1 : file.content.size())
-				);
+			if(res.size() > 0){
+				*out = res;
 				return true;
 			}
 		}

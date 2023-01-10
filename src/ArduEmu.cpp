@@ -65,6 +65,7 @@ ActionManager ArduEmu::actionManager;
 
 void ArduEmu::init() {
 	setupImGuiStyle(settings.accentColor, settings.frameColor);
+	setupActionManager();
 	ABB::utils::ByteVisualiser::init();
 }
 
@@ -124,6 +125,33 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	colors[ImGuiCol_FrameBg]        = frameColor;
 	colors[ImGuiCol_FrameBgHovered] = ImGuiExt::BrightenColor(frameColor, 1.3);
 	colors[ImGuiCol_FrameBgActive]  = frameActiveColor;
+}
+
+void ArduEmu::setupActionManager() {
+	actionManager.setTestCallB([](uint8_t type, int id, ActionManager::ActivationState activationState){
+		{
+			MCU_STATIC_ASSERT(ActionManager::ActivationState_Down == 0);
+			MCU_STATIC_ASSERT(ActionManager::ActivationState_Up == 1);
+			MCU_STATIC_ASSERT(ActionManager::ActivationState_Pressed == 2);
+			MCU_STATIC_ASSERT(ActionManager::ActivationState_Released == 3);
+		}
+		if(type == ActionManager::Action::Part::Type_MouseButton) {
+			std::function<bool(int)> funcs[] = {IsMouseButtonDown, IsMouseButtonUp, IsMouseButtonPressed, IsMouseButtonReleased};
+			return funcs[activationState](id);
+		}else if(type == ActionManager::Action::Part::Type_Key) {
+			std::function<bool(int)> funcs[] = {IsKeyDown, IsKeyUp, IsKeyPressed, IsKeyReleased};
+			return funcs[activationState](id);
+		}else{
+			abort();
+		}
+	});
+
+	actionManager.addAction(Action_Arduboy_Up).addKey(KEY_W);
+	actionManager.addAction(Action_Arduboy_Down).addKey(KEY_S);
+	actionManager.addAction(Action_Arduboy_Left).addKey(KEY_A);
+	actionManager.addAction(Action_Arduboy_Right).addKey(KEY_D);
+	actionManager.addAction(Action_Arduboy_A).addKey(KEY_K);
+	actionManager.addAction(Action_Arduboy_B).addKey(KEY_L);
 }
 
 void ArduEmu::draw() {

@@ -138,7 +138,7 @@ void setup() {
     abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
-#if 1
+#if 0
     abb.ab.loadFromHexFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
     //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");

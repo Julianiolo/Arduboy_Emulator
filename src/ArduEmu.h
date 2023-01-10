@@ -38,6 +38,14 @@ public:
 	static bool showImGuiDemo;
 	static bool showAbout;
 
+	enum {
+		Action_Arduboy_Up=0,
+		Action_Arduboy_Down,
+		Action_Arduboy_Left,
+		Action_Arduboy_Right,
+		Action_Arduboy_A,
+		Action_Arduboy_B
+	};
 	static ActionManager actionManager;
 
 	static void init();
@@ -46,6 +54,7 @@ public:
 	static void draw();
 	
 	static void setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColor);
+	static void setupActionManager();
 
 	static ABB::ArduboyBackend& addEmulator(const char* n);
 	static ABB::ArduboyBackend* getInstance(size_t ind);
