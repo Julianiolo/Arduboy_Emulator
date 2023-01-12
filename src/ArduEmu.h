@@ -75,6 +75,7 @@ private:
 	};
 	static void drawSettings();
 	static void drawKeybindSettings();
+	static std::string getActionKeyStr(const ActionManager::Action& action);
 
 	static void drawAbout();
 };

@@ -38,7 +38,7 @@
 
 ArduEmu::Settings ArduEmu::settings = {
 	false,
-	ImVec4{0.129f, 0.373f, 0.368f, 1},ImVec4{0.1f, 0.1f, 0.1f, 1}
+	ImVec4{0.129f, 0.373f, 0.368f, 1},ImVec4{0.2f, 0.2f, 0.2f, 1}
 };
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
@@ -80,7 +80,7 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImVec4* colors = style.Colors;
 
-	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 1.5);
+	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 2);
 	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.7);
 
 	colors[ImGuiCol_Button]        = ImGuiExt::BrightenColor(accentColor, 1.2);
@@ -139,19 +139,19 @@ void ArduEmu::setupActionManager() {
 			std::function<bool(int)> funcs[] = {IsMouseButtonDown, IsMouseButtonUp, IsMouseButtonPressed, IsMouseButtonReleased};
 			return funcs[activationState](id);
 		}else if(type == ActionManager::Action::Part::Type_Key) {
-			std::function<bool(int)> funcs[] = {IsKeyDown, IsKeyUp, IsKeyPressed, IsKeyReleased};
-			return funcs[activationState](id);
+			std::function<bool(ImGuiKey)> funcs[] = {(bool(*)(ImGuiKey))ImGui::IsKeyDown, [](ImGuiKey k){return !ImGui::IsKeyDown(k);}, [](ImGuiKey k){return ImGui::IsKeyPressed(k,false);}, (bool(*)(ImGuiKey))ImGui::IsKeyReleased};
+			return funcs[activationState]((ImGuiKey)id);
 		}else{
 			abort();
 		}
 	});
 
-	actionManager.addAction(Action_Arduboy_Up).addKey(KEY_W);
-	actionManager.addAction(Action_Arduboy_Down).addKey(KEY_S);
-	actionManager.addAction(Action_Arduboy_Left).addKey(KEY_A);
-	actionManager.addAction(Action_Arduboy_Right).addKey(KEY_D);
-	actionManager.addAction(Action_Arduboy_A).addKey(KEY_K);
-	actionManager.addAction(Action_Arduboy_B).addKey(KEY_L);
+	actionManager.addAction("Arduboy Up Button",Action_Arduboy_Up).addKey(ImGuiKey_W).setAsDefault();
+	actionManager.addAction("Arduboy Down Button",Action_Arduboy_Down).addKey(ImGuiKey_S).setAsDefault();
+	actionManager.addAction("Arduboy Left Button",Action_Arduboy_Left).addKey(ImGuiKey_A).setAsDefault();
+	actionManager.addAction("Arduboy Right Button",Action_Arduboy_Right).addKey(ImGuiKey_D).setAsDefault();
+	actionManager.addAction("Arduboy A Button",Action_Arduboy_A).addKey(ImGuiKey_K).setAsDefault();
+	actionManager.addAction("Arduboy B Button",Action_Arduboy_B).addKey(ImGuiKey_L).setAsDefault();
 }
 
 void ArduEmu::draw() {
@@ -538,44 +538,111 @@ void ArduEmu::drawSettings() {
 	ImGui::End();
 }
 
+std::string ArduEmu::getActionKeyStr(const ActionManager::Action& action){
+	std::string keysStr;
+	for(size_t i = 0; i<action.parts.size(); i++) {
+		if(i>0)
+			keysStr += " + ";
+		auto& part = action.parts[i];
+		if(part.type == ActionManager::Action::Part::Type_MouseButton){
+			constexpr const char* mouseButtonNames[] = {"LEFT","RIGHT","MIDDLE","SIDE","EXTRA","FORWARD","BACK"};
+			{
+				MCU_STATIC_ASSERT(MOUSE_BUTTON_LEFT==0);
+				MCU_STATIC_ASSERT(MOUSE_BUTTON_RIGHT==1);
+				MCU_STATIC_ASSERT(MOUSE_BUTTON_MIDDLE==2);
+				MCU_STATIC_ASSERT(MOUSE_BUTTON_SIDE==3);
+				MCU_STATIC_ASSERT(MOUSE_BUTTON_EXTRA==4);
+				MCU_STATIC_ASSERT(MOUSE_BUTTON_FORWARD==5);
+				MCU_STATIC_ASSERT(MOUSE_BUTTON_BACK==6);
+			}
+			keysStr += mouseButtonNames[part.id];
+		}else if(part.type == ActionManager::Action::Part::Type_Key){
+			keysStr += ImGui::GetKeyName((ImGuiKey)part.id);
+		}
+	}
+	return keysStr;
+}
+
 void ArduEmu::drawKeybindSettings() {
-	if(ImGui::BeginTable("Table", 3)) {
-		for(auto& action : actionManager) {
-			ImGui::TableNextRow();
-			ImGui::TableNextColumn();
-			std::string name;
-			for(size_t i = 0; i<action.parts.size(); i++) {
-				if(i>0)
-					name += " + ";
-				auto& part = action.parts[i];
-				if(part.type == ActionManager::Action::Part::Type_MouseButton){
-					constexpr const char* mouseButtonNames[] = {"LEFT","RIGHT","MIDDLE","SIDE","EXTRA","FORWARD","BACK"};
-					{
-						MCU_STATIC_ASSERT(MOUSE_BUTTON_LEFT==0);
-						MCU_STATIC_ASSERT(MOUSE_BUTTON_RIGHT==1);
-						MCU_STATIC_ASSERT(MOUSE_BUTTON_MIDDLE==2);
-						MCU_STATIC_ASSERT(MOUSE_BUTTON_SIDE==3);
-						MCU_STATIC_ASSERT(MOUSE_BUTTON_EXTRA==4);
-						MCU_STATIC_ASSERT(MOUSE_BUTTON_FORWARD==5);
-						MCU_STATIC_ASSERT(MOUSE_BUTTON_BACK==6);
-					}
-					name += mouseButtonNames[part.id];
-				}else if(part.type == ActionManager::Action::Part::Type_Key){
-					name += glfwGetKeyName(part.id, 0);
+	static ActionManager::Action editAction;
+
+	if(ImGui::BeginTable("Table", 3, ImGuiTableFlags_Borders)) {
+		if(ImGui::BeginPopupModal("EditKeybinds")){
+			ImGui::Text("Edit Keybind \"%s\"", editAction.title.c_str());
+			ImGui::Separator();
+
+			ImGui::Spacing();
+
+
+			{
+				for (ImGuiKey key = ImGuiKey_KeysData_OFFSET; key < ImGuiKey_MouseLeft; key = (ImGuiKey)(key + 1)) { 
+					if (!ImGui::IsKeyPressed(key) || (key < 512 && ImGui::GetIO().KeyMap[key] != -1)) continue; 
+					editAction.addKey(key);
 				}
 			}
+			
+			std::string keyStr = getActionKeyStr(editAction);
+			if(keyStr.size() == 0)
+				keyStr = "Press any Key";
+			ImVec2 textSize = ImGui::CalcTextSize(keyStr.c_str());
+			ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x/2-textSize.x/2);
+			ImGui::GetWindowDrawList()->AddRect(ImGui::GetCursorScreenPos()-ImVec2{1,1}, ImGui::GetCursorScreenPos()+textSize+ImVec2{1,1}, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));
+			ImGui::TextUnformatted(keyStr.c_str());
 
-			ImGui::TextUnformatted(name.c_str());
+			ImGui::Spacing();
+
+			if(ImGui::Button("OK", ImVec2(100,0))){
+				actionManager.getAction(editAction.id) = std::move(editAction);
+				editAction.clear();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if(ImGui::Button("Cancel",ImVec2(100,0))){
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+
+		ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
+
+		{
+			ImGui::TableSetupColumn("Title");
+			ImGui::TableSetupColumn("Keys");
+			ImGui::TableSetupColumn("Action");
+			ImGui::TableHeadersRow();
+		}
+
+		for(auto& action : actionManager) {
+			ImGui::PushID(&action);
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			ImGui::TextUnformatted(action.title.c_str());
+
+			ImGui::TableNextColumn();
+
+			
+
+			ImGui::TextUnformatted(getActionKeyStr(action).c_str());
 
 			ImGui::TableNextColumn();
 			if(ImGui::Button("Change")) {
-
+				ImGui::OpenPopup("EditKeybinds");
+				editAction.clear();
+				editAction.id = action.id;
+				editAction.title = action.title;
 			}
-
-			ImGui::TableNextColumn();
+			ImGui::SameLine();
+			if(ImGui::Button("Default")) {
+				action.resetToDefault();
+			}
+			ImGui::SameLine();
 			if(ImGui::Button("Clear")){
-
+				action.clear();
 			}
+
+			ImGui::PopID();
 		}
 		ImGui::EndTable();
 	}
