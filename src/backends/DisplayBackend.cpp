@@ -82,7 +82,7 @@ bool ABB::DisplayBackend::getPixelOfImage(uint8_t x, uint8_t y) {
 	return ((Color3*)displayImg.data)[(y+1)*displayImg.width + x + 1].r ? 1 : 0;
 }
 
-void ABB::DisplayBackend::draw(const ImVec2& screenPos, const ImVec2& contentSize, bool showToolTip, ImDrawList* drawList) {
+void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDrawList* drawList) {
 	if (ImGui::IsWindowFocused()) {
 		lastWinFocused = ImGui::GetCurrentContext()->FrameCount;
 	}

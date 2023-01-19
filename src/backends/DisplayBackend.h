@@ -43,7 +43,7 @@ namespace ABB {
 
 		void update();
 		
-		void draw(const ImVec2& screenPos, const ImVec2& size, bool showToolTip, ImDrawList* drawList = nullptr);
+		void draw(const ImVec2& size, bool showToolTip, ImDrawList* drawList = nullptr);
 		void drawSetColorWin();
 		void openSetColorWin();
 
