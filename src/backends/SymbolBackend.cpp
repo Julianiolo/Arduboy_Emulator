@@ -26,7 +26,9 @@ ABB::SymbolBackend::SymbolBackend(A32u4::ATmega32u4* mcu, const char* winName, b
 }
 
 void ABB::SymbolBackend::postProcessSymbols(A32u4::SymbolTable::Symbol* symbs, size_t len, void* userData) {
-    if (BinTools::canDemangle() && len > 0) {
+    MCU_UNUSED(userData);
+	
+	if (BinTools::canDemangle() && len > 0) {
 		const char** strs = new const char*[len];
 		for (size_t i = 0; i < len; i++) {
 			strs[i] = symbs[i].name.c_str();

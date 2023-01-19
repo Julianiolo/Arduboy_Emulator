@@ -190,5 +190,5 @@ void ABB::McuInfoBackend::setEepromValue(size_t addr, uint8_t val, void* userDat
 }
 void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
-	abort(); // TODO: edit data
+	info->ab->mcu.flash.setByte(addr, val);
 }

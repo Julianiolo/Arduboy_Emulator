@@ -6,7 +6,7 @@ PLATFORM?=PLATFORM_DESKTOP
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     CC:=gcc
     CXX:=g++
-	AR:=ar
+	AR:=gcc-ar
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
     CC:=emcc
