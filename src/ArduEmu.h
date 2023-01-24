@@ -10,10 +10,16 @@
 
 class ArduEmu {
 	static struct Settings {
-		bool alwaysShowMenuFullscreen;
+		bool alwaysShowMenuFullscreen = false;
 
-		ImVec4 accentColor;
-		ImVec4 frameColor;
+		ImVec4 accentColor = ImVec4{0.129f, 0.373f, 0.368f, 1};
+		ImVec4 frameColor = ImVec4{0.2f, 0.2f, 0.2f, 1};
+		struct RainbowSettings {
+			bool active = false;
+			float speed = 0.003;
+			float saturation = 0.5;
+			float brightness = 0.5;
+		} rainbowSettings;
 	} settings;
 private:
 	static std::vector<ABB::ArduboyBackend*> instances;
@@ -23,6 +29,8 @@ private:
 	static size_t wantsFullscreenInd;
 
 	static bool fullscreenMenuUsedLastFrame;
+
+	static float rainbowCurrHue;
 
 
 #if defined(__EMSCRIPTEN__)

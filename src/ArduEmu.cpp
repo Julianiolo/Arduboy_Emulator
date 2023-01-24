@@ -36,10 +36,7 @@
 
 #include "utils/icons.h"
 
-ArduEmu::Settings ArduEmu::settings = {
-	false,
-	ImVec4{0.129f, 0.373f, 0.368f, 1},ImVec4{0.2f, 0.2f, 0.2f, 1}
-};
+ArduEmu::Settings ArduEmu::settings;
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
 size_t ArduEmu::idCounter = 0;
@@ -48,6 +45,8 @@ size_t ArduEmu::activeInd = -1;
 size_t ArduEmu::wantsFullscreenInd = -1;
 
 bool ArduEmu::fullscreenMenuUsedLastFrame = false;
+
+float ArduEmu::rainbowCurrHue = 0;
 
 #if defined(__EMSCRIPTEN__)
 bool ArduEmu::isSimpleLoadDialogOpen = false;
@@ -80,18 +79,18 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImVec4* colors = style.Colors;
 
-	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 2);
-	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.7);
+	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 1.5);
+	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.5);
 
-	colors[ImGuiCol_Button]        = ImGuiExt::BrightenColor(accentColor, 1.2);
-	colors[ImGuiCol_ButtonHovered] = ImGuiExt::BrightenColor(accentColor, 1.5);
+	colors[ImGuiCol_Button]        = ImGuiExt::BrightenColor(accentColor, 1);
+	colors[ImGuiCol_ButtonHovered] = ImGuiExt::BrightenColor(accentColor, 1.2);
 	colors[ImGuiCol_ButtonActive]  = accentActiveColor;
 
 	colors[ImGuiCol_TitleBg]       = ImGuiExt::BrightenColor(accentColor, 0.6);
 	colors[ImGuiCol_TitleBgActive] = ImGuiExt::BrightenColor(accentColor, 0.9);
 
 	colors[ImGuiCol_Tab]                = ImGuiExt::BrightenColor(accentColor, 0.8);
-	colors[ImGuiCol_TabHovered]         = ImGuiExt::BrightenColor(accentColor, 1.7);
+	colors[ImGuiCol_TabHovered]         = ImGuiExt::BrightenColor(accentColor, 1.25);
 	colors[ImGuiCol_TabActive]          = accentActiveColor;
 	colors[ImGuiCol_TabUnfocused]       = ImGuiExt::BrightenColor(accentColor, 0.4);
 	colors[ImGuiCol_TabUnfocusedActive] = accentActiveColor;
@@ -107,7 +106,7 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	colors[ImGuiCol_ScrollbarGrabActive]  = accentActiveColor;
 
 	colors[ImGuiCol_SliderGrab]        = ImGuiExt::BrightenColor(accentColor, 1.3);
-	colors[ImGuiCol_SliderGrabActive]  = ImGuiExt::BrightenColor(accentColor, 1.7);
+	colors[ImGuiCol_SliderGrabActive]  = ImGuiExt::BrightenColor(accentColor, 1.5);
 
 	colors[ImGuiCol_SeparatorHovered] = accentColor;
 	colors[ImGuiCol_SeparatorActive] = accentActiveColor;
@@ -482,26 +481,74 @@ void ArduEmu::drawSettings() {
 					
 					ImGui::Separator();
 
-					static bool autoUpdate = true;
+					if(settings.rainbowSettings.active)
+						ImGui::BeginDisabled();
 
-					bool update = false;
-					if (ImGui::ColorEdit3("Accent Color", (float*)&settings.accentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
-						if(autoUpdate)
+					{
+						ImGui::BeginGroup();
+
+						static bool autoUpdate = true;
+
+						bool update = false;
+						if (ImGui::ColorEdit3("Accent Color", (float*)&settings.accentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
+							if(autoUpdate)
+								update = true;
+						}
+						if (ImGui::ColorEdit3("Frame Color", (float*)&settings.frameColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
+							if(autoUpdate)
+								update = true;
+						}
+
+						ImGui::Checkbox("Autoupdate", &autoUpdate);
+						if (!autoUpdate && ImGui::Button("Update")) {
 							update = true;
-					}
-					if (ImGui::ColorEdit3("Frame Color", (float*)&settings.frameColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
-						if(autoUpdate)
-							update = true;
+						}
+
+						if (update) {
+							setupImGuiStyle(settings.accentColor, settings.frameColor);
+						}
+
+						ImGui::EndGroup();
 					}
 
-					ImGui::Checkbox("Autoupdate", &autoUpdate);
-					if (!autoUpdate && ImGui::Button("Update")) {
-						update = true;
+					if(settings.rainbowSettings.active){
+						ImGui::EndDisabled();
+						if(ImGui::IsItemHovered()) {
+							ImGui::SetTooltip("Rainbow Mode!");
+						}
 					}
 
-					if (update) {
-						setupImGuiStyle(settings.accentColor, settings.frameColor);
+
+					if(ImGui::Checkbox("Rainbow Mode!", &settings.rainbowSettings.active)) {
+						if(!settings.rainbowSettings.active)
+							setupImGuiStyle(settings.accentColor, settings.frameColor);
 					}
+
+					if(settings.rainbowSettings.active) {
+						ImGui::Indent();
+
+						ImGui::DragFloat("Speed", &settings.rainbowSettings.speed, 0.0001, 0, 1);
+
+						ImGui::Spacing();
+
+						ImGui::DragFloat("Saturation", &settings.rainbowSettings.saturation, 0.01, 0, 1);
+						ImGui::DragFloat("Brightness", &settings.rainbowSettings.brightness, 0.01, 0, 1);
+
+						rainbowCurrHue += settings.rainbowSettings.speed;
+						rainbowCurrHue = std::fmod(rainbowCurrHue, 1);
+
+						ImVec4 col;
+						ImGui::ColorConvertHSVtoRGB(
+							rainbowCurrHue, settings.rainbowSettings.saturation, settings.rainbowSettings.brightness,
+							col.x, col.y, col.z
+						);
+						col.w = 1;
+
+						setupImGuiStyle(col, settings.frameColor);
+
+						ImGui::Unindent();
+					}
+
 
 					ImGui::Separator();
 
