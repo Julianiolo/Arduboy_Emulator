@@ -46,12 +46,9 @@ namespace ABB {
 		bool winFocused = false;
 
 		bool devToolsOpen = true;
-		bool execMenuOpen = false;
 		bool firstFrame = true; // whether this is the first frame ever displayed
 
 		void update();
-
-		void drawExecMenu();
 
 		void setMcu();
 	public:

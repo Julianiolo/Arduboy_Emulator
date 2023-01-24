@@ -31,7 +31,7 @@ logBackend(src.logBackend), displayBackend(src.displayBackend), debuggerBackend(
 mcuInfoBackend(src.mcuInfoBackend), analyticsBackend(src.analyticsBackend), compilerBackend(src.compilerBackend), symbolBackend(src.symbolBackend),
 elf(src.elf), id(src.id), fullScreen(src.fullScreen),
 open(src.open), open_try(src.open_try), winFocused(src.winFocused),
-devToolsOpen(src.devToolsOpen), execMenuOpen(src.execMenuOpen), firstFrame(src.firstFrame)
+devToolsOpen(src.devToolsOpen), firstFrame(src.firstFrame)
 {
 	setMcu();
 }
@@ -42,6 +42,10 @@ ABB::ArduboyBackend& ABB::ArduboyBackend::operator=(const ArduboyBackend& src){
 	mcuInfoBackend = src.mcuInfoBackend; analyticsBackend = src.analyticsBackend; compilerBackend = src.compilerBackend;
 	symbolBackend = src.symbolBackend;
 	setMcu();
+
+	elf = src.elf; id = src.id; fullScreen = src.fullScreen;
+	open = src.open; open_try = src.open_try; winFocused = src.winFocused;
+	devToolsOpen = src.devToolsOpen; firstFrame = src.firstFrame;
 	return *this;
 }
 
@@ -103,8 +107,6 @@ void ABB::ArduboyBackend::draw() {
 	logBackend.activate();
 
 	update();
-
-	drawExecMenu();
 
 	if (devToolsOpen) {
 		debuggerBackend.draw();
@@ -211,8 +213,6 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 			}
 		}
 			
-
-		if(ImGui::MenuItem(ADD_ICON(ICON_FA_WRENCH) "Exec Menu", NULL, &execMenuOpen)) {}
 		if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
 		ImGui::EndMenu();
 	}
@@ -240,6 +240,23 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 		}
 		if (ImGui::MenuItem("Set Colors")) {
 			displayBackend.openSetColorWin();
+		}
+		ImGui::EndMenu();
+	}
+	if(ImGui::BeginMenu(ADD_ICON(ICON_FA_PLAY) "Emulation")){
+		if(ImGui::BeginMenu(ADD_ICON(ICON_FA_WRENCH) "ExecFlags")){
+			bool debug = (ab.execFlags & A32u4::ATmega32u4::ExecFlags_Debug) != 0;
+			if (ImGui::MenuItem("Debug", NULL, debug))
+				ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Debug;
+
+			bool analyze = (ab.execFlags & A32u4::ATmega32u4::ExecFlags_Analyse) != 0;
+			if (ImGui::MenuItem("Analyze", NULL, analyze))
+				ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Analyse;
+			
+			ImGui::EndMenu();
+		}
+		if(ImGui::BeginMenu("Speed")){
+			ImGui::EndMenu();
 		}
 		ImGui::EndMenu();
 	}
@@ -277,21 +294,6 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 	ImGui::DockBuilderDockWindow(       logBackend.winName.c_str(), r2);
 }
 
-void ABB::ArduboyBackend::drawExecMenu() {
-	if (!execMenuOpen)
-		return;
-
-	if (ImGui::Begin((name + " Exec Menu").c_str(), &execMenuOpen)) {
-		bool debug = (ab.execFlags & A32u4::ATmega32u4::ExecFlags_Debug) != 0;
-		if (ImGui::Checkbox("Debug", &debug))
-			ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Debug;
-
-		bool analyze = (ab.execFlags & A32u4::ATmega32u4::ExecFlags_Analyse) != 0;
-		if (ImGui::Checkbox("Analyze", &analyze))
-			ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Analyse;
-	}
-	ImGui::End();
-}
 
 void ABB::ArduboyBackend::tryClose() {
 	open = false;

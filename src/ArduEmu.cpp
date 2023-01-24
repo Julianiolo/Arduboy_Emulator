@@ -79,8 +79,8 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImVec4* colors = style.Colors;
 
-	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 1.5);
-	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.5);
+	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 1.3);
+	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.3);
 
 	colors[ImGuiCol_Button]        = ImGuiExt::BrightenColor(accentColor, 1);
 	colors[ImGuiCol_ButtonHovered] = ImGuiExt::BrightenColor(accentColor, 1.2);
@@ -90,7 +90,7 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	colors[ImGuiCol_TitleBgActive] = ImGuiExt::BrightenColor(accentColor, 0.9);
 
 	colors[ImGuiCol_Tab]                = ImGuiExt::BrightenColor(accentColor, 0.8);
-	colors[ImGuiCol_TabHovered]         = ImGuiExt::BrightenColor(accentColor, 1.25);
+	colors[ImGuiCol_TabHovered]         = ImGuiExt::BrightenColor(accentColor, 1.2);
 	colors[ImGuiCol_TabActive]          = accentActiveColor;
 	colors[ImGuiCol_TabUnfocused]       = ImGuiExt::BrightenColor(accentColor, 0.4);
 	colors[ImGuiCol_TabUnfocusedActive] = accentActiveColor;
