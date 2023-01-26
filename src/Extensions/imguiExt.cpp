@@ -122,18 +122,21 @@ ImGuiLastItemData& ImGuiExt::GetItem() {
     return g.LastItemData;
 }
 
-size_t ImGuiExt::SelectSwitch(const char** labels, size_t num, size_t selected, const ImVec2& size) {
+bool ImGuiExt::SelectSwitch(const char** labels, size_t num, size_t* selected, const ImVec2& size) {
     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5,0.5 });
+    bool isClicked = false;
     for(size_t cnt = 0; cnt < num; cnt++){
         if (cnt) {
             ImGui::SameLine();
         }
             
-        if (ImGui::Selectable(labels[cnt], selected == cnt, ImGuiSelectableFlags_DontClosePopups, {size.x / num, size.y}))
-            selected = cnt;
+        if (ImGui::Selectable(labels[cnt], *selected == cnt, ImGuiSelectableFlags_DontClosePopups, {size.x / num, size.y})) {
+            *selected = cnt;
+            isClicked = true;
+        }
     }
     ImGui::PopStyleVar();
-    return selected;
+    return isClicked;
 }
 
 void ImGuiExt::ImageRect(const Texture2D& tex, float destWidth, float destHeight, const Rectangle& srcRect) { // basically just copy-paste from rlImgui but with floats for dest dimensions

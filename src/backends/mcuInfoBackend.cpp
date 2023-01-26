@@ -3,9 +3,12 @@
 
 #include <cmath>
 #include <cctype>
+#include <fstream>
 
 #include "../Extensions/imguiExt.h"
 #include "ImGuiFD.h"
+
+#include "LogBackend.h"
 
 ABB::McuInfoBackend::SaveLoadFDIPair::SaveLoadFDIPair(const char* bothName):
 	save((std::string("Save ") + bothName).c_str()), load((std::string("Load ") + bothName).c_str())
@@ -148,27 +151,69 @@ void ABB::McuInfoBackend::draw() {
 	ImGui::End();
 
 	drawDialog(&fdiRam.save, [&](const char* path){
-		StringUtils::writeBytesToFile(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, path);
+		std::ofstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		ab->mcu.dataspace.getRamState(file);
+		file.close();
+		//StringUtils::writeBytesToFile(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, path);
 	});
 	drawDialog(&fdiRam.load, [&](const char* path){
-		// TODO
-		abort();
+		std::ifstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		ab->mcu.dataspace.setRamState(file);
+		file.close();
 	});
 
 	drawDialog(&fdiEeprom.save, [&](const char* path){
-		StringUtils::writeBytesToFile(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, path);
+		std::ofstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		ab->mcu.dataspace.getEepromState(file);
+		file.close();
+		//StringUtils::writeBytesToFile(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, path);
 	});
 	drawDialog(&fdiEeprom.load, [&](const char* path){
-		// TODO
-		abort();
+		std::ifstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		ab->mcu.dataspace.setEepromState(file);
+		file.close();
 	});
 
 	drawDialog(&fdiRom.save, [&](const char* path){
-		StringUtils::writeBytesToFile(ab->mcu.flash.getData(), A32u4::Flash::sizeMax, path);
+		std::ofstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		ab->mcu.flash.getRomState(file);
+		file.close();
+		//StringUtils::writeBytesToFile(ab->mcu.flash.getData(), A32u4::Flash::sizeMax, path);
 	});
 	drawDialog(&fdiRom.load, [&](const char* path){
-		// TODO
-		abort();
+		std::ifstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		ab->mcu.flash.setRomState(file);
+		file.close();
 	});
 }
 

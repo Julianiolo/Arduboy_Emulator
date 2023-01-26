@@ -4,7 +4,10 @@
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
 #include "../utils/icons.h"
+
 #include "../ArduEmu.h"
+
+#include "../Extensions/imguiExt.h"
 
 ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	name(n), devWinName(std::string(n) + "devtools"), 
@@ -126,14 +129,23 @@ void ABB::ArduboyBackend::draw() {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
 
 		char nameBuf[512];
-		snprintf(nameBuf, sizeof(nameBuf), "%s %s%s%s###%s", 
-			name.c_str(),
-			isWinFocused() ? "[Active]" : "",
-			ab.mcu.debugger.isHalted() ? "[HALTED]" : "",
-			ab.mcu.flash.isProgramLoaded() ? "" : " - NO PROGRAM LOADED!", 
-			
-			name.c_str()
-		);
+		{
+			char subBuf[128];
+			subBuf[0] = 0;
+			if(ab.emulationSpeed != 1) {
+				snprintf(subBuf, sizeof(subBuf), "[%.2f]",ab.emulationSpeed);
+			}
+			snprintf(nameBuf, sizeof(nameBuf), "%s %s%s%s%s###%s", 
+				name.c_str(),
+				subBuf,
+				isWinFocused() ? "[Active]" : "",
+				ab.mcu.debugger.isHalted() ? "[HALTED]" : "",
+				ab.mcu.flash.isProgramLoaded() ? "" : " - NO PROGRAM LOADED!", 
+				
+				name.c_str()
+			);
+		}
+		
 
 		if (ImGui::Begin(nameBuf, &open_try, ImGuiWindowFlags_MenuBar)) {
 			winFocused = ImGui::IsWindowFocused();
@@ -256,6 +268,22 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 			ImGui::EndMenu();
 		}
 		if(ImGui::BeginMenu("Speed")){
+			constexpr float speeds[] = {
+				0.1, 0.25, 0.5, 1, 2, 4, 10
+			};
+			constexpr const char* speedLabels[] = {
+				"0.1x", "0.25x", "0.5x", "1x", "2x", "4x", "10x"
+			};
+			size_t currVal = -1;
+			for(size_t i = 0; i<MCU_ARR_SIZE(speeds); i++) {
+				if(ab.emulationSpeed == speeds[i]) {
+					currVal = i;
+					break;
+				}
+			}
+			if(ImGuiExt::SelectSwitch((const char**)speedLabels, MCU_ARR_SIZE(speeds), &currVal, {300,0})) {
+				ab.emulationSpeed = speeds[currVal];
+			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMenu();

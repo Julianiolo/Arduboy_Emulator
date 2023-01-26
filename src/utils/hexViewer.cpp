@@ -630,8 +630,12 @@ void ABB::utils::HexViewer::drawSettings() {
 
 	ImGui::TextUnformatted("Hex:");
 	ImGui::Indent();
-	const char* labels[] = { "LowerCase", "UpperCase" };
-	settings.upperCaseHex = ImGuiExt::SelectSwitch(labels, 2, settings.upperCaseHex);
+	{
+		const char* labels[] = { "LowerCase", "UpperCase" };
+		size_t val = settings.upperCaseHex;
+		ImGuiExt::SelectSwitch(labels, 2, &val);
+		settings.upperCaseHex = val;
+	}
 	ImGui::Unindent();
 
 	ImGui::Separator();

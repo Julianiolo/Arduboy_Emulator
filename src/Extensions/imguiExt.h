@@ -22,7 +22,7 @@ namespace ImGuiExt {
 	void AddRectToScrollBar(ImGuiWindow* window, ImGuiAxis axis, const ImRect& pos_norm, const ImVec4& col, ImRect scrollRect = {-1,-1,-1,-1});
 	ImGuiLastItemData& GetItem();
 
-	size_t SelectSwitch(const char** labels, size_t num, size_t selected, const ImVec2& size = { 200,0 });
+	bool SelectSwitch(const char** labels, size_t num, size_t* selected, const ImVec2& size = { 200,0 });
 	void ImageRect(const Texture2D& tex, float destWidth, float destHeight, const Rectangle& srcRect);
 
 	void Rect(const char* desc_id, const ImVec4& col, ImVec2 size = {0,0});
