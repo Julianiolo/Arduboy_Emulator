@@ -237,3 +237,9 @@ void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) 
 	McuInfoBackend* info = (McuInfoBackend*)userData;
 	info->ab->mcu.flash.setByte(addr, val);
 }
+
+void ABB::McuInfoBackend::drawStates() {
+	if(ImGui::TreeNode("")) {
+		ImGui::
+	}
+}

@@ -45,6 +45,9 @@ namespace ABB {
 		static void setRamValue(size_t addr, uint8_t val, void* userData);
 		static void setEepromValue(size_t addr, uint8_t val, void* userData);
 		static void setRomValue(size_t addr, uint8_t val, void* userData);
+
+		void drawStates();
+
 	public:
 		std::string winName;
 		bool* open;
