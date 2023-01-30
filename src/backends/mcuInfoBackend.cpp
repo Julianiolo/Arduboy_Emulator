@@ -144,6 +144,11 @@ void ABB::McuInfoBackend::draw() {
 			ImGui::PopID();
 			ImGui::TreePop();
 		}
+	
+		if (ImGui::TreeNode("States")) {
+			drawStates();
+			ImGui::TreePop();
+		}
 	}
 	else {
 		winFocused = false;
@@ -239,7 +244,48 @@ void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) 
 }
 
 void ABB::McuInfoBackend::drawStates() {
-	if(ImGui::TreeNode("")) {
-		ImGui::
+	constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+	if(states.size() > 0) {
+		if(ImGui::BeginTable("StatesTable", 2, flags)){
+			for(size_t i = 0; i<states.size();) {
+				ImGui::PushID(i);
+				auto& entry = states[i];
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(entry.first.c_str());
+				
+
+				ImGui::TableNextColumn();
+				if(ImGui::Button("Load")){
+					// TODO
+					abort();
+				}
+				ImGui::SameLine();
+				if(ImGui::Button("Delete")) {
+					states.erase(states.begin()+i);
+					ImGui::PopID();
+					continue;
+				}
+
+				i++;
+				ImGui::PopID();
+			}
+			ImGui::EndTable();
+		}
+	}else{
+		ImGui::TextUnformatted("No States saved yet!");
 	}
+}
+
+void ABB::McuInfoBackend::addState(Arduboy& ab, const char* name){
+	std::string n;
+	if(name == nullptr) {
+		time_t t = std::time(0);
+		n += "From: ";
+		n += std::ctime(&t);
+	}else{
+		n = name;
+	}
+	states.push_back({n, ab});
 }

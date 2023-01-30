@@ -1,8 +1,11 @@
 #ifndef _ABB_MCUINFO_BACKEND
 #define _ABB_MCUINFO_BACKEND
 
+#include <vector>
 #include <string>
 #include <functional>
+#include <ctime>
+
 #include "Arduboy.h"
 #include "imgui.h"
 #include "../utils/hexViewer.h"
@@ -39,6 +42,8 @@ namespace ABB {
 		SaveLoadFDIPair fdiEeprom;
 		SaveLoadFDIPair fdiRom;
 
+		std::vector<std::pair<std::string,Arduboy>> states;
+
 		void drawSaveLoadButtons(SaveLoadFDIPair* fdi);
 		void drawDialog(ImGuiFD::FDInstance* fdi, std::function<void(const char* path)> callB);
 
@@ -59,6 +64,7 @@ namespace ABB {
 		const char* getWinName() const;
 
 		bool isWinFocused() const;
+		void addState(Arduboy& ab, const char* name = nullptr);
 	};
 }
 

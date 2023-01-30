@@ -226,6 +226,10 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 		}
 			
 		if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
+
+		if(ImGui::MenuItem("Backup State")) {
+			mcuInfoBackend.addState(ab);
+		}
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu(ADD_ICON(ICON_FA_TV) "Display")) {
