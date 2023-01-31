@@ -1,12 +1,21 @@
 #include "AnalyticsBackend.h"
 
+#include <algorithm>
+#include <string>
+
 #include "imgui.h"
 
+#include "StringUtils.h"
+
 ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* open)
-: ab(ab), StackSizeBuf(100), sleepCycsBuf(100), winName(winName), open(open)
+: ab(ab), StackSizeBuf(100), sleepCycsBuf(100), instHeatOrder(A32u4::InstHandler::instList.size()), winName(winName), open(open)
 {
     StackSizeBuf.initTo(0);
     sleepCycsBuf.initTo(0);
+
+    for(size_t i = 0; i<instHeatOrder.size(); i++){
+        instHeatOrder[i] = i;
+    }
 }
 
 void ABB::AnalyticsBackend::update(){
@@ -45,6 +54,39 @@ void ABB::AnalyticsBackend::draw(){
 
         if(ImGui::Button("reset PC heat")){
             ab->mcu.analytics.resetPCHeat();
+        }
+
+        if(ImGui::TreeNode("Inst heat")){
+            std::stable_sort(instHeatOrder.begin(), instHeatOrder.end(), [&] (size_t a, size_t b) {
+                return ab->mcu.analytics.getInstHeat()[a] > ab->mcu.analytics.getInstHeat()[b];
+            });
+
+            constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders;
+            if(ImGui::BeginTable("instTable", 2, flags)){
+                ImGui::TableSetupScrollFreeze(0, 1); // make Header always visible
+                ImGui::TableSetupColumn("Name");
+                ImGui::TableSetupColumn("# of executions");
+                ImGui::TableHeadersRow();
+
+                for(size_t i = 0; i<A32u4::InstHandler::instList.size(); i++) {
+                    size_t instInd = instHeatOrder[i];
+                    const auto& inst = A32u4::InstHandler::instList[instInd];
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(inst.name);
+
+                    ImGui::TableNextColumn();
+                    {
+                        std::string s = StringUtils::addThousandsSeperator(std::to_string(ab->mcu.analytics.getInstHeat()[instInd]).c_str());
+                        ImVec2 size = ImGui::GetContentRegionAvail();
+                        ImVec2 textSize = ImGui::CalcTextSize(s.c_str());
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX()+(size.x-textSize.x));
+                        ImGui::TextUnformatted(s.c_str());
+                    }
+                }
+                ImGui::EndTable();
+            }
+            ImGui::TreePop();
         }
     }
     else {

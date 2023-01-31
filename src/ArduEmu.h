@@ -52,7 +52,8 @@ public:
 		Action_Arduboy_Left,
 		Action_Arduboy_Right,
 		Action_Arduboy_A,
-		Action_Arduboy_B
+		Action_Arduboy_B,
+		Action_Add_State_Copy
 	};
 	static ActionManager actionManager;
 
@@ -68,6 +69,7 @@ public:
 	static ABB::ArduboyBackend* getInstance(size_t ind);
 	static ABB::ArduboyBackend* getInstanceById(size_t id);
 	static void openLoadProgramDialog(size_t ownId);
+	static std::string getActionKeyStr(const ActionManager::Action& action);
 private:
 	static void drawBenchmark();
 	static bool drawMenuContents(size_t activeInstanceInd); // returns true if menu is active
@@ -83,7 +85,6 @@ private:
 	};
 	static void drawSettings();
 	static void drawKeybindSettings();
-	static std::string getActionKeyStr(const ActionManager::Action& action);
 
 	static void drawAbout();
 };

@@ -111,6 +111,9 @@ void ABB::ArduboyBackend::draw() {
 
 	update();
 
+	if(ArduEmu::actionManager.isActionActive(ArduEmu::Action_Add_State_Copy, ActionManager::ActivationState_Pressed))
+		mcuInfoBackend.addState(ab);
+
 	if (devToolsOpen) {
 		debuggerBackend.draw();
 		logBackend.draw();
@@ -227,7 +230,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 			
 		if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
 
-		if(ImGui::MenuItem("Backup State")) {
+		if(ImGui::MenuItem(ADD_ICON(ICON_FA_SQUARE_PLUS) "Backup State", ArduEmu::getActionKeyStr(ArduEmu::actionManager.getAction(ArduEmu::Action_Add_State_Copy)).c_str())) {
 			mcuInfoBackend.addState(ab);
 		}
 		ImGui::EndMenu();

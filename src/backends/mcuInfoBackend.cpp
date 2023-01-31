@@ -254,11 +254,20 @@ void ABB::McuInfoBackend::drawStates() {
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted(entry.first.c_str());
-				
+				if(ImGui::IsItemHovered()) {
+					ImGui::BeginTooltip();
+
+					ImGui::TextUnformatted(entry.first.c_str());
+
+					ImGui::EndTooltip();
+				}				
 
 				ImGui::TableNextColumn();
 				if(ImGui::Button("Load")){
-					// TODO
+					*ab = entry.second;
+				}
+				ImGui::SameLine();
+				if(ImGui::Button("Save")) {
 					abort();
 				}
 				ImGui::SameLine();

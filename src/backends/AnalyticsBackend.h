@@ -17,6 +17,8 @@ namespace ABB{
         RingBuffer<uint64_t> sleepCycsBuf;
 
         bool winFocused = false;
+
+        std::vector<size_t> instHeatOrder;
     public:
         std::string winName;
         bool* open;

@@ -151,6 +151,7 @@ void ArduEmu::setupActionManager() {
 	actionManager.addAction("Arduboy Right Button",Action_Arduboy_Right).addKey(ImGuiKey_D).setAsDefault();
 	actionManager.addAction("Arduboy A Button",Action_Arduboy_A).addKey(ImGuiKey_K).setAsDefault();
 	actionManager.addAction("Arduboy B Button",Action_Arduboy_B).addKey(ImGuiKey_L).setAsDefault();
+	actionManager.addAction("Add State copy",Action_Add_State_Copy).addKey(ImGuiKey_LeftCtrl).addKey(ImGuiKey_B).setAsDefault();
 }
 
 void ArduEmu::draw() {
