@@ -78,6 +78,7 @@ void ABB::LogBackend::draw() {
 
 void ABB::LogBackend::clear() {
     logs.clear();
+    cache.clear();
 }
 
 const char* ABB::LogBackend::getWinName() const {

@@ -275,6 +275,8 @@ void benchmark() {
 
     std::string r;
 
+    uint64_t avgFlags[4] = {0,0,0,0};
+
     for (uint8_t flags = 0; flags < 4; flags++) {
         {
             r = StringUtils::format("Starting warmup [%u] with flags [d:%u,a:%u]\n", testFiles.size()-1, 
@@ -292,7 +294,6 @@ void benchmark() {
         }
 
         uint64_t micosSum = 0;
-        double percSum = 0;
 
         for (size_t i = 0; i < testFiles.size(); i++) {
             r = StringUtils::format("\tStarting benchmark [%u] with flags [d:%u,a:%u]\n", i, 
@@ -306,21 +307,28 @@ void benchmark() {
             micosSum += micros;
 
             double perc = (micros / 1000000.0) / secs * 100;
-            percSum += perc;
 
             r = StringUtils::format("\ttook: %14.7fms => %12.7f%%\n", (double)micros/1000, perc);
             printf("%s", r.c_str());
             res += r;
         }
 
-        double avgMs = ((double)micosSum/1000) / testFiles.size();
-        double avgPerc = percSum / testFiles.size();
-
-        r = StringUtils::format("AVGs: took: %14.7fms => %12.7f%%\n\n", avgMs, avgPerc);
-        printf("%s", r.c_str());
-        res += r;
+        avgFlags[flags] += micosSum;
 
         //break;
+    }
+
+    for (uint8_t flags = 0; flags < 4; flags++) {
+        double avgMs = ((double)avgFlags[flags]/1000) / testFiles.size();
+        double avgPerc = avgMs / 1000.0;
+
+        r = StringUtils::format("AVGs[d:%d,a:%d]: took: %14.7fms => %12.7f%%\n", 
+            (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
+            (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0,
+            avgMs, avgPerc
+        );
+        printf("%s", r.c_str());
+        res += r;    
     }
 
     r = "Done :)\n";
