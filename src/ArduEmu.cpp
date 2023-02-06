@@ -428,7 +428,7 @@ void ArduEmu::drawLoadProgramDialog() {
 void ArduEmu::openLoadProgramDialog(size_t ownId) {
 	lastOpenDialogId = ownId;
 #if !defined(__EMSCRIPTEN__)
-	ImGuiFD::OpenFileDialog("LoadProgramDialog", ".");
+	ImGuiFD::OpenDialog("LoadProgramDialog", ImGuiFDMode_LoadFile, ".");
 #else
 	isSimpleLoadDialogOpen = true;
 #endif

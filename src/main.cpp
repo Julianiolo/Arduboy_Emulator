@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <chrono>
 #include <vector>
 #include <string>
@@ -51,8 +52,34 @@ int main(void) {
     destroy();
 
     return 0;
-#elif 1
+#elif 0
     benchmark();
+#elif 1
+    Arduboy ab;
+    ab.loadFromHexFile(ROOTDIR "resources/games/Hollow/hollow.ino.hex");
+    ab.reset();
+    ab.newFrame();
+    {
+        std::ofstream file("teeeest.txt", std::ios::binary);
+
+        //ab.getState(file);
+        file << 42;
+        file << 21;
+    }
+
+    {
+        std::ifstream file("teeeest.txt", std::ios::binary);
+        
+        Arduboy ab2;
+        //ab2.setState(file);
+
+        int a,b;
+        file >> a;
+        file >> b;
+
+        int x = 0;
+    }
+
 #else
     Arduboy ab;
 

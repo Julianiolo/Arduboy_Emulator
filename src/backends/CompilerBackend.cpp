@@ -5,7 +5,7 @@
 #include "ImGuiFD.h"
 #include "StringUtils.h"
 
-ABB::CompilerBackend::CompilerBackend(ArduboyBackend* abb, const char* winName, bool* open) : abb(abb), winName(winName), open(open) {
+ABB::CompilerBackend::CompilerBackend(ArduboyBackend* abb, const char* winName, bool* open) : abb(abb), fdiOpenDir((std::string(winName)+"_COMP").c_str()), winName(winName), open(open) {
 
 }
 
@@ -22,9 +22,7 @@ void ABB::CompilerBackend::draw() {
         }
 
         if(ImGui::Button("Open")){
-            char buf[512];
-		    snprintf(buf, sizeof(buf), "%s_COMP",winName.c_str());
-            ImGuiFD::OpenDirDialog(buf, ".");
+            fdiOpenDir.OpenDialog(ImGuiFDMode_OpenDir, ".");
         }
 
         ImGui::Separator();
@@ -76,23 +74,12 @@ void ABB::CompilerBackend::draw() {
         ImGui::Separator();
 
         ImGui::TextWrapped("%s", compileOutput.c_str());
-        
 #endif
     }
     ImGui::End();
 
-    char buf[512];
-	snprintf(buf, sizeof(buf), "%s_COMP",winName.c_str());
-	if (ImGuiFD::BeginDialog(buf)) {
-		if (ImGuiFD::ActionDone()) {
-			if(ImGuiFD::SelectionMade()) {
-				std::string path = ImGuiFD::GetSelectionPathString(0);
 
-				inoPath = path;
-			}
-			ImGuiFD::CloseCurrentDialog();
-		}
-
-		ImGuiFD::EndDialog();
-	}
+    fdiOpenDir.DrawDialog([](void* userData){
+        ((CompilerBackend*)userData)->inoPath = ImGuiFD::GetSelectionPathString(0);
+    },this);
 }

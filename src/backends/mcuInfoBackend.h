@@ -44,8 +44,10 @@ namespace ABB {
 
 		std::vector<std::pair<std::string,Arduboy>> states;
 
+		SaveLoadFDIPair fdiState;
+		size_t stateIndToSave = 0;
+
 		void drawSaveLoadButtons(SaveLoadFDIPair* fdi);
-		void drawDialog(ImGuiFD::FDInstance* fdi, std::function<void(const char* path)> callB);
 
 		static void setRamValue(size_t addr, uint8_t val, void* userData);
 		static void setEepromValue(size_t addr, uint8_t val, void* userData);

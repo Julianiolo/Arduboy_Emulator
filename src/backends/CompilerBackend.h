@@ -3,8 +3,10 @@
 
 #include <memory>
 
+#include "ImGuiFD_internal.h"
 
 #include "SystemUtils.h"
+
 
 namespace ABB {
     class ArduboyBackend;
@@ -14,6 +16,7 @@ namespace ABB {
 
         ArduboyBackend* abb;
         std::string inoPath;
+        ImGuiFD::FDInstance fdiOpenDir;
 
         std::shared_ptr<SystemUtils::CallProcThread> callProc;
         std::string compileOutput;
