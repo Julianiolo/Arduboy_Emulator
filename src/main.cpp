@@ -9,6 +9,7 @@
 #include "imgui.h"
 #include "rlImGui.h"
 #include "oneHeaderLibs/VectorOperators.h"
+#include "StreamUtils.h"
 
 #include "ArduEmu.h"
 
@@ -38,7 +39,7 @@ Vector2 mouseDelta;
 
 
 int main(void) {
-#if 1
+#if 0
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -62,20 +63,43 @@ int main(void) {
     {
         std::ofstream file("teeeest.txt", std::ios::binary);
 
-        //ab.getState(file);
-        file << 42;
-        file << 21;
+        ab.getState(file);
+        // uint8_t a = 42;
+        // uint32_t b = 0x00AABBCD;
+        // StreamUtils::write(file, a);
+        // StreamUtils::write(file, b);
     }
 
     {
         std::ifstream file("teeeest.txt", std::ios::binary);
         
         Arduboy ab2;
-        //ab2.setState(file);
+        ab2.setState(file);
 
-        int a,b;
-        file >> a;
-        file >> b;
+#define TEST_AB(x) printf("%s: %s\n", #x, (ab.x==ab2.x)?"ok":"WRONG")
+
+        TEST_AB(mcu.cpu);
+        TEST_AB(mcu.dataspace);
+        TEST_AB(mcu.flash);
+
+        TEST_AB(mcu.analytics);
+        TEST_AB(mcu.debugger);
+
+        
+        TEST_AB(mcu);
+        TEST_AB(display);
+
+
+
+
+
+
+#undef TEST_AB
+        // uint8_t a;
+        // uint32_t b;
+
+        // StreamUtils::read(file, &a);
+        // StreamUtils::read(file, &b);
 
         int x = 0;
     }
