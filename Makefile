@@ -107,7 +107,7 @@ CXXFLAGS += $(BUILD_MODE_FLAGS)
 
 # rules:
 
-.PHONY:all clean
+.PHONY:all clean clean_raylib
 
 all: $(OUT_PATH)
 
@@ -133,3 +133,6 @@ $(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)_depFile.dep:$(DEP_LIBS_DEPS)
 clean:
 	$(MAKE) -C $(DEPENDENCIES_DIR) clean BUILD_DIR=$(DEP_LIBS_BUILD_DIR)
 	rm -rf $(BUILD_DIR)
+
+clean_raylib:
+	$(MAKE) -C $(DEPENDENCIES_DIR) clean_raylib BUILD_DIR=$(DEP_LIBS_BUILD_DIR)

@@ -15,10 +15,7 @@ ImVec4 ABB::LogBackend::logColors[] = {
 
 ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
     activate();
-    ab->setLogCallBSimple(LogBackend::log);
-    ab->setLogCallB([](A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName , size_t lineNum, const char* Module){
-        MCU_UNUSED(logLevel); MCU_UNUSED(msg); MCU_UNUSED(fileName); MCU_UNUSED(lineNum); MCU_UNUSED(Module);
-    });
+    ab->setLogCallB(LogBackend::log);
 }
 
 void ABB::LogBackend::draw() {
@@ -96,10 +93,16 @@ void ABB::LogBackend::activate() {
     activeLB = this;
     ab->activateLog();
 }
-void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg) {
-    if(activeLB != nullptr) {
-        activeLB->addLog(logLevel, msg);
+void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
+    MCU_ASSERT(activeLB != nullptr);
+    std::string msg_ = msg;
+    if(module) {
+        msg_ = std::string("[") + module + "]" + msg_;
     }
+    if(fileName != nullptr || lineNum != -1) {
+        msg_ = msg_ + " [" + fileName + ":" + std::to_string(lineNum) + "]";
+    }
+    activeLB->addLog(logLevel, msg_.c_str());
 }
 
 bool ABB::LogBackend::isWinFocused() const {

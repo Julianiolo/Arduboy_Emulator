@@ -355,7 +355,7 @@ void ArduEmu::drawLoadProgramDialog() {
 					abb = &addEmulator(name.c_str());
 				}
 
-				abb->loadFile(path.c_str());
+				abb->ab.mcu.loadFile(path.c_str());
 				abb->ab.mcu.powerOn();
 			}
 			ImGuiFD::CloseCurrentDialog();

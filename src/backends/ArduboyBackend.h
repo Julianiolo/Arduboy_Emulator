@@ -48,6 +48,8 @@ namespace ABB {
 		bool devToolsOpen = true;
 		bool firstFrame = true; // whether this is the first frame ever displayed
 
+		bool rotateControls = true;
+
 		void update();
 
 		void setMcu();
@@ -68,12 +70,6 @@ namespace ABB {
 		void resetMachine();
 
 		void buildDefaultLayout();
-
-		bool load(const uint8_t* data, size_t dataLen);
-		bool loadFile(const char* path);
-
-		bool loadFromELF(const uint8_t* data, size_t dataLen);
-		bool loadFromELFFile(const char* path);
 
 		bool _wantsToBeClosed() const;
 		bool _wantsFullScreen() const;

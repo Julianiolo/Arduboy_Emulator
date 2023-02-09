@@ -268,6 +268,9 @@ void ABB::DisplayBackend::rotateCW() {
 void ABB::DisplayBackend::rotateCCW() {
 	rotation = (rotation + 4 - 1) % 4;
 }
+uint8_t ABB::DisplayBackend::getRotation() const {
+	return rotation;
+}
 
 void ABB::DisplayBackend::setDarkColor(const Color3& color) {
 	darkColor = color;

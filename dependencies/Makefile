@@ -124,7 +124,7 @@ CXXFLAGS += $(BUILD_MODE_FLAGS)
 
 # rules:
 
-.PHONY:all clean
+.PHONY:all clean clean_raylib
 
 all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH) $(IMGUIFD_OUTPATH) $(RLIMGUI_OUTPATH)
 	touch $(BUILD_DIR)Arduboy_Emulator_depFile.dep
@@ -173,6 +173,10 @@ $(RLIMGUI_OBJ_DIR)%.o: $(RLIMGUI_SRC_DIR)%.cpp
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CXXSTD) $(DEF_FLAGS) $(RLIMGUI_INCLUDE_DIRS) -c $< -o $@ $(DEP_FLAGS)
 
-clean:
-	$(MAKE) -C "$(RAYLIB_DIR)/src" clean
+clean_raylib:
+	$(MAKE) -C "$(RAYLIB_DIR)/src" clean PLATFORM_SHELL=sh
+	rm -f $(RAYLIB_OUTPATH)
+	rm -f $(BUILD_DIR)Arduboy_Emulator_depFile.dep
+
+clean: clean_raylib
 	rm -rf $(BUILD_DIR)
