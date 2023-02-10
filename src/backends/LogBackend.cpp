@@ -13,6 +13,8 @@ ImVec4 ABB::LogBackend::logColors[] = {
     {    1,     0,   0,    1}
 };
 
+ABB::LogBackend::Settings ABB::LogBackend::settings;
+
 ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
     activate();
     ab->setLogCallB(LogBackend::log);
@@ -34,11 +36,17 @@ void ABB::LogBackend::draw() {
             ImGui::EndCombo();
         }
         ImGui::PopItemWidth();
+        ImGui::SameLine();
+        ImGui::TextUnformatted("Show:");
+        ImGui::SameLine();
+        ImGui::Checkbox("Module",&settings.showModule);
+        ImGui::SameLine();
+        ImGui::Checkbox("File",&settings.showFileInfo);
 
         if (changed) {
             cache.clear();
             for (size_t i = 0; i < logs.size(); i++) {
-                if (logs[i].first >= filterLevel) {
+                if (logs[i].level >= filterLevel) {
                     cache.push_back(i);
                 }
             }
@@ -48,24 +56,60 @@ void ABB::LogBackend::draw() {
         if(ImGui::Button("Clear Logs")){
             clear();
         }
-        if(ImGui::BeginChild((winName+" logWin").c_str(), {0,0},true, ImGuiWindowFlags_HorizontalScrollbar)){
+
+        const int rowAmt = 1 + !!settings.showModule + !!settings.showFileInfo;
+        if(ImGui::BeginTable((winName+" logWin").c_str(), rowAmt, ImGuiTableFlags_SizingStretchProp)){
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0,0});
+
+            float width = ImGui::GetContentRegionAvail().x;
+            if(settings.showModule)
+                ImGui::TableSetupColumn("Module", 0, 100);
+            ImGui::TableSetupColumn("Message", 0, width-(100+170+2*ImGui::GetStyle().FramePadding.x));
+            if(settings.showFileInfo)
+                ImGui::TableSetupColumn("File info", 0, 170);
+
             ImGuiListClipper clipper;
             clipper.Begin((int)cache.size());
             while (clipper.Step()) {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-                    auto& line = logs[cache[line_no]];
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
 
-                    ImVec4 col = logColors[line.first];
+                    auto& entry = logs[cache[line_no]];
+
+                    ImVec4 col = logColors[entry.level];
                     if(col.w < 0) {
                         col = ImGui::GetStyleColorVec4(ImGuiCol_Text) * ImVec4{-col.w,-col.w,-col.w,1};
                     }
 
-                    ImGuiExt::TextColored(col, line.second.c_str());
+                    if(settings.showModule) {
+                        if(entry.module.size() > 0)
+                            ImGui::TextColored(col, "[%s] ", entry.module.c_str());
+                        ImGui::TableNextColumn();
+                    }
+                        
+                    
+                    ImGuiExt::TextColored(col, entry.msg.c_str());
+                    if(ImGui::IsItemHovered()) {
+                        ImGui::BeginTooltip();
+                        ImGuiExt::TextColored(col, entry.msg.c_str());
+                        ImGui::EndTooltip();
+                    }
+
+                    if(settings.showFileInfo) {
+                        ImGui::TableNextColumn();
+                        if((entry.fileName.size() > 0 || entry.lineNum != -1))
+                            ImGui::TextColored(col, " [%s:%d]", 
+                                entry.fileName.size() > 0 ? entry.fileName.c_str() : "N/A", 
+                                entry.lineNum
+                            );
+                    }
                 }
             }
             clipper.End();
+            ImGui::PopStyleVar();
         }
-        ImGui::EndChild();
+        ImGui::EndTable();
     }
     else {
         winFocused = false;
@@ -82,8 +126,8 @@ const char* ABB::LogBackend::getWinName() const {
     return winName.c_str();
 }
 
-void ABB::LogBackend::addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg) {
-    logs.push_back({logLevel,msg});
+void ABB::LogBackend::addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
+    logs.push_back({logLevel,msg,module?module:"",fileName?fileName:"",lineNum});
     if (logLevel >= filterLevel)
         cache.push_back(logs.size() - 1);
 }
@@ -95,14 +139,7 @@ void ABB::LogBackend::activate() {
 }
 void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
     MCU_ASSERT(activeLB != nullptr);
-    std::string msg_ = msg;
-    if(module) {
-        msg_ = std::string("[") + module + "]" + msg_;
-    }
-    if(fileName != nullptr || lineNum != -1) {
-        msg_ = msg_ + " [" + fileName + ":" + std::to_string(lineNum) + "]";
-    }
-    activeLB->addLog(logLevel, msg_.c_str());
+    activeLB->addLog(logLevel, msg, fileName, lineNum, module);
 }
 
 bool ABB::LogBackend::isWinFocused() const {
