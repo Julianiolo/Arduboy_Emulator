@@ -68,11 +68,9 @@ bool ABB::ArduboyBackend::isWinFocused() {
 
 void ABB::ArduboyBackend::enterFullscreen(){
 	fullScreen = true;
-	// TODO
 }
 void ABB::ArduboyBackend::exitFullscreen(){
 	fullScreen = false;
-	// TODO
 }
 
 void ABB::ArduboyBackend::update() {
@@ -113,8 +111,7 @@ void ABB::ArduboyBackend::draw() {
 	if (!open)
 		return;
 
-	ab.activateLog();
-	logBackend.activate();
+	ab.mcu.activateLog();
 
 	update();
 
@@ -285,7 +282,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 		}
 		if(ImGui::BeginMenu("Speed")){
 			constexpr float speeds[] = {
-				0.1, 0.25, 0.5, 1, 2, 4, 10
+				0.1f, 0.25f, 0.5f, 1, 2, 4, 10
 			};
 			constexpr const char* speedLabels[] = {
 				"0.1x", "0.25x", "0.5x", "1x", "2x", "4x", "10x"

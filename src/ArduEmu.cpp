@@ -79,40 +79,40 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImVec4* colors = style.Colors;
 
-	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 1.3);
-	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.3);
+	ImVec4 accentActiveColor = ImGuiExt::BrightenColor(accentColor, 1.3f);
+	ImVec4 frameActiveColor = ImGuiExt::BrightenColor(frameColor, 1.3f);
 
-	colors[ImGuiCol_Button]        = ImGuiExt::BrightenColor(accentColor, 1);
-	colors[ImGuiCol_ButtonHovered] = ImGuiExt::BrightenColor(accentColor, 1.2);
+	colors[ImGuiCol_Button]        = ImGuiExt::BrightenColor(accentColor, 1.0f);
+	colors[ImGuiCol_ButtonHovered] = ImGuiExt::BrightenColor(accentColor, 1.2f);
 	colors[ImGuiCol_ButtonActive]  = accentActiveColor;
 
-	colors[ImGuiCol_TitleBg]       = ImGuiExt::BrightenColor(accentColor, 0.6);
-	colors[ImGuiCol_TitleBgActive] = ImGuiExt::BrightenColor(accentColor, 0.9);
+	colors[ImGuiCol_TitleBg]       = ImGuiExt::BrightenColor(accentColor, 0.6f);
+	colors[ImGuiCol_TitleBgActive] = ImGuiExt::BrightenColor(accentColor, 0.9f);
 
-	colors[ImGuiCol_Tab]                = ImGuiExt::BrightenColor(accentColor, 0.8);
-	colors[ImGuiCol_TabHovered]         = ImGuiExt::BrightenColor(accentColor, 1.2);
+	colors[ImGuiCol_Tab]                = ImGuiExt::BrightenColor(accentColor, 0.8f);
+	colors[ImGuiCol_TabHovered]         = ImGuiExt::BrightenColor(accentColor, 1.2f);
 	colors[ImGuiCol_TabActive]          = accentActiveColor;
-	colors[ImGuiCol_TabUnfocused]       = ImGuiExt::BrightenColor(accentColor, 0.4);
+	colors[ImGuiCol_TabUnfocused]       = ImGuiExt::BrightenColor(accentColor, 0.4f);
 	colors[ImGuiCol_TabUnfocusedActive] = accentActiveColor;
 
-	colors[ImGuiCol_Header]        = ImGuiExt::BrightenColor(accentColor, 0.9);
-	colors[ImGuiCol_HeaderHovered] = ImGuiExt::BrightenColor(accentColor, 1.1);
+	colors[ImGuiCol_Header]        = ImGuiExt::BrightenColor(accentColor, 0.9f);
+	colors[ImGuiCol_HeaderHovered] = ImGuiExt::BrightenColor(accentColor, 1.1f);
 	colors[ImGuiCol_HeaderActive]  = accentActiveColor;
 
 	colors[ImGuiCol_CheckMark]  = ImGuiExt::BrightenColor(accentColor, 2);
 
 	colors[ImGuiCol_ScrollbarGrab]        = accentColor;
-	colors[ImGuiCol_ScrollbarGrabHovered] = ImGuiExt::BrightenColor(accentColor, 1.3);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImGuiExt::BrightenColor(accentColor, 1.3f);
 	colors[ImGuiCol_ScrollbarGrabActive]  = accentActiveColor;
 
-	colors[ImGuiCol_SliderGrab]        = ImGuiExt::BrightenColor(accentColor, 1.3);
-	colors[ImGuiCol_SliderGrabActive]  = ImGuiExt::BrightenColor(accentColor, 1.5);
+	colors[ImGuiCol_SliderGrab]        = ImGuiExt::BrightenColor(accentColor, 1.3f);
+	colors[ImGuiCol_SliderGrabActive]  = ImGuiExt::BrightenColor(accentColor, 1.5f);
 
 	colors[ImGuiCol_SeparatorHovered] = accentColor;
 	colors[ImGuiCol_SeparatorActive] = accentActiveColor;
 
 	colors[ImGuiCol_ResizeGrip]        = accentColor;
-	colors[ImGuiCol_ResizeGripHovered] = ImGuiExt::BrightenColor(accentColor, 1.3);
+	colors[ImGuiCol_ResizeGripHovered] = ImGuiExt::BrightenColor(accentColor, 1.3f);
 	colors[ImGuiCol_ResizeGripActive]  = accentActiveColor;
 
 	colors[ImGuiCol_DockingPreview]  = ImGuiExt::BrightenColor(accentColor, 2);
@@ -122,7 +122,7 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 	colors[ImGuiCol_NavHighlight]  = ImGuiExt::BrightenColor(accentColor, 2);
 
 	colors[ImGuiCol_FrameBg]        = frameColor;
-	colors[ImGuiCol_FrameBgHovered] = ImGuiExt::BrightenColor(frameColor, 1.3);
+	colors[ImGuiCol_FrameBgHovered] = ImGuiExt::BrightenColor(frameColor, 1.3f);
 	colors[ImGuiCol_FrameBgActive]  = frameActiveColor;
 }
 
@@ -528,15 +528,15 @@ void ArduEmu::drawSettings() {
 					if(settings.rainbowSettings.active) {
 						ImGui::Indent();
 
-						ImGui::DragFloat("Speed", &settings.rainbowSettings.speed, 0.0001, 0, 1);
+						ImGui::DragFloat("Speed", &settings.rainbowSettings.speed, 0.0001f, 0, 1);
 
 						ImGui::Spacing();
 
-						ImGui::DragFloat("Saturation", &settings.rainbowSettings.saturation, 0.01, 0, 1);
-						ImGui::DragFloat("Brightness", &settings.rainbowSettings.brightness, 0.01, 0, 1);
+						ImGui::DragFloat("Saturation", &settings.rainbowSettings.saturation, 0.01f, 0, 1);
+						ImGui::DragFloat("Brightness", &settings.rainbowSettings.brightness, 0.01f, 0, 1);
 
 						rainbowCurrHue += settings.rainbowSettings.speed;
-						rainbowCurrHue = std::fmod(rainbowCurrHue, 1);
+						rainbowCurrHue = std::fmodf(rainbowCurrHue, 1);
 
 						ImVec4 col;
 						ImGui::ColorConvertHSVtoRGB(

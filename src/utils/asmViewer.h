@@ -84,7 +84,7 @@ namespace ABB{
             void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked);
             void drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked);
             void drawInstParams(const char* start, const char* end);
-            void drawSymbolComment(const char* lineStart, const char* lineEnd, const size_t symbolStartOff, const size_t symbolEndOff, bool* hasAlreadyClicked);
+            void drawSymbolComment(const char* lineStart, const char* lineEnd, const char* symbolStartOff, const char* symbolEndOff, bool* hasAlreadyClicked);
             void drawData(const char* lineStart, const char* lineEnd);
             void drawSymbolLabel(const char* lineStart, const char* lineEnd);
 

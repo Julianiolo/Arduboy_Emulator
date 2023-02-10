@@ -44,6 +44,8 @@ namespace ABB {
 
 		std::vector<std::pair<std::string,Arduboy>> states;
 
+		std::array<uint8_t, 128> a;
+
 		SaveLoadFDIPair fdiState;
 		size_t stateIndToSave = 0;
 

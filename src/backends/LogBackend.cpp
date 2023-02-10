@@ -6,18 +6,19 @@
 #include "../Extensions/imguiExt.h"
 
 ImVec4 ABB::LogBackend::logColors[] = {
-    {  0.7,   0.7, 0.7,   -1},
-    {  0.7,   0.7, 0.7, -0.7},
-    {    1,     1,   1,   -1},
-    {    1, 0.85f,   0,    1},
-    {    1,     0,   0,    1}
+    { 0.7f,  0.7f, 0.7f,    -1},
+    { 0.7f,  0.7f, 0.7f, -0.7f},
+    {    1,     1,    1,    -1},
+    {    1, 0.85f,    0,     1},
+    {    1,     0,    0,     1}
 };
 
 ABB::LogBackend::Settings ABB::LogBackend::settings;
 
 ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
-    activate();
-    ab->setLogCallB(LogBackend::log);
+    ab->mcu.setLogCallB([](A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData) {
+        ((LogBackend*)userData)->addLog(logLevel, msg, fileName, lineNum, module);
+    }, this);
 }
 
 void ABB::LogBackend::draw() {
@@ -30,7 +31,7 @@ void ABB::LogBackend::draw() {
                 if (ImGui::Selectable(logLevelNames[i])) {
                     if (filterLevel != i)
                         changed = true;
-                    filterLevel = i;
+                    filterLevel = (uint8_t)i;
                 }
             }
             ImGui::EndCombo();
@@ -58,13 +59,18 @@ void ABB::LogBackend::draw() {
         }
 
         const int rowAmt = 1 + !!settings.showModule + !!settings.showFileInfo;
-        if(ImGui::BeginTable((winName+" logWin").c_str(), rowAmt, ImGuiTableFlags_SizingStretchProp)){
+        if(ImGui::BeginTable((winName+" logWin").c_str(), rowAmt, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders)){
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0,0});
 
             float width = ImGui::GetContentRegionAvail().x;
             if(settings.showModule)
-                ImGui::TableSetupColumn("Module", 0, 100);
-            ImGui::TableSetupColumn("Message", 0, width-(100+170+2*ImGui::GetStyle().FramePadding.x));
+                ImGui::TableSetupColumn("Module", 0, 90);
+            {
+                float middleWidth = width;
+                if (settings.showModule) middleWidth -= 90 + ImGui::GetStyle().CellPadding.x;
+                if (settings.showFileInfo) middleWidth -= 170 + ImGui::GetStyle().CellPadding.x;
+                ImGui::TableSetupColumn("Message", 0, middleWidth);
+            }
             if(settings.showFileInfo)
                 ImGui::TableSetupColumn("File info", 0, 170);
 
@@ -99,8 +105,8 @@ void ABB::LogBackend::draw() {
                     if(settings.showFileInfo) {
                         ImGui::TableNextColumn();
                         if((entry.fileName.size() > 0 || entry.lineNum != -1))
-                            ImGui::TextColored(col, " [%s:%d]", 
-                                entry.fileName.size() > 0 ? entry.fileName.c_str() : "N/A", 
+                            ImGui::TextColored(col, "[%s:%d]", 
+                                entry.fileName.size() > 0 ? StringUtils::getFileName(entry.fileName.c_str()) : "N/A", 
                                 entry.lineNum
                             );
                     }
@@ -132,16 +138,6 @@ void ABB::LogBackend::addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* m
         cache.push_back(logs.size() - 1);
 }
 
-ABB::LogBackend* ABB::LogBackend::activeLB = nullptr;
-void ABB::LogBackend::activate() {
-    activeLB = this;
-    ab->activateLog();
-}
-void ABB::LogBackend::log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
-    MCU_ASSERT(activeLB != nullptr);
-    activeLB->addLog(logLevel, msg, fileName, lineNum, module);
-}
-
 bool ABB::LogBackend::isWinFocused() const {
     return winFocused;
 }
@@ -150,7 +146,7 @@ void ABB::LogBackend::drawSettings() {
     for(size_t i = 0; i<LogLevel_COUNT; i++) {
         if(i>0)
             ImGui::Separator();
-        ImGui::PushID(i);
+        ImGui::PushID((int)i);
 
         ImGui::TextUnformatted(logLevelNames[i]);
 
@@ -171,7 +167,7 @@ void ABB::LogBackend::drawSettings() {
             ImGui::SameLine();
             {
                 float v = -col.w;
-                if(ImGui::DragFloat("Brightness", &v, 0.001, 0.1, 1))
+                if(ImGui::DragFloat("Brightness", &v, 0.001f, 0.1f, 1))
                     col.w = -v;
             }
         }else{

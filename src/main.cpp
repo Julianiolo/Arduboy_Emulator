@@ -104,7 +104,7 @@ void DrawFPSRL(int x, int y){
 void drawClickDebug(int button) {
     bool clicks[] = {IsMouseButtonPressed(button), IsMouseButtonReleased(button), IsMouseButtonDown(button), IsMouseButtonUp(button)};
     for(size_t i = 0; i<4; i++) {
-        DrawRectangle(GetScreenWidth()-(4-i)*20, 25, 20, 20, clicks[i]?WHITE:BLACK);
+        DrawRectangle(GetScreenWidth()-(4-(int)i)*20, 25, 20, 20, clicks[i]?WHITE:BLACK);
     }
 }
 
@@ -137,7 +137,6 @@ void setup() {
 
 #if 1
     ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
-    abb.ab.mcu.logFlags = A32u4::ATmega32u4::LogFlags_ShowModule;
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
 #if 0

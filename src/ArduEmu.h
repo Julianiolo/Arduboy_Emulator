@@ -16,9 +16,9 @@ class ArduEmu {
 		ImVec4 frameColor = ImVec4{0.2f, 0.2f, 0.2f, 1};
 		struct RainbowSettings {
 			bool active = false;
-			float speed = 0.003;
-			float saturation = 0.5;
-			float brightness = 0.5;
+			float speed = 0.003f;
+			float saturation = 0.5f;
+			float brightness = 0.5f;
 		} rainbowSettings;
 	} settings;
 private:

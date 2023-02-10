@@ -18,6 +18,7 @@
 
 #include "imgui_internal.h"
 
+#define MCU_MODULE "SymbolBackend"
 
 ABB::SymbolBackend::SymbolBackend(A32u4::ATmega32u4* mcu, const char* winName, bool* open) : mcu(mcu), winName(winName), open(open) {
     mcu->symbolTable.setSymbolsPostProcFunc(postProcessSymbols, nullptr);
@@ -44,7 +45,7 @@ void ABB::SymbolBackend::postProcessSymbols(A32u4::SymbolTable::Symbol* symbs, s
 			for (size_t i = 0; i < len; i++) {
 				symbs[i].demangled = symbs[i].name;
 			}
-			LogBackend::log(LogBackend::LogLevel_Warning, "an error occured while trying to generate demangled list");
+			MCU_LOG_(LogBackend::LogLevel_Warning, "an error occured while trying to generate demangled list");
 		}
 
 		delete[] strs;
@@ -161,13 +162,13 @@ void ABB::SymbolBackend::draw() {
 				if(!addSymbol.hasDemangledName) ImGui::EndDisabled();
 
 				{
-					int v = addSymbol.value;
+					int v = (int)addSymbol.value;
 					if(ImGui::InputInt("Value", &v))
 						addSymbol.value = std::max(v, 0);
 				}
 
 				{
-					int v = addSymbol.size;
+					int v = (int)addSymbol.size;
 					if(ImGui::InputInt("Size", &v))
 						addSymbol.size = std::max(v, 0);
 				}
@@ -240,7 +241,7 @@ void ABB::SymbolBackend::draw() {
 				}
 
 				ImGuiListClipper clipper;
-				clipper.Begin(mcu->symbolTable.getSymbols().size());
+				clipper.Begin((int)mcu->symbolTable.getSymbols().size());
 				while (clipper.Step()) {
 					for(int i = clipper.DisplayStart; i<clipper.DisplayEnd; i++) {
 						const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolById(symbolsSortedOrder[i]);

@@ -187,7 +187,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 			{
 				float xStart = std::ceil(relPosReg.x);
 				float xTarget = relPosReg.x + regionAdj.x;
-				float xFrac = std::fmod(relPosReg.x, 1);
+				float xFrac = std::fmodf(relPosReg.x, 1);
 				for (size_t i = 0; xStart + i < xTarget; i++) {
 					float drawX = pos2.x + (i+(1-xFrac))*texScl.x*zoom;
 					drawList->AddLine(
@@ -201,7 +201,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 			{
 				float yStart = std::ceil(relPosReg.y);
 				float yTarget = relPosReg.y + regionAdj.y;
-				float yFrac = std::fmod(relPosReg.y, 1);
+				float yFrac = std::fmodf(relPosReg.y, 1);
 				for (size_t i = 0; yStart + i < yTarget; i++) {
 					float drawY = pos2.y + (i+(1-yFrac))*texScl.y*zoom;
 					drawList->AddLine(

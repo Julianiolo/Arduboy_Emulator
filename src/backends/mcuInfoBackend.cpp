@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "mcuInfoBackend.h"
 #include "StringUtils.h"
 
@@ -9,6 +13,8 @@
 #include "ImGuiFD.h"
 
 #include "LogBackend.h"
+
+#define MCU_MODULE "McuInfoBackend"
 
 ABB::McuInfoBackend::SaveLoadFDIPair::SaveLoadFDIPair(const char* bothName):
 	save((std::string("Save ") + bothName).c_str()), load((std::string("Load ") + bothName).c_str())
@@ -142,7 +148,7 @@ void ABB::McuInfoBackend::draw() {
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
@@ -153,7 +159,7 @@ void ABB::McuInfoBackend::draw() {
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
@@ -164,7 +170,7 @@ void ABB::McuInfoBackend::draw() {
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
@@ -175,7 +181,7 @@ void ABB::McuInfoBackend::draw() {
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
@@ -186,7 +192,7 @@ void ABB::McuInfoBackend::draw() {
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
@@ -197,7 +203,7 @@ void ABB::McuInfoBackend::draw() {
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
@@ -215,7 +221,7 @@ bool ABB::McuInfoBackend::isWinFocused() const {
 
 void ABB::McuInfoBackend::setRamValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
-	info->ab->mcu.dataspace.setDataByte(addr, val);
+	info->ab->mcu.dataspace.setDataByte((addrmcu_t)addr, val);
 }
 void ABB::McuInfoBackend::setEepromValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
@@ -223,7 +229,7 @@ void ABB::McuInfoBackend::setEepromValue(size_t addr, uint8_t val, void* userDat
 }
 void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
-	info->ab->mcu.flash.setByte(addr, val);
+	info->ab->mcu.flash.setByte((addrmcu_t)addr, val);
 }
 
 void ABB::McuInfoBackend::drawStates() {
@@ -236,7 +242,7 @@ void ABB::McuInfoBackend::drawStates() {
 		if(states.size() > 0) {
 			if(ImGui::BeginTable("StatesTable", 2, flags)){
 				for(size_t i = 0; i<states.size();) {
-					ImGui::PushID(i);
+					ImGui::PushID((int)i);
 					auto& entry = states[i];
 
 					ImGui::TableNextRow();
@@ -276,22 +282,24 @@ void ABB::McuInfoBackend::drawStates() {
 		}
 		ImGui::TreePop();
 	}
-	fdiState.save.DrawDialog([](void* userData){
+	
+	fdiState.save.DrawDialog([](void* userData) {
+		MCU_ASSERT(userData != nullptr);
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
 		((Arduboy*)userData)->getState(file);
-	},&states[stateIndToSave].second);
+	},states.size() > 0 ? & states[stateIndToSave].second : nullptr);
 
 	fdiState.load.DrawDialog([](void* userData){
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
@@ -299,6 +307,7 @@ void ABB::McuInfoBackend::drawStates() {
 		ab.setState(file);
 		((McuInfoBackend*)userData)->addState(ab, ImGuiFD::GetSelectionNameString(0));
 	},this);
+	
 }
 
 void ABB::McuInfoBackend::addState(Arduboy& ab, const char* name){

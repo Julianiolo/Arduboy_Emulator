@@ -54,20 +54,10 @@ namespace ABB {
 
         const char* getWinName() const;
     private:
-        static LogBackend* activeLB;
-
         bool winFocused = false;
-
-        
 
         void addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module);
     public:
-        void activate();
-        static void log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName = nullptr, int lineNum = -1, const char* module = nullptr);
-        template<typename ... Args>
-        static void logf(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, Args ... args) {
-            log(logLevel, StringUtils::format(msg, args ...).c_str());
-        }
 
         bool isWinFocused() const;
 

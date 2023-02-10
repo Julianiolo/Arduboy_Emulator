@@ -528,9 +528,9 @@ A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo ABB::DebuggerBackend::genD
 
 			if(!(symbol->flags.funcFileObjectFlags == A32u4::SymbolTable::Symbol::Flags_FuncFileObj_Obj)) {
 				if(symbol->value/2 != lastOverride && (info.additionalDisasmSeeds.size() == 0 || info.additionalDisasmSeeds.back() != symbol->value/2))
-					info.additionalDisasmSeeds.push_back(symbol->value/2);
+					info.additionalDisasmSeeds.push_back((pc_t)(symbol->value/2));
 			}else{
-				lastOverride = symbol->value/2;
+				lastOverride = (pc_t)(symbol->value/2);
 				if(info.additionalDisasmSeeds.size() > 0 && info.additionalDisasmSeeds.back() == lastOverride)
 					info.additionalDisasmSeeds.pop_back();
 			}

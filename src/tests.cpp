@@ -162,7 +162,7 @@ bool serialisationTest() {
     ab2.setState(file);
 
     bool worked = true;
-#define TEST_AB(x) worked = worked && (ab x==ab2 x);printf("%s: %s\n", #x, (ab x==ab2 x)?"ok":"WRONG")
+#define TEST_AB(x) worked = worked && (ab x==ab2 x);printf("%s: %s\n", #x "", (ab x==ab2 x)?"ok":"WRONG")
 
     TEST_AB(.mcu.cpu);
     TEST_AB(.mcu.dataspace);
@@ -212,14 +212,14 @@ bool fuzzTest() {
             ab.newFrame();
             if(ab.mcu.debugger.isHalted()) {
                 worked = false;
-                printf("### Failed on frame %lu\n",f);
+                printf("### Failed on frame %" MCU_PRIuSIZE "\n",f);
                 break;
             }
         }
         if(worked)
             numWorked++;
     }
-    printf("%lu/%lu worked\n", numWorked, testFiles.size());
+    printf("%" MCU_PRIuSIZE "/%" MCU_PRIuSIZE " worked\n", numWorked, testFiles.size());
     return numWorked == testFiles.size();
 }
 

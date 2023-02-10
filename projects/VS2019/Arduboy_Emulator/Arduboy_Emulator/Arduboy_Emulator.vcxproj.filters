@@ -90,6 +90,9 @@
     <ClCompile Include="..\..\..\..\dependencies\rlImGui\rlImGui.cpp">
       <Filter>Source Files\rlImGui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h">
