@@ -100,6 +100,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;$(SolutionDir)..\..\..\dependencies\ImGuiFD\dependencies\dirent\include;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\dependencies\CPP_Utils\src;$(SolutionDir)..\..\..\dependencies\rlImGui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SupportJustMyCode>true</SupportJustMyCode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,6 +123,8 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;$(SolutionDir)..\..\..\dependencies\ImGuiFD\dependencies\dirent\include;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\dependencies\CPP_Utils\src;$(SolutionDir)..\..\..\dependencies\rlImGui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,6 +147,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;$(SolutionDir)..\..\..\dependencies\ImGuiFD\dependencies\dirent\include;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\dependencies\CPP_Utils\src;$(SolutionDir)..\..\..\dependencies\rlImGui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SupportJustMyCode>true</SupportJustMyCode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,6 +170,8 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src;$(SolutionDir)..\..\..\dependencies\raylib\src;$(SolutionDir)..\..\..\dependencies\imgui;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\src;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\src;$(SolutionDir)..\..\..\dependencies\ImGuiFD;$(SolutionDir)..\..\..\dependencies\ImGuiFD\dependencies\dirent\include;$(SolutionDir)..\..\..\dependencies\Arduboy_Emulator_HL\dependencies\ATmega32u4_Emulator\dependencies\CPP_Utils\src;$(SolutionDir)..\..\..\dependencies\rlImGui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
