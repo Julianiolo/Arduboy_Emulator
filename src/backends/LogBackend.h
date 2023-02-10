@@ -24,8 +24,21 @@ namespace ABB {
     private:
         friend class ArduboyBackend;
 
+        static struct Settings {
+            bool showModule = true;
+            bool showFileInfo = true;
+        } settings;
+
         std::vector<size_t> cache;
-        std::vector<std::pair<A32u4::ATmega32u4::LogLevel,std::string>> logs;
+        struct Entry {
+            A32u4::ATmega32u4::LogLevel level;
+            std::string msg;
+
+            std::string module;
+            std::string fileName;
+            int lineNum;
+        };
+        std::vector<Entry> logs;
 
         Arduboy* ab;
     public:
@@ -47,10 +60,10 @@ namespace ABB {
 
         
 
-        void addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg);
+        void addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module);
     public:
         void activate();
-        static void log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg);
+        static void log(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName = nullptr, int lineNum = -1, const char* module = nullptr);
         template<typename ... Args>
         static void logf(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, Args ... args) {
             log(logLevel, StringUtils::format(msg, args ...).c_str());

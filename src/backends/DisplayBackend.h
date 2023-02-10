@@ -51,6 +51,7 @@ namespace ABB {
 
 		void rotateCW();
 		void rotateCCW();
+		uint8_t getRotation() const;
 
 		void setDarkColor(const Color3& color);
 		void setLightColor(const Color3& color);

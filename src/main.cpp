@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <chrono>
 #include <vector>
 #include <string>
@@ -8,6 +9,7 @@
 #include "imgui.h"
 #include "rlImGui.h"
 #include "oneHeaderLibs/VectorOperators.h"
+#include "StreamUtils.h"
 
 #include "ArduEmu.h"
 
@@ -34,9 +36,9 @@ int frameCnt = 0;
 Vector2 lastMousePos;
 Vector2 mouseDelta;
 
+int test(int argc, char** argv); // from tests.cpp
 
-
-int main(void) {
+int main(int argc, char** argv) {
 #if 1
     setup();
 
@@ -52,7 +54,7 @@ int main(void) {
 
     return 0;
 #elif 1
-    benchmark();
+    test(argc, argv);
 #else
     Arduboy ab;
 
@@ -63,7 +65,7 @@ int main(void) {
     gamePath = "/home/juli/Downloads/166a9d346a3793b00cb90ea0f2145fec220638f6.hex";
 #endif
 
-    if (!ab.loadFromHexFile(gamePath)) {
+    if (!ab.mcu.loadFromHexFile(gamePath)) {
         printf("couldnt load file!\n");
         return 1;
     }
@@ -144,7 +146,7 @@ void setup() {
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 
 #elif 1
-    abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
+    abb.ab.mcu.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
 #elif 1
     abb.ab.loadFromHexFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.hex");
     abb.ab.mcu.symbolTable.loadFromDumpFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/symbs.asm");
@@ -234,119 +236,7 @@ void destroy() {
 
 
 
-uint64_t benchmark_step(double secs, const char* gamePath, uint8_t flags);
 
-void benchmark() {
-    /*
-    
-        Inst update: 1667613550  6.25%
-        switch:      1667615954  4.27%
-          no heap                4.10%
-            no /GS               4.06%
-    
-    */
-
-
-    std::vector<std::string> testFiles = {
-        ROOTDIR "resources/games/Hollow/hollow.ino.hex", 
-        ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.hex",
-        ROOTDIR "resources/games/almostPong/almostPong.ino.hex",
-        ROOTDIR "resources/games/PixelPortal/PixelPortal.ino.hex",
-        ROOTDIR "resources/games/longcat/longcat.ino.hex",
-        ROOTDIR "resources/games/Arduboy3D/Arduboy3D.ino.hex",
-        ROOTDIR "resources/games/stairssweep/stairssweep.ino.hex",
-        ROOTDIR "resources/games/Ardutosh.hex"
-    };
-    double secs = 60;
-
-    std::string res = "";
-
-    uint64_t id = std::time(0);
-
-    res += StringUtils::format("Arduboy benchmark:\nid=%llu\nsecs=%f\ntestFiles=[\n", id, secs);
-
-    for (size_t i = 0; i < testFiles.size(); i++) {
-        res += StringUtils::format("\t%u: %s,\n",i,testFiles[i].c_str());
-    }
-
-    res += "]\n";
-
-    printf("%s", res.c_str());
-
-    std::string r;
-
-    for (uint8_t flags = 0; flags < 4; flags++) {
-        {
-            r = StringUtils::format("Starting warmup [%u] with flags [d:%u,a:%u]\n", testFiles.size()-1, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0
-            );
-            printf("%s", r.c_str());
-            res += r;
-
-            uint64_t micros =  benchmark_step(secs, testFiles.back().c_str(), flags);
-
-            r = StringUtils::format("took: %14.7fms => %12.7f%%\n",  (double)micros/1000, (micros/1000000.0)/secs*100);
-            printf("%s", r.c_str());
-            res += r;
-        }
-
-        uint64_t micosSum = 0;
-        double percSum = 0;
-
-        for (size_t i = 0; i < testFiles.size(); i++) {
-            r = StringUtils::format("\tStarting benchmark [%u] with flags [d:%u,a:%u]\n", i, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0
-            );
-            printf("%s", r.c_str());
-            res += r;
-
-            uint64_t micros =  benchmark_step(secs, testFiles[i].c_str(), flags);
-            micosSum += micros;
-
-            double perc = (micros / 1000000.0) / secs * 100;
-            percSum += perc;
-
-            r = StringUtils::format("\ttook: %14.7fms => %12.7f%%\n", (double)micros/1000, perc);
-            printf("%s", r.c_str());
-            res += r;
-        }
-
-        double avgMs = ((double)micosSum/1000) / testFiles.size();
-        double avgPerc = percSum / testFiles.size();
-
-        r = StringUtils::format("AVGs: took: %14.7fms => %12.7f%%\n\n", avgMs, avgPerc);
-        printf("%s", r.c_str());
-        res += r;
-
-        //break;
-    }
-
-    r = "Done :)\n";
-    printf("%s", r.c_str());
-    res += r;
-
-    StringUtils::writeStringToFile(res, (std::to_string(id) + "_benchmark.txt").c_str());
-}
-
-uint64_t benchmark_step(double secs ,const char* gamePath, uint8_t flags) {
-    Arduboy ab;
-
-
-    if (!ab.loadFromHexFile(gamePath)) {
-        printf("couldnt load file\n");
-        abort();
-    }
-    ab.mcu.powerOn();
-    ab.updateButtons();
-
-    auto start = std::chrono::high_resolution_clock::now();
-    ab.mcu.execute((uint64_t)(A32u4::CPU::ClockFreq*secs), flags);
-    auto end = std::chrono::high_resolution_clock::now();
-    uint64_t ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    return ms;
-}
 
 
 

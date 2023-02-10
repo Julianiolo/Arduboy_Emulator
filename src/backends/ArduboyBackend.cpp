@@ -81,10 +81,17 @@ void ABB::ArduboyBackend::update() {
 
 	ab.buttonState = 0;
 	if (isWinFocused()) {
-		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Left,  ActionManager::ActivationState_Down) << Arduboy::Button_Left_Bit;  //IsKeyDown(KEY_LEFT) 
-		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Right, ActionManager::ActivationState_Down) << Arduboy::Button_Right_Bit; //IsKeyDown(KEY_RIGHT)
-		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Up,    ActionManager::ActivationState_Down) << Arduboy::Button_Up_Bit;    //IsKeyDown(KEY_UP)   
-		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_Down,  ActionManager::ActivationState_Down) << Arduboy::Button_Down_Bit;  //IsKeyDown(KEY_DOWN) 
+		{
+			constexpr size_t loop[] = {ArduEmu::Action_Arduboy_Up,ArduEmu::Action_Arduboy_Right,ArduEmu::Action_Arduboy_Down,ArduEmu::Action_Arduboy_Left};
+			size_t rotInd = rotateControls ? displayBackend.getRotation() : 0;
+
+			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+0)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Up_Bit;    //IsKeyDown(KEY_UP)   
+			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+1)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Right_Bit; //IsKeyDown(KEY_RIGHT)
+			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+2)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Down_Bit;  //IsKeyDown(KEY_DOWN)
+			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+3)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Left_Bit;  //IsKeyDown(KEY_LEFT) 
+		}
+		 
+		
 		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_A,     ActionManager::ActivationState_Down) << Arduboy::Button_A_Bit;     //IsKeyDown(KEY_A)    
 		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_B,     ActionManager::ActivationState_Down) << Arduboy::Button_B_Bit;     //IsKeyDown(KEY_B)    
 	}
@@ -254,6 +261,8 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 			if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_RIGHT,"CW"))) {
 				displayBackend.rotateCW();
 			}
+
+			ImGui::Checkbox("Also rotate Controls",&rotateControls);
 			
 			ImGui::EndMenu();
 		}
@@ -340,76 +349,3 @@ bool ABB::ArduboyBackend::_wantsFullScreen() const {
 	return fullScreen;
 }
 
-bool ABB::ArduboyBackend::load(const uint8_t* data, size_t dataLen){
-	bool isElf = false;
-	if(dataLen >= 4 && std::memcmp(data, "\x7f" "ELF", 4) == 0){ // check for magic number
-		isElf = true;
-	}
-
-	bool success = false;
-	if(isElf){
-		success = loadFromELF(data, dataLen);
-	}else{
-		success = ab.loadFromHexString((const char*)data);
-	}
-
-	if(!success){
-		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't load program from data");
-		return false;
-	}
-
-	return true;
-}
-bool ABB::ArduboyBackend::loadFile(const char* path) {
-	const char* ext = StringUtils::getFileExtension(path);
-
-	if (std::strcmp(ext, "hex") == 0) {
-		ab.loadFromHexFile(path);
-	}
-	else if (std::strcmp(ext, "elf") == 0) {
-		loadFromELFFile(path);
-	}
-	else {
-		LogBackend::logf(LogBackend::LogLevel_Error, "Cant load file with extension %s! Trying to load: %s", ext, path);
-		return false;
-	}
-	return true;
-}
-
-bool ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
-	elf = A32u4::ELF::parseELFFile(data, dataLen);
-
-	ab.mcu.symbolTable.loadFromELF(elf);
-
-	size_t textInd = elf.getIndOfSectionWithName(".text");
-	size_t dataInd = elf.getIndOfSectionWithName(".data");
-
-	if (textInd != (size_t)-1 && dataInd != (size_t)-1) {
-		size_t len = elf.sectionContents[textInd].second + elf.sectionContents[dataInd].second;
-		uint8_t* romData = new uint8_t[len];
-		memcpy(romData, &elf.data[0] + elf.sectionContents[textInd].first, elf.sectionContents[textInd].second);
-		memcpy(romData + elf.sectionContents[textInd].second, &elf.data[0] + elf.sectionContents[dataInd].first, elf.sectionContents[dataInd].second);
-
-		ab.mcu.flash.loadFromMemory(romData, len);
-
-		delete[] romData;
-
-		LogBackend::log(LogBackend::LogLevel_DebugOutput, "Successfully loaded Flash content from elf!");
-		return true;
-	}
-	else {
-		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't find required sections for execution: %s %s", textInd == (size_t)-1 ? ".text" : "", dataInd == (size_t)-1 ? ".data" : "");
-		return false;
-	}
-}
-
-bool ABB::ArduboyBackend::loadFromELFFile(const char* path) {
-	bool success = true;
-	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
-	if (!success) {
-		LogBackend::logf(LogBackend::LogLevel_Error, "Couldn't load ELF file: %s", path);
-		return false;
-	}
-		
-	return loadFromELF(&content[0], content.size());
-}

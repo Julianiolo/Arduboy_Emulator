@@ -355,7 +355,7 @@ void ArduEmu::drawLoadProgramDialog() {
 					abb = &addEmulator(name.c_str());
 				}
 
-				abb->loadFile(path.c_str());
+				abb->ab.mcu.loadFile(path.c_str());
 				abb->ab.mcu.powerOn();
 			}
 			ImGuiFD::CloseCurrentDialog();
@@ -428,7 +428,7 @@ void ArduEmu::drawLoadProgramDialog() {
 void ArduEmu::openLoadProgramDialog(size_t ownId) {
 	lastOpenDialogId = ownId;
 #if !defined(__EMSCRIPTEN__)
-	ImGuiFD::OpenFileDialog("LoadProgramDialog", ".");
+	ImGuiFD::OpenDialog("LoadProgramDialog", ImGuiFDMode_LoadFile, ".");
 #else
 	isSimpleLoadDialogOpen = true;
 #endif

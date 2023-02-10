@@ -22,6 +22,7 @@ ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open
 	dataspaceEEPROMHex(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, nullptr, utils::HexViewer::DataType_Eeprom),
 	flashHex(ab->mcu.flash.getData(), A32u4::Flash::sizeMax, &ab->mcu, utils::HexViewer::DataType_Rom),
 	fdiRam((std::string("Ram - ")+winName).c_str()), fdiEeprom((std::string("Eeprom - ")+winName).c_str()), fdiRom((std::string("Rom - ")+winName).c_str()),
+	fdiState((std::string("State - ")+winName).c_str()),
 	winName(winName), open(open)
 {
 	dataspaceDataHex.setSymbolList(ab->mcu.symbolTable.getSymbolsRam());
@@ -35,26 +36,11 @@ ABB::McuInfoBackend::McuInfoBackend(Arduboy* ab, const char* winName, bool* open
 
 void ABB::McuInfoBackend::drawSaveLoadButtons(SaveLoadFDIPair* fdi) {
 	if(ImGui::Button("Save")){
-		fdi->save.OpenFileDialog(".");
+		fdi->save.OpenDialog(ImGuiFDMode_SaveFile, ".");
 	}
 	ImGui::SameLine();
 	if(ImGui::Button("Load")) {
-		fdi->load.OpenFileDialog(".");
-	}
-}
-
-void ABB::McuInfoBackend::drawDialog(ImGuiFD::FDInstance* fdi, std::function<void(const char* path)> callB){
-	if(fdi->Begin()) {
-		if (ImGuiFD::ActionDone()) {
-			if(ImGuiFD::SelectionMade()) {
-				std::string path = ImGuiFD::GetSelectionPathString(0);
-				std::string name = ImGuiFD::GetSelectionNameString(0);
-
-				callB(path.c_str());
-			}
-			ImGuiFD::CloseCurrentDialog();
-		}
-		fdi->End();
+		fdi->load.OpenDialog(ImGuiFDMode_LoadFile, ".");
 	}
 }
 
@@ -145,81 +131,78 @@ void ABB::McuInfoBackend::draw() {
 			ImGui::TreePop();
 		}
 	
-		if (ImGui::TreeNode("States")) {
-			drawStates();
-			ImGui::TreePop();
-		}
+		drawStates();
 	}
 	else {
 		winFocused = false;
 	}
 	ImGui::End();
 
-	drawDialog(&fdiRam.save, [&](const char* path){
+	fdiRam.save.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
 			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		ab->mcu.dataspace.getRamState(file);
-		file.close();
+		((Arduboy*)userData)->mcu.dataspace.getRamState(file);
 		//StringUtils::writeBytesToFile(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, path);
-	});
-	drawDialog(&fdiRam.load, [&](const char* path){
+	}, ab);
+	fdiRam.load.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
 			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		ab->mcu.dataspace.setRamState(file);
-		file.close();
-	});
+		((Arduboy*)userData)->mcu.dataspace.setRamState(file);
+	},ab);
 
-	drawDialog(&fdiEeprom.save, [&](const char* path){
+	fdiEeprom.save.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
 			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		ab->mcu.dataspace.getEepromState(file);
-		file.close();
+		((Arduboy*)userData)->mcu.dataspace.getEepromState(file);
 		//StringUtils::writeBytesToFile(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, path);
 	});
-	drawDialog(&fdiEeprom.load, [&](const char* path){
+	fdiEeprom.load.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
 			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		ab->mcu.dataspace.setEepromState(file);
-		file.close();
-	});
+		((Arduboy*)userData)->mcu.dataspace.setEepromState(file);
+	},ab);
 
-	drawDialog(&fdiRom.save, [&](const char* path){
+	fdiRom.save.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
 			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		ab->mcu.flash.getRomState(file);
-		file.close();
+		((Arduboy*)userData)->mcu.flash.getRomState(file);
 		//StringUtils::writeBytesToFile(ab->mcu.flash.getData(), A32u4::Flash::sizeMax, path);
-	});
-	drawDialog(&fdiRom.load, [&](const char* path){
+	},ab);
+	fdiRom.load.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
 			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		ab->mcu.flash.setRomState(file);
-		file.close();
-	});
+		((Arduboy*)userData)->mcu.flash.setRomState(file);
+	},ab);
 }
 
 const char* ABB::McuInfoBackend::getWinName() const {
@@ -244,47 +227,78 @@ void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) 
 }
 
 void ABB::McuInfoBackend::drawStates() {
-	constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
-	if(states.size() > 0) {
-		if(ImGui::BeginTable("StatesTable", 2, flags)){
-			for(size_t i = 0; i<states.size();) {
-				ImGui::PushID(i);
-				auto& entry = states[i];
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(entry.first.c_str());
-				if(ImGui::IsItemHovered()) {
-					ImGui::BeginTooltip();
-
-					ImGui::TextUnformatted(entry.first.c_str());
-
-					ImGui::EndTooltip();
-				}				
-
-				ImGui::TableNextColumn();
-				if(ImGui::Button("Load")){
-					*ab = entry.second;
-				}
-				ImGui::SameLine();
-				if(ImGui::Button("Save")) {
-					abort();
-				}
-				ImGui::SameLine();
-				if(ImGui::Button("Delete")) {
-					states.erase(states.begin()+i);
-					ImGui::PopID();
-					continue;
-				}
-
-				i++;
-				ImGui::PopID();
-			}
-			ImGui::EndTable();
+	if (ImGui::TreeNode("States")) {
+		if(ImGui::Button("+")){
+			fdiState.load.OpenDialog(ImGuiFDMode_LoadFile, ".");
 		}
-	}else{
-		ImGui::TextUnformatted("No States saved yet!");
+
+		constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+		if(states.size() > 0) {
+			if(ImGui::BeginTable("StatesTable", 2, flags)){
+				for(size_t i = 0; i<states.size();) {
+					ImGui::PushID(i);
+					auto& entry = states[i];
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(entry.first.c_str());
+					if(ImGui::IsItemHovered()) {
+						ImGui::BeginTooltip();
+
+						ImGui::TextUnformatted(entry.first.c_str());
+
+						ImGui::EndTooltip();
+					}				
+
+					ImGui::TableNextColumn();
+					if(ImGui::Button("Load")){
+						*ab = entry.second;
+					}
+					ImGui::SameLine();
+					if(ImGui::Button("Save")) {
+						stateIndToSave = i;
+						fdiState.save.OpenDialog(ImGuiFDMode_SaveFile, ".");
+					}
+					ImGui::SameLine();
+					if(ImGui::Button("Delete")) {
+						states.erase(states.begin()+i);
+						ImGui::PopID();
+						continue;
+					}
+
+					i++;
+					ImGui::PopID();
+				}
+				ImGui::EndTable();
+			}
+		}else{
+			ImGui::TextUnformatted("No States saved yet!");
+		}
+		ImGui::TreePop();
 	}
+	fdiState.save.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
+		std::ofstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		((Arduboy*)userData)->getState(file);
+	},&states[stateIndToSave].second);
+
+	fdiState.load.DrawDialog([](void* userData){
+		const char* path = ImGuiFD::GetSelectionPathString(0);
+		std::ifstream file(path, std::ios::binary);
+		if(!file.is_open()) {
+			LogBackend::logf(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			return;
+		}
+
+		Arduboy ab;
+		ab.setState(file);
+		((McuInfoBackend*)userData)->addState(ab, ImGuiFD::GetSelectionNameString(0));
+	},this);
 }
 
 void ABB::McuInfoBackend::addState(Arduboy& ab, const char* name){
