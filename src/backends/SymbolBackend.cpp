@@ -525,7 +525,8 @@ void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& ta
 
 	ImGui::PopStyleVar();
 	if (ImGui::BeginPopup("settings")) {
-		ImGui::SliderFloat("Scale", scale, 0.1f, 10);
+		ImGui::SliderFloat("Scale", scale, 0.1f, 20);
+		ImGui::SameLine();
 		if (ImGui::Button("Reset"))
 			*scale = 1;
 		ImGui::EndPopup();

@@ -18,15 +18,33 @@
 #define ROOTDIR "../../../../"
 #endif
 
-std::array<std::string,8> testFiles = {
-    ROOTDIR "resources/games/Hollow/hollow.ino.hex", 
-    ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.hex",
+constexpr std::array<const char*,8*2+7> testFiles = {
     ROOTDIR "resources/games/almostPong/almostPong.ino.hex",
-    ROOTDIR "resources/games/PixelPortal/PixelPortal.ino.hex",
-    ROOTDIR "resources/games/longcat/longcat.ino.hex",
     ROOTDIR "resources/games/Arduboy3D/Arduboy3D.ino.hex",
+    ROOTDIR "resources/games/ardubullets/ardubullets.ino.hex", 
+    ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.hex",
+    ROOTDIR "resources/games/Hollow/hollow.ino.hex", 
+    ROOTDIR "resources/games/longcat/longcat.ino.hex",
+    ROOTDIR "resources/games/PixelPortal/PixelPortal.ino.hex",
     ROOTDIR "resources/games/stairssweep/stairssweep.ino.hex",
-    ROOTDIR "resources/games/Ardutosh.hex"
+
+    ROOTDIR "resources/games/almostPong/almostPong.ino.elf",
+    ROOTDIR "resources/games/Arduboy3D/Arduboy3D.ino.elf",
+    ROOTDIR "resources/games/ardubullets/ardubullets.ino.elf", 
+    ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.elf",
+    ROOTDIR "resources/games/Hollow/hollow.ino.elf", 
+    ROOTDIR "resources/games/longcat/longcat.ino.elf",
+    ROOTDIR "resources/games/PixelPortal/PixelPortal.ino.elf",
+    ROOTDIR "resources/games/stairssweep/stairssweep.ino.elf",
+
+    ROOTDIR "resources/games/arduzel/arduzel.ino.hex", 
+    ROOTDIR "resources/games/Ardutosh.hex",
+    ROOTDIR "resources/games/Ardynia.hex",
+    ROOTDIR "resources/games/CastleBoy.hex",
+    ROOTDIR "resources/games/Catacombs of the damned.hex",
+    ROOTDIR "resources/games/CircuitDude.hex",
+    ROOTDIR "resources/games/MicroCity.hex",
+    //ROOTDIR "resources/games/starduino.hex",
 };
 
 
@@ -60,7 +78,16 @@ void benchmark() {
             no /GS               4.06%
     
     */
-
+    std::array<std::string,8> benchFiles = {
+        ROOTDIR "resources/games/Hollow/hollow.ino.hex", 
+        ROOTDIR "resources/games/CastleBoy/CastleBoy.ino.hex",
+        ROOTDIR "resources/games/almostPong/almostPong.ino.hex",
+        ROOTDIR "resources/games/PixelPortal/PixelPortal.ino.hex",
+        ROOTDIR "resources/games/longcat/longcat.ino.hex",
+        ROOTDIR "resources/games/Arduboy3D/Arduboy3D.ino.hex",
+        ROOTDIR "resources/games/stairssweep/stairssweep.ino.hex",
+        ROOTDIR "resources/games/Ardutosh.hex"
+    };
 
     
     double secs = 60;
@@ -69,10 +96,10 @@ void benchmark() {
 
     uint64_t id = std::time(0);
 
-    res += StringUtils::format("Arduboy benchmark:\nid=%llu\nsecs=%f\ntestFiles=[\n", id, secs);
+    res += StringUtils::format("Arduboy benchmark:\nid=%llu\nsecs=%f\benchFiles=[\n", id, secs);
 
-    for (size_t i = 0; i < testFiles.size(); i++) {
-        res += StringUtils::format("\t%u: %s,\n",i,testFiles[i].c_str());
+    for (size_t i = 0; i < benchFiles.size(); i++) {
+        res += StringUtils::format("\t%u: %s,\n",i,benchFiles[i].c_str());
     }
 
     res += "]\n";
@@ -85,14 +112,14 @@ void benchmark() {
 
     for (uint8_t flags = 0; flags < 4; flags++) {
         {
-            r = StringUtils::format("Starting warmup [%u] with flags [d:%u,a:%u]\n", testFiles.size()-1, 
+            r = StringUtils::format("Starting warmup [%u] with flags [d:%u,a:%u]\n", benchFiles.size()-1, 
                 (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
                 (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0
             );
             printf("%s", r.c_str());
             res += r;
 
-            uint64_t micros =  benchmark_step(secs, testFiles.back().c_str(), flags);
+            uint64_t micros =  benchmark_step(secs, benchFiles.back().c_str(), flags);
 
             r = StringUtils::format("took: %14.7fms => %12.7f%%\n",  (double)micros/1000, (micros/1000000.0)/secs*100);
             printf("%s", r.c_str());
@@ -101,7 +128,7 @@ void benchmark() {
 
         uint64_t micosSum = 0;
 
-        for (size_t i = 0; i < testFiles.size(); i++) {
+        for (size_t i = 0; i < benchFiles.size(); i++) {
             r = StringUtils::format("\tStarting benchmark [%u] with flags [d:%u,a:%u]\n", i, 
                 (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
                 (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0
@@ -109,7 +136,7 @@ void benchmark() {
             printf("%s", r.c_str());
             res += r;
 
-            uint64_t micros =  benchmark_step(secs, testFiles[i].c_str(), flags);
+            uint64_t micros =  benchmark_step(secs, benchFiles[i].c_str(), flags);
             micosSum += micros;
 
             double perc = (micros / 1000000.0) / secs * 100;
@@ -125,7 +152,7 @@ void benchmark() {
     }
 
     for (uint8_t flags = 0; flags < 4; flags++) {
-        double avgMs = ((double)avgFlags[flags]/1000) / testFiles.size();
+        double avgMs = ((double)avgFlags[flags]/1000) / benchFiles.size();
         double avgPerc = avgMs / 1000.0;
 
         r = StringUtils::format("AVGs[d:%d,a:%d]: took: %14.7fms => %12.7f%%\n", 
@@ -183,9 +210,9 @@ bool serialisationTest() {
 bool fuzzTest() {
     size_t numWorked = 0;
     for(size_t i = 0; i<testFiles.size(); i++) {
-        printf("### Starting %s\n", testFiles[i].c_str());
+        printf("### Starting %s\n", testFiles[i]);
         Arduboy ab;
-        ab.mcu.loadFromHexFile(testFiles[i].c_str());
+        ab.mcu.loadFile(testFiles[i]);
         ab.mcu.powerOn();
         ab.buttonState = 0;
 

@@ -290,14 +290,14 @@ bool ArduEmu::drawMenuContents(size_t activeInstanceInd) {
 	bool menuUsed = false;
 	if(ImGui::BeginMenu("File")){
 		menuUsed = true;
-		if(ImGui::MenuItem("Open game")){
+		if(ImGui::MenuItem(ADD_ICON(ICON_FA_GAMEPAD) "Open game")){
 			openLoadProgramDialog(-1);
 		}
 		ImGui::EndMenu();
 	}
 	if(ImGui::BeginMenu("Edit")){
 		menuUsed = true;
-		ImGui::MenuItem("Settings", nullptr, &showSettings);
+		ImGui::MenuItem(ADD_ICON(ICON_FA_GEAR) "Settings", nullptr, &showSettings);
 		ImGui::EndMenu();
 	}
 	if(ImGui::BeginMenu("Info")){
@@ -438,7 +438,7 @@ void ArduEmu::openLoadProgramDialog(size_t ownId) {
 extern "C" {
 __attribute__((used)) void ArduEmu_loadFile(const char* name, const uint8_t* data, size_t size) {
 	ABB::ArduboyBackend* abb = &ArduEmu::addEmulator(name);
-	abb->load(data, size);
+	abb->ab.muc.load(data, size);
 	abb->ab.mcu.powerOn();
 }
 }
@@ -452,7 +452,7 @@ void ArduEmu::drawSettings() {
 	if(!showSettings) return;
 
 	ImGui::SetNextWindowSize({600,400},ImGuiCond_Appearing);
-	if(ImGui::Begin("Settings",&showSettings)) {
+	if(ImGui::Begin(ADD_ICON(ICON_FA_GEAR) "Settings",&showSettings)) {
 		ImVec2 size = ImGui::GetContentRegionAvail();
 
 		ImGui::PushItemWidth(-1);
@@ -495,7 +495,7 @@ void ArduEmu::drawSettings() {
 							if(autoUpdate)
 								update = true;
 						}
-						if (ImGui::ColorEdit3("Frame Color", (float*)&settings.frameColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
+						if (ImGui::ColorEdit4("Frame Color", (float*)&settings.frameColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview)) {
 							if(autoUpdate)
 								update = true;
 						}
@@ -614,7 +614,7 @@ std::string ArduEmu::getActionKeyStr(const ActionManager::Action& action){
 void ArduEmu::drawKeybindSettings() {
 	static ActionManager::Action editAction;
 
-	if(ImGui::BeginTable("Table", 3, ImGuiTableFlags_Borders)) {
+	if(ImGui::BeginTable("Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
 		if(ImGui::BeginPopupModal("EditKeybinds")){
 			ImGui::Text("Edit Keybind \"%s\"", editAction.title.c_str());
 			ImGui::Separator();
@@ -654,12 +654,10 @@ void ArduEmu::drawKeybindSettings() {
 
 		ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
 
-		{
-			ImGui::TableSetupColumn("Title");
-			ImGui::TableSetupColumn("Keys");
-			ImGui::TableSetupColumn("Action");
-			ImGui::TableHeadersRow();
-		}
+		ImGui::TableSetupColumn("Title");
+		ImGui::TableSetupColumn("Keys", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Action");
+		ImGui::TableHeadersRow();
 
 		for(auto& action : actionManager) {
 			ImGui::PushID(&action);

@@ -40,27 +40,27 @@ namespace ABB{
 
             const A32u4::SymbolTable* symbolTable = nullptr;
             struct SyntaxColors{
-                ImVec4 PCAddr;
-                ImVec4 rawInstBytes;
-                ImVec4 instName;
-                ImVec4 instParams;
-                ImVec4 asmComment;
-                ImVec4 asmCommentSymbolBrackets;
-                ImVec4 asmCommentSymbol;
-                ImVec4 asmCommentSymbolOffset;
+                ImVec4 PCAddr = { 1,0.5f,0,1 };
+                ImVec4 rawInstBytes = {1,1,0,1};
+                ImVec4 instName = {0.2f,0.2f,0.7f,1};
+                ImVec4 instParams = {0.2f,0.4f,0.7f,1};
+                ImVec4 asmComment = {0.4f,0.6f,0.4f,1};
+                ImVec4 asmCommentSymbolBrackets = {0.3f,0.4f,0.7f,1};
+                ImVec4 asmCommentSymbol = {0.5f,0.5f,0.7f,1};
+                ImVec4 asmCommentSymbolOffset = {0.4f,0.4f,0.6f,1};
 
-                ImVec4 syntaxLabelAddr;
-                ImVec4 syntaxLabelText;
+                ImVec4 syntaxLabelAddr = {1,0.7f,1,1};
+                ImVec4 syntaxLabelText = {1,0,1,1};
 
-                ImVec4 dataBlock;
-                ImVec4 dataBlockText;
+                ImVec4 dataBlock = {0,1,1,1};
+                ImVec4 dataBlockText = {0.5f,1,0.5f,1};
 
-                ImVec4 srcCodeText;
+                ImVec4 srcCodeText = {0.6f,0.6f,0.7f,1};
 
-                ImVec4 branchClipped;
+                ImVec4 branchClipped = {70/255.0f, 245/255.0f, 130/255.0f, 1};
             };
             static SyntaxColors syntaxColors;
-            
+            static constexpr SyntaxColors defSyntaxColors{};
 
             bool showScollBarHints = true;
             bool showScollBarHeat = true;
@@ -70,7 +70,6 @@ namespace ABB{
             void loadSrc(const char* str, const char* strEnd = NULL);
             bool loadSrcFile(const char* path);
             void generateDisasmFile(const A32u4::Flash* data, const A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo& info = A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo());
-            void drawHeader();
             void drawFile(uint16_t PCAddr);
             void scrollToLine(size_t line, bool select = false);
 

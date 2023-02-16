@@ -168,7 +168,10 @@ void ABB::DebuggerBackend::drawDebugStack() {
 	ImGui::EndChild();
 }
 void ABB::DebuggerBackend::drawBreakpoints() {
-	if (ImGui::BeginChild("DebugStack", { 600,80 }, true)) {
+	if (ImGui::Button("Clear All Breakpoints")) {
+		abb->ab.mcu.debugger.clearAllBreakpoints();
+	}
+	if (ImGui::BeginChild("DebugStack", { 0,80 }, true)) {
 		for (auto& b : abb->ab.mcu.debugger.getBreakpointList()) {
 			ImGui::Text("Breakpoint at addr %04x => PC %04x", b*2,b);
 		}
@@ -197,7 +200,8 @@ void ABB::DebuggerBackend::drawRegisters(){
 }
 void ABB::DebuggerBackend::drawGPRegisters() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1,ImGui::GetStyle().ItemSpacing.y });
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1,1 });
+	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 3);
 	if (ImGui::BeginChild("GPRegs", { ImGui::CalcTextSize("r99: ff").x+2*4+1, 0}, true)) {
 		{
 			size_t indPtr = 0;
@@ -297,6 +301,7 @@ void ABB::DebuggerBackend::drawGPRegisters() {
 
 
 	ImGui::EndChild();
+	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
 	ImGui::SameLine();

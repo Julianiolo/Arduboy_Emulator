@@ -30,10 +30,11 @@ namespace ABB {
 			} settings;
 
 			static struct SyntaxColors{
-				ImVec4 Addr;
-				ImVec4 bytes;
-				ImVec4 ascii;
+				ImVec4 Addr = {1,1,0,1};
+				ImVec4 bytes = {0.7f,0.7f,0.9f,1};
+				ImVec4 ascii = {0.5f,0.6f,0.5f,1};
 			} syntaxColors;
+			static constexpr SyntaxColors defSyntaxColors{};
 
 			class EditBytes {
 			private:

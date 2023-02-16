@@ -11,9 +11,7 @@
 #include "StringUtils.h"
 #include "byteVisualiser.h"
 
-ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors = { 
-	{1,1,0,1}, {0.7f,0.7f,0.9f,1}, {0.5f,0.6f,0.5f,1} 
-};
+ABB::utils::HexViewer::SyntaxColors ABB::utils::HexViewer::syntaxColors;
 ABB::utils::HexViewer::Settings ABB::utils::HexViewer::settings;
 
 ABB::utils::HexViewer::HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu, uint8_t dataType) : mcu(mcu), data(data), dataLen(dataLen), dataType(dataType) {
@@ -640,10 +638,16 @@ void ABB::utils::HexViewer::drawSettings() {
 
 	ImGui::Separator();
 	if(ImGui::TreeNode("Syntax colors")){
-		ImGui::ColorEdit3("Addr", (float*)&syntaxColors.Addr, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Bytes", (float*)&syntaxColors.bytes, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Ascii", (float*)&syntaxColors.ascii, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		const float resetBtnWidth = ImGui::CalcTextSize("Reset").x + ImGui::GetStyle().FramePadding.x * 2;
+#define COLOR_MACRO(str,_x_)	ImGui::ColorEdit3(str, (float*)&syntaxColors. _x_, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha); \
+								ImGui::SameLine(); \
+								ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x-resetBtnWidth)); \
+								if(ImGui::Button("Reset"))syntaxColors. _x_ = defSyntaxColors. _x_;
 
+		COLOR_MACRO("Addr", Addr);
+		COLOR_MACRO("Bytes", bytes);
+		COLOR_MACRO("Ascii", ascii);
+#undef COLOR_MACRO
 		ImGui::TreePop();
 	}
 }

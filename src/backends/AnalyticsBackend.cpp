@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <string>
+#include <numeric>
 
 #include "imgui.h"
 
@@ -33,19 +34,19 @@ void ABB::AnalyticsBackend::draw(){
     if(ImGui::Begin(winName.c_str(), open)){
         winFocused = ImGui::IsWindowFocused();
 
-        addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
-        addrmcu_t max = (addrmcu_t)(A32u4::DataSpace::Consts::data_size - 1 - ab->mcu.symbolTable.getMaxRamAddrEnd());
-        ImGui::Text("%.2f%% of Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
-        uint64_t usedSum = 0;
-        for (size_t i = 0; i < StackSizeBuf.size(); i++) {
-            usedSum += StackSizeBuf.get(i);
+        {
+            addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
+            addrmcu_t max = (addrmcu_t)(A32u4::DataSpace::Consts::data_size - 1 - ab->mcu.symbolTable.getMaxRamAddrEnd());
+            ImGui::Text("%.2f%% of suspected Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
+            uint64_t usedSum = std::accumulate(StackSizeBuf.begin(), StackSizeBuf.end(), 0);
+            float avg = StackSizeBuf.size() > 0 ? (float)usedSum / StackSizeBuf.size() : 0; // prevent div by 0
+            ImGui::Text("Average: %.2f%% of suspected Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
+
+            ImGui::PlotHistogram("Stack Size",
+                &getStackSizeBuf, &StackSizeBuf, (int)StackSizeBuf.size(), 
+                0, NULL, 0, (float)max, {0,70}
+            );
         }
-        float avg = StackSizeBuf.size() > 0 ? (float)usedSum / StackSizeBuf.size() : 0; // prevent div by 0
-        ImGui::Text("Average: %.2f%% of Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
-        ImGui::PlotHistogram("Stack Size",
-            &getStackSizeBuf, &StackSizeBuf, (int)StackSizeBuf.size(), 
-            0, NULL, 0, (float)max, {0,70}
-        );
 
         ImGui::PlotHistogram("Sleep Cycles",
             &getSleepCycsBuf, &sleepCycsBuf, (int)sleepCycsBuf.size(), 

@@ -231,8 +231,6 @@
     <ClInclude Include="..\..\..\..\src\utils\byteVisualiser.h" />
     <ClInclude Include="..\..\..\..\src\utils\hexViewer.h" />
     <ClInclude Include="..\..\..\..\src\utils\icons.h" />
-    <ClInclude Include="..\..\..\..\src\utils\MathUtils.h" />
-    <ClInclude Include="..\..\..\..\src\utils\RingBuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -29,13 +29,7 @@ bool ABB::utils::AsmViewer::showBranches = true;
 size_t ABB::utils::AsmViewer::maxBranchDepth = 16;
 
 
-ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors = {
-	{1,0.5f,0,1}, {1,1,0,1}, {0.2f,0.2f,0.7f,1}, {0.2f,0.4f,0.7f,1}, {0.4f,0.6f,0.4f,1}, {0.3f,0.4f,0.7f,1}, {0.5f,0.5f,0.7f,1}, {0.4f,0.4f,0.6f,1},
-	{1,0.7f,1,1}, {1,0,1,1},
-	{0,1,1,1}, {0.5f,1,0.5f,1},
-	{0.6f,0.6f,0.7f,1},
-	{70/255.0f, 245/255.0f, 130/255.0f, 1}
-};
+ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors;
 
 void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked) {
 	auto lineAddr = file.addrs[line_no];
@@ -43,7 +37,7 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 
 	if (breakpointsEnabled) {
 		auto linePC = lineAddr / 2;
-		bool isAddr = lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel;
+		bool isAddr = A32u4::Disassembler::DisasmFile::addrIsActualAddr(lineAddr);
 		bool hasBreakpoint = isAddr && mcu->debugger.getBreakpoints()[linePC];
 
 		float lineHeight = lineRect.GetHeight();
@@ -75,7 +69,7 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	
 	ImGui::BeginGroup();
 
-	if(showLineHeat && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr && lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel){
+	if(showLineHeat && A32u4::Disassembler::DisasmFile::addrIsActualAddr(lineAddr)){
 		const uint64_t cnt = mcu->analytics.getPCCnt(lineAddr);
 		if (cnt > 0) {
 			const float intensity = MathUtils::clamp((float)std::log(cnt) / 15, 0.05f, 1.f);
@@ -94,8 +88,8 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 		);
 	}
 	
-	if(lineAddr != A32u4::Disassembler::DisasmFile::Addrs_notAnAddr){
-		if (lineAddr != A32u4::Disassembler::DisasmFile::Addrs_symbolLabel) {
+	if(!A32u4::Disassembler::DisasmFile::addrIsNotProgram(lineAddr)){
+		if (!A32u4::Disassembler::DisasmFile::addrIsSymbol(lineAddr)) {
 			constexpr size_t addrEnd = 8;
 			constexpr size_t addrEndExt = 10;
 
@@ -220,11 +214,7 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end) {
 
 			if (ImGui::IsItemHovered()) {
 				std::string paramRaw = std::string(nextParamOff, paramEnd);
-				std::string param = "";
-				for (auto c : paramRaw) {
-					if (c != ' ' && c != '\t' && c != ',' && c != '\n')
-						param += c;
-				}
+				std::string param = StringUtils::stripString_(paramRaw);
 
 				if(param.size() > 0){
 					switch (param[0]) {
@@ -319,8 +309,12 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 		popFileStyle();
 			ImGui::BeginTooltip();
 			const A32u4::SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(std::string(symbolNameStartOff, symbolNameEndOff));
-			if(symbol)
+			if (symbol) {
 				SymbolBackend::drawSymbol(symbol, -1, mcu->flash.getData());
+			}
+			else {
+				ImGui::TextUnformatted("Symbol not present in Symboltable");
+			}
 			ImGui::EndTooltip();
 		pushFileStyle();
 
@@ -386,15 +380,19 @@ void ABB::utils::AsmViewer::drawSymbolLabel(const char* lineStart, const char* l
 	if(ImGui::IsItemHovered()){
 		std::string symbolName = std::string(symbolNameStartOff, symbolNameEndOff);
 		const A32u4::SymbolTable::Symbol* symbol = symbolTable->getSymbolByName(symbolName);
+		
+		popFileStyle();
+		ImGui::BeginTooltip();
+
 		if (symbol) {
-			popFileStyle();
-			ImGui::BeginTooltip();
-
 			SymbolBackend::drawSymbol(symbol, -1, mcu->flash.getData());
-
-			ImGui::EndTooltip();
-			pushFileStyle();
 		}
+		else {
+			ImGui::Text("Symbol \"%s\" not present in Symboltable", symbolName.c_str());
+		}
+
+		ImGui::EndTooltip();
+		pushFileStyle();
 	}
 }
 
@@ -408,11 +406,12 @@ void ABB::utils::AsmViewer::drawData(const char* lineStart, const char* lineEnd)
 
 void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, const ImVec2& winStartPos, const ImVec2& winSize, float lineXOff, float lineHeight, float firstLineY) {
 	ImDrawList* drawlist =  ImGui::GetWindowDrawList();
+	const size_t maxDepth = std::min(maxBranchDepth+1, file.maxBranchDisplayDepth);
 
 	// seperation line to breakpoints
 	drawlist->AddLine(
-		{winStartPos.x+lineXOff, winStartPos.y},
-		{winStartPos.x+lineXOff, winStartPos.y+winSize.y},
+		{winStartPos.x+lineXOff, winStartPos.y + ImGui::GetScrollY()},
+		{winStartPos.x+lineXOff, winStartPos.y + ImGui::GetScrollY() + winSize.y},
 		ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator))
 	);
 
@@ -431,9 +430,9 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		}
 	}
 
+	const float baseX = winStartPos.x + lineXOff;
 	for (auto& b : branchRootInds) {
 		auto& branchRoot = file.branchRoots[b];
-		float baseX = winStartPos.x + lineXOff;
 
 
 		float x;
@@ -443,12 +442,9 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		}
 		else {
 			// depth is too big, so we clip it
-			x = baseX - branchArrowSpace - (maxBranchDepth+1) * (branchWidth+branchSpacing) - branchSpacing;
+			x = baseX - branchArrowSpace - maxDepth * (branchWidth+branchSpacing) - branchSpacing;
 			clip = true;
 		}
-
-		
-		
 
 		ImVec4 col;
 		{
@@ -459,10 +455,10 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 
 		float start;
 		if (branchRoot.startLine < lineStart) { // too far up
-			start = winStartPos.y;
+			start = winStartPos.y + ImGui::GetScrollY();
 		}
 		else if (branchRoot.startLine > lineEnd) { // too far down
-			start = winStartPos.y + winSize.y;
+			start = winStartPos.y + ImGui::GetScrollY() + winSize.y;
 		}
 		else {
 			float lineY = firstLineY + (branchRoot.startLine - lineStart) * lineHeight - 1;
@@ -484,20 +480,28 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 					{baseX-branchArrowSpace*0.66f,start+branchArrowSpace*0.33f},
 					ImColor(col)
 				);
+
+				if (clip) {
+					drawlist->AddLine(
+						{x,start},
+						{x,start+(branchRoot.startLine<branchRoot.destLine?ImGui::GetTextLineHeight()/2:-ImGui::GetTextLineHeight()/2)},
+						ImColor(col)
+					);
+				}
 			}
 		}
 
 		float end;
 		if (branchRoot.destLine < lineStart) { // too far up
-			end = winStartPos.y;
+			end = winStartPos.y + ImGui::GetScrollY();
 		}
 		else if (branchRoot.destLine > lineEnd) { // too far down
-			end = winStartPos.y + winSize.y;
+			end = winStartPos.y + ImGui::GetScrollY() + winSize.y;
 		}
 		else {
 			float lineY = firstLineY + (branchRoot.destLine - lineStart) * lineHeight + 1;
 			end = lineY + 0.5f*lineHeight;
-			{ // draw start line thingy
+			{ // draw end line thingy
 				drawlist->AddLine(
 					{x,end},
 					{baseX-branchArrowSpace*0.25f,end},
@@ -511,139 +515,115 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 					{baseX-branchArrowSpace/2, end+branchArrowSpace/2},
 					ImColor(col)
 				);
+
+				if (clip) {
+					drawlist->AddLine(
+						{x,end},
+						{x,end+(branchRoot.startLine>branchRoot.destLine?ImGui::GetTextLineHeight()/2:-ImGui::GetTextLineHeight()/2)},
+						ImColor(col)
+					);
+				}
 			}
 		}
 
-		
-
-		drawlist->AddLine(
-			{x,start},
-			{x,end},
-			ImColor(col), branchWidth
-		);
+		// draw main line
+		if(!clip)
+			drawlist->AddLine(
+				{x,start},
+				{x,end},
+				ImColor(col), branchWidth
+			);
 	}
-}
-
-void ABB::utils::AsmViewer::drawHeader(){
-	if(file.content.size() == 0)
-		return;
 }
 void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr) {
 	if(file.content.size() == 0)
 		return;
 
-	if (ImGui::BeginChild(title.c_str())) {
-		drawHeader();
+	pushFileStyle();
 
-		pushFileStyle();
+	if(ImGui::BeginChild(title.c_str(), {0,0}, true, ImGuiWindowFlags_HorizontalScrollbar)) {
+		ImVec2 winStartPos = ImGui::GetCursorScreenPos();
+		ImVec2 winSize = ImGui::GetContentRegionAvail();
 
-		ImVec2 winStartPos = ImGui::GetCursorScreenPos() + ImGui::GetStyle().WindowPadding;
-		if(ImGui::BeginChild(title.c_str(), {0,0}, true)) {
-			ImVec2 winSize = ImGui::GetContentRegionAvail();
-			
 
-			if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-				selectedLine = -1;
+		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+			selectedLine = -1;
 
-			if (showScollBarHints)
-				decorateScrollBar(PCAddr);
+		if (showScollBarHints)
+			decorateScrollBar(PCAddr);
 
-			
-			float lineXOff = 0;
-			if (showBranches) {
-				lineXOff += std::min(maxBranchDepth+1,file.maxBranchDisplayDepth) * (branchWidth+branchSpacing) + branchSpacing + branchArrowSpace;
-			}
-			
-			const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
 
-			if (breakpointsEnabled) {
-				float extraOff = lineHeight + breakpointExtraPadding * 2; // amount of extra offset due to the space for the breakpoint
-				// add border line that seperates breakpoints and lines
-				ImGui::GetWindowDrawList()->AddLine(
-					{winStartPos.x+lineXOff+extraOff, winStartPos.y},
-					{winStartPos.x+lineXOff+extraOff, winStartPos.y+winSize.y},
-					ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator))
-				);
-			}
-			
-
-			bool hasAlreadyClicked = false;
-
-			size_t lineStart = -1, lineEnd = -1;
-			float firstLineY = -1;
-			{
-				ImGuiListClipper clipper;
-				clipper.Begin((int)file.lines.size(), lineHeight);
-				while (clipper.Step()) {
-					const float contentWidth = ImGui::GetContentRegionAvail().x;
-					const ImVec2 charSize = ImGui::CalcTextSize(" ");
-
-					lineStart = clipper.DisplayStart;
-					lineEnd = clipper.DisplayEnd;
-					firstLineY = ImGui::GetCursorScreenPos().y;
-					for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-						const char* lineStart = file.content.c_str() + file.lines[line_no];
-						const char* lineEnd;
-						if(((size_t)line_no+1) < file.lines.size())
-							lineEnd = file.content.c_str() + file.lines[line_no+1];
-						else
-							lineEnd = file.content.c_str() + file.content.size();
-
-						if (showBranches) {
-							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + lineXOff);
-						}
-
-						ImRect lineRect = ImRect(
-							ImGui::GetCursorScreenPos(),
-							{ImGui::GetCursorScreenPos().x + contentWidth, ImGui::GetCursorScreenPos().y + charSize.y}
-						);
-
-						drawLine(lineStart, lineEnd, line_no, PCAddr, lineRect, &hasAlreadyClicked);
-					}
-				}
-				clipper.End();
-			}
-			
-			
-
-			if (showBranches) {
-				drawBranchVis(lineStart, lineEnd, winStartPos, winSize, lineXOff, lineHeight, firstLineY);
-			}
-			
-
-			if(scrollSet != -1){
-				ImGuiExt::SetScrollNormY(scrollSet);
-				scrollSet = -1;
-			}
-
-			/*
-
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ImGuiWindow* win = ImGui::GetCurrentWindowRead();
-			ImVec2 contentSize = ImGuiExt::GetContentSize();
-			drawList->AddRect(
-			{win->DC.CursorStartPos},
-			{win->DC.CursorStartPos.x + contentSize.x, win->DC.CursorStartPos.y + contentSize.y - 10},
-			IM_COL32(255,255,0,255)
-			);
-			float scrollMax = ImGui::GetScrollMaxY();
-			drawList->AddRect(
-			{win->DC.CursorStartPos},
-			{win->DC.CursorStartPos.x + scrollMax, win->DC.CursorStartPos.y + scrollMax - 10},
-			IM_COL32(255,0,0,255)
-			);
-
-			*/
-
+		float lineXOff = 0;
+		if (showBranches) {
+			lineXOff += std::min(maxBranchDepth+1,file.maxBranchDisplayDepth) * (branchWidth+branchSpacing) + branchSpacing + branchArrowSpace;
 		}
 
-		ImGui::EndChild();
+		const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
 
-		popFileStyle();
+		if (breakpointsEnabled) {
+			float extraOff = lineHeight + breakpointExtraPadding * 2; // amount of extra offset due to the space for the breakpoint
+			// add border line that seperates breakpoints and lines
+			ImGui::GetWindowDrawList()->AddLine(
+				{winStartPos.x+lineXOff+extraOff, winStartPos.y+ImGui::GetScrollY()},
+				{winStartPos.x+lineXOff+extraOff, winStartPos.y+ImGui::GetScrollY()+winSize.y},
+				ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator))
+			);
+		}
+
+
+		bool hasAlreadyClicked = false;
+
+		size_t lineStart = -1, lineEnd = -1;
+		float firstLineY = -1;
+		{
+			ImGuiListClipper clipper;
+			clipper.Begin((int)file.lines.size(), lineHeight);
+			while (clipper.Step()) {
+				const float contentWidth = ImGui::GetContentRegionAvail().x;
+				const ImVec2 charSize = ImGui::CalcTextSize(" ");
+
+				lineStart = clipper.DisplayStart;
+				lineEnd = clipper.DisplayEnd;
+				firstLineY = ImGui::GetCursorScreenPos().y;
+				for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
+					const char* lineStart = file.content.c_str() + file.lines[line_no];
+					const char* lineEnd;
+					if(((size_t)line_no+1) < file.lines.size())
+						lineEnd = file.content.c_str() + file.lines[line_no+1];
+					else
+						lineEnd = file.content.c_str() + file.content.size();
+
+					if (showBranches) {
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + lineXOff);
+					}
+
+					ImRect lineRect = ImRect(
+						ImGui::GetCursorScreenPos(),
+						{ImGui::GetCursorScreenPos().x + contentWidth, ImGui::GetCursorScreenPos().y + charSize.y}
+					);
+
+					drawLine(lineStart, lineEnd, line_no, PCAddr, lineRect, &hasAlreadyClicked);
+				}
+			}
+			clipper.End();
+		}
+
+
+
+		if (showBranches) {
+			drawBranchVis(lineStart, lineEnd, winStartPos, winSize, lineXOff, lineHeight, firstLineY);
+		}
+
+
+		if(scrollSet != -1){
+			ImGuiExt::SetScrollNormY(scrollSet);
+			scrollSet = -1;
+		}
 	}
+
 	ImGui::EndChild();
 
-	
+	popFileStyle();
 }
 
 void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
@@ -656,28 +636,22 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 		ImGuiExt::AddLineToScrollBar(win, ImGuiAxis_Y, perc, { 1,0,0,1 });
 
 		if(showScollBarHeat){
+			// we reduce the resolution by only drawing [chunks] many chunks
 			constexpr size_t chunks = 300;
 			size_t lastChunkEnd = 0;
 			for(size_t i = 0; i< chunks;i++){
 				size_t chunkEnd = (size_t)std::ceil(((float) file.getNumLines()/ chunks) * (i+1));
 				if(chunkEnd >= file.getNumLines())
 					chunkEnd = file.getNumLines()-1;
-				uint16_t startAddr,endAddr;
-				while((endAddr = file.addrs[chunkEnd]) == A32u4::Disassembler::DisasmFile::Addrs_notAnAddr || endAddr == A32u4::Disassembler::DisasmFile::Addrs_symbolLabel){
-					if(chunkEnd+1 >= file.getNumLines()){
-						endAddr = (uint16_t)(mcu->flash.sizeWords()-1);
-						break;
-					}
-					chunkEnd++;
-				}
-					
-				while(((startAddr = file.addrs[lastChunkEnd]) == A32u4::Disassembler::DisasmFile::Addrs_notAnAddr || startAddr == A32u4::Disassembler::DisasmFile::Addrs_symbolLabel) && lastChunkEnd+1 < chunkEnd)
-					lastChunkEnd++;
+
+				addrmcu_t startAddr = file.getNextActualAddr(lastChunkEnd);
+				addrmcu_t endAddr = file.getPrevActualAddr(chunkEnd);
 				
 				uint64_t sum = 0;
-				for(uint16_t j = startAddr/2; j<endAddr/2;j++){
+				for(pc_t j = startAddr/2; j<endAddr/2;j++){
 					sum += mcu->analytics.getPCHeat()[j];
 				}
+
 				if(sum > 0){
 					float avg = (float)((double)sum / (double)(endAddr-startAddr));
 					float intensity = std::log(avg) / 15;
@@ -755,42 +729,51 @@ void ABB::utils::AsmViewer::drawSettings() {
 
 	{
 		int v = (int)maxBranchDepth;
-		if(ImGui::SliderInt("Branch Clip Amt", &v, 1, 512))
+		if(ImGui::SliderInt("Branch Clip Amt", &v, 1, 128))
 			maxBranchDepth = v;
 	}
 
+	
+
 	ImGui::Separator();
 	if(ImGui::TreeNode("Syntax colors")){
-		ImGui::ColorEdit3("PC Addr", (float*)&syntaxColors.PCAddr, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Raw Inst Bytes", (float*)&syntaxColors.rawInstBytes, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Inst Name", (float*)&syntaxColors.instName, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Inst Parameter", (float*)&syntaxColors.instParams, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		const float resetBtnWidth = ImGui::CalcTextSize("Reset").x + ImGui::GetStyle().FramePadding.x * 2;
+#define COLOR_MACRO(str,_x_)	ImGui::ColorEdit3(str, (float*)&syntaxColors. _x_, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha); \
+								ImGui::SameLine(); \
+								ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x-resetBtnWidth)); \
+								if(ImGui::Button("Reset"))syntaxColors. _x_ = defSyntaxColors. _x_;
+
+		COLOR_MACRO("PC Addr", PCAddr);
+		COLOR_MACRO("Raw Inst Bytes", rawInstBytes);
+		COLOR_MACRO("Inst Name", instName);
+		COLOR_MACRO("Inst Parameter", instParams);
 		
-		ImGui::Separator();
+		ImGui::Spacing();
 
-		ImGui::ColorEdit3("Comment", (float*)&syntaxColors.asmComment, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Comment Symbol", (float*)&syntaxColors.asmCommentSymbol, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Comment Symbol Brackets", (float*)&syntaxColors.asmCommentSymbolBrackets, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Comment Symbol Offset", (float*)&syntaxColors.asmCommentSymbolOffset, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		COLOR_MACRO("Comment", asmComment);
+		COLOR_MACRO("Comment Symbol", asmCommentSymbol);
+		COLOR_MACRO("Comment Symbol Brackets", asmCommentSymbolBrackets);
+		COLOR_MACRO("Comment Symbol Offset", asmCommentSymbolOffset);
 		
-		ImGui::Separator();
+		ImGui::Spacing();
 		
-		ImGui::ColorEdit3("Syntax Label", (float*)&syntaxColors.syntaxLabelText, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Syntax Label Addr", (float*)&syntaxColors.syntaxLabelAddr, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		COLOR_MACRO("Syntax Label", syntaxLabelText);
+		COLOR_MACRO("Syntax Label Addr", syntaxLabelAddr);
 		
-		ImGui::Separator();
+		ImGui::Spacing();
 
-		ImGui::ColorEdit3("Data Block", (float*)&syntaxColors.dataBlock, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-		ImGui::ColorEdit3("Data Block String Interpretation", (float*)&syntaxColors.dataBlockText, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		COLOR_MACRO("Data Block", dataBlock);
+		COLOR_MACRO("Data Block String Interpretation", dataBlockText);
 
-		ImGui::Separator();
+		ImGui::Spacing();
 
-		ImGui::ColorEdit3("Source Code", (float*)&syntaxColors.srcCodeText, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		COLOR_MACRO("Source Code", srcCodeText);
 
-		ImGui::Separator();
+		ImGui::Spacing();
 
-		ImGui::ColorEdit3("Branch Clipped", (float*)&syntaxColors.branchClipped, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+		COLOR_MACRO("Branch Clipped", branchClipped);
 
+#undef COLOR_MACRO
 		ImGui::TreePop();
 	}
 }

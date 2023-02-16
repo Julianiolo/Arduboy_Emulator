@@ -139,11 +139,12 @@ void setup() {
     ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
-#if 0
-    abb.ab.loadFromHexFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
-    //abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
+#if 1
+    abb.ab.mcu.loadFromHexFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
+    abb.debuggerBackend.addSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
-
+#elif 1
+    abb.ab.mcu.loadFromELFFile(ROOTDIR"resources/games/Arduboy3D/Arduboy3D.ino.elf");
 #elif 1
     abb.ab.mcu.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
 #elif 1

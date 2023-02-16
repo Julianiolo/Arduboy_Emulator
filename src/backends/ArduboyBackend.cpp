@@ -280,7 +280,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 			
 			ImGui::EndMenu();
 		}
-		if(ImGui::BeginMenu("Speed")){
+		if(ImGui::BeginMenu(ADD_ICON(ICON_FA_GAUGE_HIGH) "Speed")){
 			constexpr float speeds[] = {
 				0.1f, 0.25f, 0.5f, 1, 2, 4, 10
 			};

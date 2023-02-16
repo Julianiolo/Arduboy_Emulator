@@ -37,12 +37,6 @@ void ABB::LogBackend::draw() {
             ImGui::EndCombo();
         }
         ImGui::PopItemWidth();
-        ImGui::SameLine();
-        ImGui::TextUnformatted("Show:");
-        ImGui::SameLine();
-        ImGui::Checkbox("Module",&settings.showModule);
-        ImGui::SameLine();
-        ImGui::Checkbox("File",&settings.showFileInfo);
 
         if (changed) {
             cache.clear();
@@ -58,64 +52,60 @@ void ABB::LogBackend::draw() {
             clear();
         }
 
-        const int rowAmt = 1 + !!settings.showModule + !!settings.showFileInfo;
-        if(ImGui::BeginTable((winName+" logWin").c_str(), rowAmt, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders)){
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0,0});
-
-            float width = ImGui::GetContentRegionAvail().x;
-            if(settings.showModule)
-                ImGui::TableSetupColumn("Module", 0, 90);
-            {
-                float middleWidth = width;
-                if (settings.showModule) middleWidth -= 90 + ImGui::GetStyle().CellPadding.x;
-                if (settings.showFileInfo) middleWidth -= 170 + ImGui::GetStyle().CellPadding.x;
-                ImGui::TableSetupColumn("Message", 0, middleWidth);
-            }
-            if(settings.showFileInfo)
-                ImGui::TableSetupColumn("File info", 0, 170);
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 1, 1 });
+        if(ImGui::BeginTable((winName+" logWin").c_str(), 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders)){
+            ImGui::TableSetupColumn("Level", 0, 60);
+            ImGui::TableSetupColumn("Module", ImGuiTableColumnFlags_DefaultHide, 90);
+            ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch); //middleWidth);
+            ImGui::TableSetupColumn("File info", ImGuiTableColumnFlags_DefaultHide, 170);
+            ImGui::TableHeadersRow();
 
             ImGuiListClipper clipper;
             clipper.Begin((int)cache.size());
             while (clipper.Step()) {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-
                     auto& entry = logs[cache[line_no]];
+                    MCU_ASSERT(entry.level < A32u4::ATmega32u4::LogLevel_COUNT);
 
                     ImVec4 col = logColors[entry.level];
                     if(col.w < 0) {
                         col = ImGui::GetStyleColorVec4(ImGuiCol_Text) * ImVec4{-col.w,-col.w,-col.w,1};
                     }
 
-                    if(settings.showModule) {
-                        if(entry.module.size() > 0)
-                            ImGui::TextColored(col, "[%s] ", entry.module.c_str());
-                        ImGui::TableNextColumn();
-                    }
-                        
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+
+                    ImGui::TextColored(col, "[%s]", A32u4::ATmega32u4::logLevelStrs[entry.level]);
+
+                    ImGui::TableNextColumn();
+
+                    if(entry.module.size() > 0)
+                        ImGui::TextColored(col, "[%s] ", entry.module.c_str());
+
+
+                    ImGui::TableNextColumn();
                     
                     ImGuiExt::TextColored(col, entry.msg.c_str());
                     if(ImGui::IsItemHovered()) {
+                        ImGui::SetNextWindowSize({300,0});
                         ImGui::BeginTooltip();
-                        ImGuiExt::TextColored(col, entry.msg.c_str());
+                        ImGui::TextWrapped("%s", entry.msg.c_str());
                         ImGui::EndTooltip();
                     }
 
-                    if(settings.showFileInfo) {
-                        ImGui::TableNextColumn();
-                        if((entry.fileName.size() > 0 || entry.lineNum != -1))
-                            ImGui::TextColored(col, "[%s:%d]", 
-                                entry.fileName.size() > 0 ? StringUtils::getFileName(entry.fileName.c_str()) : "N/A", 
-                                entry.lineNum
-                            );
-                    }
+                    ImGui::TableNextColumn();
+                    if((entry.fileName.size() > 0 || entry.lineNum != -1))
+                        ImGui::TextColored(col, "[%s:%d]", 
+                            entry.fileName.size() > 0 ? StringUtils::getFileName(entry.fileName.c_str()) : "N/A", 
+                            entry.lineNum
+                        );
                 }
             }
             clipper.End();
-            ImGui::PopStyleVar();
         }
         ImGui::EndTable();
+
+        ImGui::PopStyleVar();
     }
     else {
         winFocused = false;
