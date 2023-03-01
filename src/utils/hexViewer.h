@@ -66,6 +66,7 @@ namespace ABB {
 				
 				bool canEdit() const;
 
+				size_t sizeBytes() const;
 			private:
 				void editPopupError(const char* msg);
 				
@@ -125,6 +126,7 @@ namespace ABB {
 			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
 
 			static void drawSettings();
+			size_t sizeBytes() const;
 		};
 	}
 }

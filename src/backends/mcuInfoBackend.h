@@ -15,11 +15,13 @@
 #include "SymbolBackend.h"
 
 namespace ABB {
+	class ArduboyBackend;
+
 	class McuInfoBackend {
 	private:
-		friend class ArduboyBackend;
+		friend ArduboyBackend;
 
-		Arduboy* ab;
+		ArduboyBackend* abb;
 
 		utils::HexViewer dataspaceDataHex;
 		utils::HexViewer dataspaceEEPROMHex;
@@ -37,14 +39,13 @@ namespace ABB {
 			ImGuiFD::FDInstance load;
 
 			SaveLoadFDIPair(const char* bothName);
+			size_t sizeBytes() const;
 		};
 		SaveLoadFDIPair fdiRam;
 		SaveLoadFDIPair fdiEeprom;
 		SaveLoadFDIPair fdiRom;
 
 		std::vector<std::pair<std::string,Arduboy>> states;
-
-		std::array<uint8_t, 128> a;
 
 		SaveLoadFDIPair fdiState;
 		size_t stateIndToSave = 0;
@@ -61,7 +62,7 @@ namespace ABB {
 		std::string winName;
 		bool* open;
 
-		McuInfoBackend(Arduboy* ab, const char* winName, bool* open);
+		McuInfoBackend(ArduboyBackend* abb, const char* winName, bool* open);
 
 		void draw();
 
@@ -69,6 +70,7 @@ namespace ABB {
 
 		bool isWinFocused() const;
 		void addState(Arduboy& ab, const char* name = nullptr);
+		size_t sizeBytes() const;
 	};
 }
 

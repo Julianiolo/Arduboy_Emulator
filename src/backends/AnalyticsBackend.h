@@ -35,6 +35,8 @@ namespace ABB{
         static float getSleepCycsBuf(void* data, int ind);
 
         bool isWinFocused() const;
+
+        size_t sizeBytes() const;
     };
 }
 

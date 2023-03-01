@@ -7,6 +7,7 @@
 #include "imgui.h"
 
 #include "StringUtils.h"
+#include "DataUtils.h"
 
 ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* open)
 : ab(ab), StackSizeBuf(100), sleepCycsBuf(100), instHeatOrder(A32u4::InstHandler::instList.size()), winName(winName), open(open)
@@ -38,7 +39,7 @@ void ABB::AnalyticsBackend::draw(){
             addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
             addrmcu_t max = (addrmcu_t)(A32u4::DataSpace::Consts::data_size - 1 - ab->mcu.symbolTable.getMaxRamAddrEnd());
             ImGui::Text("%.2f%% of suspected Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
-            uint64_t usedSum = std::accumulate(StackSizeBuf.begin(), StackSizeBuf.end(), 0);
+            uint64_t usedSum = std::accumulate(StackSizeBuf.begin(), StackSizeBuf.end(), (uint64_t)0);
             float avg = StackSizeBuf.size() > 0 ? (float)usedSum / StackSizeBuf.size() : 0; // prevent div by 0
             ImGui::Text("Average: %.2f%% of suspected Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
 
@@ -123,4 +124,22 @@ float ABB::AnalyticsBackend::getSleepCycsBuf(void* data, int ind){
 
 bool ABB::AnalyticsBackend::isWinFocused() const {
     return winFocused;
+}
+
+size_t ABB::AnalyticsBackend::sizeBytes() const {
+    size_t sum = 0;
+
+    sum += sizeof(ab);
+
+    sum += DataUtils::approxSizeOf(StackSizeBuf);
+    sum += DataUtils::approxSizeOf(sleepCycsBuf);
+
+    sum += sizeof(winFocused);
+
+    sum += DataUtils::approxSizeOf(instHeatOrder);
+
+    sum += DataUtils::approxSizeOf(winName);
+    sum += sizeof(open);
+
+    return sum;
 }

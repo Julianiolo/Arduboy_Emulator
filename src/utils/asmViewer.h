@@ -78,6 +78,8 @@ namespace ABB{
 
             size_t numOfDisasmLines();
 
+            size_t sizeBytes() const;
+
             static void drawSettings();
         private:
             void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked);
@@ -94,6 +96,12 @@ namespace ABB{
             void pushFileStyle();
             void popFileStyle();
         };
+    }
+}
+
+namespace DataUtils {
+    inline size_t approxSizeOf(const ABB::utils::AsmViewer& v) {
+        return v.sizeBytes();
     }
 }
 

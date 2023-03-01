@@ -12,6 +12,7 @@
 #include "StreamUtils.h"
 
 #include "ArduEmu.h"
+#include "backends/LogBackend.h"
 
 #include "utils/icons.h"
 
@@ -34,7 +35,7 @@ void benchmark();
 int frameCnt = 0;
 
 Vector2 lastMousePos;
-Vector2 mouseDelta;
+Vector2 mouseDelta = { 0,0 };
 
 int test(int argc, char** argv); // from tests.cpp
 
@@ -110,12 +111,23 @@ void drawClickDebug(int button) {
 
 
 void setup() {
-    SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );
-    InitWindow(1200, 800, "ABemu");
-    printf("Inited window\n");
+    ABB::LogBackend::init();
 
-    SetWindowResizeDrawCallback(draw);
-    SetExitKey(0);
+    {
+        auto start = std::chrono::high_resolution_clock::now();
+
+        SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );
+        InitWindow(1200, 800, "ABemu");
+
+
+        SetWindowResizeDrawCallback(draw);
+        SetExitKey(0);
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        double ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/1000.0;
+        ABB_LOGF(A32u4::ATmega32u4::LogLevel_DebugOutput, "raylib", "window init took: %f ms", ms);
+    }
     //SetTargetFPS(60);
 
     lastMousePos = GetMousePosition();

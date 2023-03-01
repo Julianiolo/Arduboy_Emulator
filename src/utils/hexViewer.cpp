@@ -134,7 +134,7 @@ void ABB::utils::HexViewer::drawHoverInfo(size_t addr, const A32u4::SymbolTable:
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, hSpacing));
 
 	char buf[AddrDigits];
-	StringUtils::uIntToHexBufCase(addr, AddrDigits, buf, settings.upperCaseHex);
+	StringUtils::uIntToHexBufCase(addr, buf, settings.upperCaseHex, AddrDigits);
 	ImGuiExt::TextColored(syntaxColors.Addr, buf, buf+AddrDigits);
 	ImGui::SameLine();
 	ImGui::TextUnformatted(": ");
@@ -220,7 +220,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 		for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
 			size_t lineAddr = line_no * bytesPerRow + dataOff;
 			char addrBuf[AddrDigits];
-			StringUtils::uIntToHexBufCase(lineAddr, AddrDigits, addrBuf, settings.upperCaseHex);
+			StringUtils::uIntToHexBufCase(lineAddr, addrBuf, settings.upperCaseHex, AddrDigits);
 			ImGuiExt::TextColored(syntaxColors.Addr, addrBuf, addrBuf+4);
 			ImGui::SameLine();
 			ImGui::TextUnformatted(":");
@@ -296,7 +296,7 @@ void ABB::utils::HexViewer::draw(size_t dataAmt, size_t dataOff) {
 				//ImGui::TextUnformatted((" " + byteStr).c_str());
 				char byteStr[3];
 				byteStr[0] = ' ';
-				StringUtils::uIntToHexBufCase(byte, 2, byteStr + 1, settings.upperCaseHex);
+				StringUtils::uIntToHexBufCase(byte, byteStr + 1, settings.upperCaseHex, 2);
 				if (!symbol)
 					ImGui::TextUnformatted(byteStr, byteStr + 3);
 				else {
@@ -610,6 +610,30 @@ void ABB::utils::HexViewer::EditBytes::draw() {
 	}
 }
 
+size_t ABB::utils::HexViewer::EditBytes::sizeBytes() const {
+	size_t sum = 0;
+
+	sum += sizeof(data);
+	sum += sizeof(dataLen);
+
+	sum += sizeof(editAddr);
+	sum += sizeof(editValTemp);
+
+	sum += sizeof(editType);
+	sum += sizeof(editEndian);
+	sum += sizeof(editReversed);
+	sum += sizeof(editBase);
+	sum += sizeof(editSigned);
+	sum += sizeof(editStringTerm);
+	sum += DataUtils::approxSizeOf(editStr);
+
+	sum += sizeof(setValueCallB);
+	sum += sizeof(setValueUserData);
+	sum += DataUtils::approxSizeOf(editErrorStr);
+
+	return sum;
+}
+
 
 void ABB::utils::HexViewer::drawSettings() {
 	ImGui::SliderFloat("Vertical Spacing", &settings.vertSpacing, 0, 10);
@@ -650,6 +674,33 @@ void ABB::utils::HexViewer::drawSettings() {
 #undef COLOR_MACRO
 		ImGui::TreePop();
 	}
+}
+
+size_t ABB::utils::HexViewer::sizeBytes() const {
+	size_t sum = 0;
+
+	sum += sizeof(mcu);
+	sum += sizeof(data);
+	sum += sizeof(dataLen);
+	sum += sizeof(dataType);
+
+	sum += sizeof(isSelecting);
+	sum += sizeof(selectStart);
+	sum += sizeof(selectEnd);
+
+	sum += sizeof(newFrame);
+
+	sum += sizeof(isHovered);
+	sum += sizeof(hoveredAddr);
+
+	sum += sizeof(symbolList);
+
+	sum += sizeof(popupAddr);
+	sum += sizeof(popupSymbol);
+
+	sum += eb.sizeBytes();
+
+	return sum;
 }
 
 /*

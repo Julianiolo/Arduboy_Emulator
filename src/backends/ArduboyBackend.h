@@ -71,6 +71,8 @@ namespace ABB {
 
 		void buildDefaultLayout();
 
+		size_t sizeBytes() const;
+
 		bool _wantsToBeClosed() const;
 		bool _wantsFullScreen() const;
 	};

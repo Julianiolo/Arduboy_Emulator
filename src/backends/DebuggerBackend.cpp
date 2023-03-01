@@ -247,10 +247,10 @@ void ABB::DebuggerBackend::drawGPRegisters() {
 				static uint8_t size = 1;
 				char buf[2]; // 2 should be enough, since we only ever need one digit and a null terminator
 				buf[1] = 0;
-				StringUtils::uIntToNumBaseBuf((uint64_t)1 << size, 1, buf);
+				StringUtils::uIntToBuf((uint64_t)1 << size, buf, 10, false, 1);
 				if (ImGui::BeginCombo("Size", buf)) {
 					for (int i = 0; i < 4; i++) {
-						StringUtils::uIntToNumBaseBuf((uint64_t)1 << i, 1, buf);
+						StringUtils::uIntToBuf((uint64_t)1 << i, buf, 10, false, 1);
 						if (ImGui::Selectable(buf, i == size))
 							size = i;
 					}
@@ -578,6 +578,31 @@ bool ABB::DebuggerBackend::addSrcFile(const char* path) {
 	srcMix.title = std::string(ADD_ICON(ICON_FA_FILE_CODE)) + StringUtils::getFileName(path);
 
 	return srcMix.loadSrcFile(path);
+}
+
+size_t ABB::DebuggerBackend::sizeBytes() const {
+	size_t sum = 0; 
+
+	sum += sizeof(abb);
+
+	sum += sizeof(winFocused);
+	sum += sizeof(showGPRegs);
+
+	sum += gprWatches.capacity() * sizeof(gprWatches[0]) + sizeof(gprWatches);
+	sum += sizeof(gprWatchAddAt);
+
+	sum += sizeof(loadedSrcFileInc);
+	sum += DataUtils::approxSizeOf(loadSrcMixFileDialogTitle);
+
+	sum += DataUtils::approxSizeOf(winName);
+	sum += sizeof(open);
+
+	sum += DataUtils::approxSizeOf(srcMixs);
+	sum += sizeof(selectedSrcMix);
+	sum += sizeof(stepFrame);
+	sum += sizeof(haltOnReset);
+
+	return sum;
 }
 
 /*

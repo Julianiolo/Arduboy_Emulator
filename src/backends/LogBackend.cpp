@@ -1,19 +1,84 @@
 #include "LogBackend.h"
 
+#include "raylib.h"
+
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui_internal.h"
 
 #include "../Extensions/imguiExt.h"
+
+#include "DataUtils.h"
 
 ImVec4 ABB::LogBackend::logColors[] = {
     { 0.7f,  0.7f, 0.7f,    -1},
     { 0.7f,  0.7f, 0.7f, -0.7f},
     {    1,     1,    1,    -1},
     {    1, 0.85f,    0,     1},
-    {    1,     0,    0,     1}
+    {    1,     0,    0,     1},
+    {  0.9,     0,    0,     1}
 };
 
+size_t ABB::LogBackend::idCntr = 1;
+
 ABB::LogBackend::Settings ABB::LogBackend::settings;
+#if USE_ICONS
+std::map<std::string, std::string> ABB::LogBackend::moduleIconMap;
+#endif
+std::vector<ABB::LogBackend::Entry> ABB::LogBackend::systemLogs;
+
+void ABB::LogBackend::init() {
+    SetTraceLogCallback([](int logLevel, const char* text, va_list args) {
+        int len = std::vsnprintf(NULL, 0, text, args);
+        if (len <= 0) {
+            abort();
+        }
+
+        char* buf = new char[len];
+        std::vsnprintf(buf, len, text, args);
+        std::string s(buf, buf + len - 1);
+        delete[] buf;
+
+        uint8_t level;
+        switch (logLevel) {
+            case LOG_NONE:    level = A32u4::ATmega32u4::LogLevel_None;        break;
+            case LOG_DEBUG:   level = A32u4::ATmega32u4::LogLevel_DebugOutput; break;
+            case LOG_INFO:    level = A32u4::ATmega32u4::LogLevel_Output;      break;
+            case LOG_WARNING: level = A32u4::ATmega32u4::LogLevel_Warning;     break;
+            case LOG_ERROR:   level = A32u4::ATmega32u4::LogLevel_Error;       break;
+            case LOG_FATAL:   level = A32u4::ATmega32u4::LogLevel_Fatal;       break;
+            default:          level = A32u4::ATmega32u4::LogLevel_Fatal;       break;
+        }
+
+        systemAddLog(level, s, NULL, -1, "raylib");
+    });
+
+#if USE_ICONS
+    moduleIconMap["ATmega32u4"] = ICON_FA_COMPUTER;
+    moduleIconMap["CPU"] = ICON_FA_MICROCHIP;
+    moduleIconMap["DataSpace"] = ICON_FA_MICROCHIP;
+    moduleIconMap["Flash"] = ICON_FA_HARD_DRIVE;
+
+    moduleIconMap["Debugger"] = ICON_FA_BUG_SLASH;
+    moduleIconMap["Analytics"] = ICON_FA_CHART_LINE;
+    moduleIconMap["Disassembler"] = ICON_FA_DIAGRAM_PREDECESSOR;
+    moduleIconMap["SymbolTable"] = ICON_FA_LIST;
+
+    moduleIconMap["BinTools"] = ICON_FA_TROWEL_BRICKS;
+
+    moduleIconMap["Arduboy"] = ICON_FA_GAMEPAD;
+    moduleIconMap["Display"] = ICON_FA_DISPLAY;
+
+    moduleIconMap["ArduboyBackend"] = ICON_FA_CHESS_ROOK;
+    moduleIconMap["LogBackend"] = ICON_FA_BARS_STAGGERED;
+    moduleIconMap["DebuggerBackend"] = ICON_FA_BUGS;
+    moduleIconMap["McuInfoBackend"] = ICON_FA_INFO;
+
+
+    moduleIconMap["raylib"] = ICON_FA_BOLT;
+
+#endif
+}
+
 
 ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
     ab->mcu.setLogCallB([](A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData) {
@@ -21,42 +86,151 @@ ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(a
     }, this);
 }
 
+void ABB::LogBackend::systemAddLog(A32u4::ATmega32u4::LogLevel logLevel, const std::string& msg, const char* fileName, int lineNum, const char* module) {
+    systemLogs.push_back({ logLevel,msg,module ? module : "",fileName ? fileName : "",lineNum, idCntr++});
+}
+
+void ABB::LogBackend::addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
+    updateCacheWithSystemLog();
+    logs.push_back({logLevel,msg,module?module:"",fileName?fileName:"",lineNum, idCntr++});
+    if (logLevel >= filterLevel)
+        cache.push_back({ true, logs.size() - 1 });
+}
+
+ABB::LogBackend::Entry& ABB::LogBackend::getEntryFromCache(size_t i) {
+    auto& cacheEntry = cache[i];
+    return (cacheEntry.first ? logs : systemLogs)[cacheEntry.second];
+}
+
+void ABB::LogBackend::updateCacheWithSystemLog() {
+    if (lastUpdatedSystemLogLen != systemLogs.size()) {
+        lastUpdatedSystemLogLen = systemLogs.size();
+        size_t lastId = 0;
+        if (cache.size() > 0)
+            lastId = getEntryFromCache(0).id;
+
+        size_t sysInd = 0;
+        while (sysInd < systemLogs.size() && systemLogs[sysInd].id < lastId)
+            sysInd++;
+
+        for (size_t i = sysInd; i < systemLogs.size(); i++) {
+            if (systemLogs[i].level >= filterLevel) {
+                cache.push_back({false, i});
+            }
+        }
+    }
+}
+
+void ABB::LogBackend::redoCache() {
+    cache.clear();
+    if (!settings.showSystemLog) {
+        for (size_t i = 0; i < logs.size(); i++) {
+            if (logs[i].level > filterLevel)
+                cache.push_back({ true, i });
+        }
+    }
+    else {
+        size_t logInd = 0;
+        size_t sysInd = 0;
+        while (logInd < logs.size() || sysInd < systemLogs.size()) {
+            size_t logID = -1;
+            while (logInd < logs.size()) {
+                logID = logs[logInd].id;
+
+                if (logs[logInd].level >= filterLevel)
+                    break;
+
+                logID = -1;
+                logInd++;
+            }
+            size_t systemLogID = -1;
+            while (sysInd < systemLogs.size()) {
+                systemLogID = systemLogs[sysInd].id;
+
+                if (systemLogs[sysInd].level >= filterLevel)
+                    break;
+
+                systemLogID = -1;
+                sysInd++;
+            }
+
+            if (logID == (size_t)-1 && systemLogID == (size_t)-1)
+                break;
+
+            if (logID < systemLogID) {
+                cache.push_back({true, logInd});
+                logInd++;
+            }
+            else {
+                cache.push_back({false, sysInd});
+                sysInd++;
+            }
+        }
+    }
+}
+
 void ABB::LogBackend::draw() {
+    updateCacheWithSystemLog();
+
     if(ImGui::Begin(winName.c_str(), open)){
         winFocused = ImGui::IsWindowFocused();
         bool changed = false;
         ImGui::PushItemWidth(100);
-        if (ImGui::BeginCombo("Filter Level", logLevelNames[filterLevel])) {
-            for (size_t i = 0; i < A32u4::ATmega32u4::LogLevel_COUNT; i++) {
-                if (ImGui::Selectable(logLevelNames[i])) {
-                    if (filterLevel != i)
-                        changed = true;
-                    filterLevel = (uint8_t)i;
+        {
+#if USE_ICONS
+            MCU_STATIC_ASSERT(MCU_ARR_SIZE(A32u4::ATmega32u4::logLevelStrs) == MCU_ARR_SIZE(logLevelIcons));
+
+            char buf[32];
+            std::snprintf(buf, sizeof(buf), "%s %s", logLevelIcons[filterLevel], A32u4::ATmega32u4::logLevelStrs[filterLevel]);
+            if (ImGui::BeginCombo("Filter Level", buf)) {
+                for (size_t i = 0; i < A32u4::ATmega32u4::LogLevel_COUNT; i++) {
+                    std::snprintf(buf, sizeof(buf), "%s %s", logLevelIcons[i], A32u4::ATmega32u4::logLevelStrs[i]);
+                    if (ImGui::Selectable(buf)) {
+                        if (filterLevel != i)
+                            changed = true;
+                        filterLevel = (uint8_t)i;
+                    }
                 }
+                ImGui::EndCombo();
             }
-            ImGui::EndCombo();
+#else
+            if (ImGui::BeginCombo("Filter Level", A32u4::ATmega32u4::logLevelStrs[filterLevel])) {
+                for (size_t i = 0; i < A32u4::ATmega32u4::LogLevel_COUNT; i++) {
+                    if (ImGui::Selectable(A32u4::ATmega32u4::logLevelStrs[i])) {
+                        if (filterLevel != i)
+                            changed = true;
+                        filterLevel = (uint8_t)i;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+#endif
         }
         ImGui::PopItemWidth();
 
+        ImGui::SameLine();
+        if (ImGui::Checkbox("System Log", &settings.showSystemLog))
+            changed = true;
+
         if (changed) {
-            cache.clear();
-            for (size_t i = 0; i < logs.size(); i++) {
-                if (logs[i].level >= filterLevel) {
-                    cache.push_back(i);
-                }
-            }
+            redoCache();
         }
 
         ImGui::SameLine();
-        if(ImGui::Button("Clear Logs")){
+        ImGui::Checkbox("Autoscroll", &settings.autoScroll);
+
+        ImGui::SameLine();
+        if(ImGui::Button("Clear")){
             clear();
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 1, 1 });
-        if(ImGui::BeginTable((winName+" logWin").c_str(), 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders)){
-            ImGui::TableSetupColumn("Level", 0, 60);
-            ImGui::TableSetupColumn("Module", ImGuiTableColumnFlags_DefaultHide, 90);
-            ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch); //middleWidth);
+        if(ImGui::BeginTable((winName+" logWin").c_str(), 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_ScrollY)){ //ImGuiTableFlags_Resizable
+            ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
+            const float iconWidth = ImGui::GetTextLineHeight() + 2;
+            ImGui::TableSetupColumn("Level", 0, (USE_ICONS) ? iconWidth : 60);
+            ImGui::TableSetupColumn("Module", (USE_ICONS)?0:ImGuiTableColumnFlags_DefaultHide, (USE_ICONS) ? iconWidth : 90);
+            ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch); //middleWidth);
             ImGui::TableSetupColumn("File info", ImGuiTableColumnFlags_DefaultHide, 170);
             ImGui::TableHeadersRow();
 
@@ -64,7 +238,7 @@ void ABB::LogBackend::draw() {
             clipper.Begin((int)cache.size());
             while (clipper.Step()) {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-                    auto& entry = logs[cache[line_no]];
+                    auto& entry = getEntryFromCache(line_no);
                     MCU_ASSERT(entry.level < A32u4::ATmega32u4::LogLevel_COUNT);
 
                     ImVec4 col = logColors[entry.level];
@@ -75,12 +249,34 @@ void ABB::LogBackend::draw() {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
 
+#if USE_ICONS
+                    ImGuiExt::TextColored(col, logLevelIcons[entry.level]);
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::BeginTooltip();
+                        ImGui::TextColored(col, "[%s]", A32u4::ATmega32u4::logLevelStrs[entry.level]);
+                        ImGui::EndTooltip();
+                    }
+#else
                     ImGui::TextColored(col, "[%s]", A32u4::ATmega32u4::logLevelStrs[entry.level]);
+#endif
 
                     ImGui::TableNextColumn();
 
-                    if(entry.module.size() > 0)
+                    if (entry.module.size() > 0) {
+#if USE_ICONS
+                        auto res = moduleIconMap.find(entry.module);
+                        const char* icon = res != moduleIconMap.end() ? res->second.c_str() : ICON_FA_QUESTION;
+                        ImGuiExt::TextColored(col, icon);
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::BeginTooltip();
+                            ImGui::TextColored(col, "[%s] ", entry.module.c_str());
+                            ImGui::EndTooltip();
+                        }
+
+#else
                         ImGui::TextColored(col, "[%s] ", entry.module.c_str());
+#endif
+                    }
 
 
                     ImGui::TableNextColumn();
@@ -102,10 +298,14 @@ void ABB::LogBackend::draw() {
                 }
             }
             clipper.End();
+            if (settings.autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+                ImGui::SetScrollHereY(1.0f);
+            ImGui::EndTable();
         }
-        ImGui::EndTable();
 
         ImGui::PopStyleVar();
+
+        
     }
     else {
         winFocused = false;
@@ -122,11 +322,7 @@ const char* ABB::LogBackend::getWinName() const {
     return winName.c_str();
 }
 
-void ABB::LogBackend::addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
-    logs.push_back({logLevel,msg,module?module:"",fileName?fileName:"",lineNum});
-    if (logLevel >= filterLevel)
-        cache.push_back(logs.size() - 1);
-}
+
 
 bool ABB::LogBackend::isWinFocused() const {
     return winFocused;
@@ -138,7 +334,7 @@ void ABB::LogBackend::drawSettings() {
             ImGui::Separator();
         ImGui::PushID((int)i);
 
-        ImGui::TextUnformatted(logLevelNames[i]);
+        ImGui::TextUnformatted(A32u4::ATmega32u4::logLevelStrs[i]);
 
         ImGui::Indent();
 
@@ -168,4 +364,41 @@ void ABB::LogBackend::drawSettings() {
 
         ImGui::PopID();
     }
+}
+
+size_t ABB::LogBackend::Entry::sizeBytes() const {
+    size_t sum = 0; 
+
+    sum += sizeof(level);
+    sum += DataUtils::approxSizeOf(msg);
+
+    sum += DataUtils::approxSizeOf(module);
+    sum += DataUtils::approxSizeOf(fileName);
+    sum += sizeof(lineNum);
+
+    sum += sizeof(id);
+
+    return sum;
+}
+
+size_t ABB::LogBackend::sizeBytes() const {
+    size_t sum = 0; 
+
+    for (auto& e : logs)
+        sum += e.sizeBytes();
+    sum += sizeof(logs) + (logs.capacity()-logs.size())*sizeof(Entry);
+
+    sum += sizeof(lastUpdatedSystemLogLen);
+    sum += DataUtils::approxSizeOf(cache);
+
+    sum += sizeof(ab);
+
+    sum += DataUtils::approxSizeOf(winName);
+    sum += sizeof(open);
+
+    sum += sizeof(filterLevel);
+
+    sum += sizeof(winFocused);
+
+    return sum;
 }

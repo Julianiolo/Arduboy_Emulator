@@ -49,6 +49,8 @@ namespace ABB {
 
         const A32u4::SymbolTable::Symbol* drawAddrWithSymbol(A32u4::SymbolTable::symb_size_t Addr, const A32u4::SymbolTable::SymbolList& list)const;
 		static void drawSymbolListSizeDiagramm(const A32u4::SymbolTable& table, const A32u4::SymbolTable::SymbolList& list, A32u4::SymbolTable::symb_size_t totalSize, float* scale, const uint8_t* data = nullptr, ImVec2 size = {0,0});
+        
+        size_t sizeBytes() const;
     };
 }
 

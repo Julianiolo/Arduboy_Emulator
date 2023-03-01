@@ -55,6 +55,8 @@ namespace ABB {
 
 		void setDarkColor(const Color3& color);
 		void setLightColor(const Color3& color);
+
+		size_t sizeBytes() const;
 	};
 }
 

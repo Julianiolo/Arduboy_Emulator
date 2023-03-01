@@ -12,6 +12,7 @@
 #include "../Extensions/imguiOperators.h"
 
 #include "MathUtils.h"
+#include "DataUtils.h"
 
 ImVec4 ABB::DisplayBackend::Color3::toImGuiCol() const {
 	return {(float)r/255, (float)g/255, (float)b/255, 1};
@@ -277,4 +278,25 @@ void ABB::DisplayBackend::setDarkColor(const Color3& color) {
 }
 void ABB::DisplayBackend::setLightColor(const Color3& color) {
 	lightColor = color;
+}
+
+size_t ABB::DisplayBackend::sizeBytes() const {
+	size_t sum = 0;
+
+	sum += DataUtils::approxSizeOf(name);
+	sum += sizeof(display);
+
+	sum += sizeof(displayTex);
+	sum += sizeof(displayImg) + displayImg.width*displayImg.height*3;
+
+
+	sum += sizeof(lastWinFocused);
+
+	sum += sizeof(rotation);
+
+	sum += sizeof(darkColor);
+	sum += sizeof(lightColor);
+	sum += sizeof(setColorWinOpen);
+
+	return sum;
 }

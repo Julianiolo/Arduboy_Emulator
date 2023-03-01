@@ -12,6 +12,7 @@
 #include "../Extensions/imguiExt.h"
 #include "StringUtils.h"
 #include "MathUtils.h"
+#include "DataUtils.h"
 #include "../utils/byteVisualiser.h"
 
 #include "../bintools/bintools.h"
@@ -132,7 +133,7 @@ void ABB::SymbolBackend::clearAddSymbol(){
 	addSymbol.id = -1;
 	addSymbol.isHidden = false;
 	addSymbol.note = "";
-	addSymbol.section = nullptr;
+	addSymbol.section = "";
 	addSymbol.extraData = nullptr;
 	addSymbol.flags = decltype(addSymbol.flags)();
 	addSymbol.flagStr = "";
@@ -419,13 +420,8 @@ void ABB::SymbolBackend::drawSymbol(const A32u4::SymbolTable::Symbol* symbol, A3
 }
 
 const A32u4::SymbolTable::Symbol* ABB::SymbolBackend::drawAddrWithSymbol(A32u4::SymbolTable::symb_size_t Addr, const A32u4::SymbolTable::SymbolList& list) const {
-	constexpr size_t AddrDigits = 4;
-	char texBuf[AddrDigits];
-
-	StringUtils::uIntToHexBuf(Addr, AddrDigits, texBuf);
-
 	ImGui::BeginGroup();
-	ImGui::TextUnformatted(texBuf, texBuf+AddrDigits);
+	ImGui::Text("%08" MCU_PRIxADDR, Addr);
 
 	const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolByValue(Addr, list);
 	if (symbol) {
@@ -537,4 +533,20 @@ void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& ta
 	
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
+}
+
+size_t ABB::SymbolBackend::sizeBytes() const {
+	size_t sum = 0;
+
+	sum += sizeof(mcu);
+
+	sum += DataUtils::approxSizeOf(winName);
+	sum += sizeof(open);
+
+	sum += DataUtils::approxSizeOf(symbolsSortedOrder);
+	sum += sizeof(shouldResort);
+	sum += sizeof(sortSpecs);
+	sum += addSymbol.sizeBytes();
+
+	return sum;
 }

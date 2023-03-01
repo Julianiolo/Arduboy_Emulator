@@ -30,6 +30,8 @@ namespace ABB {
         CompilerBackend (ArduboyBackend* abb, const char* winName, bool* open);
 
         void draw();
+
+        size_t sizeBytes() const;
     };
 }
 

@@ -3,7 +3,9 @@
 #include "ArduboyBackend.h"
 
 #include "ImGuiFD.h"
+
 #include "StringUtils.h"
+#include "DataUtils.h"
 
 ABB::CompilerBackend::CompilerBackend(ArduboyBackend* abb, const char* winName, bool* open) : abb(abb), fdiOpenDir((std::string(winName)+"_COMP").c_str()), winName(winName), open(open) {
 
@@ -82,4 +84,23 @@ void ABB::CompilerBackend::draw() {
     fdiOpenDir.DrawDialog([](void* userData){
         ((CompilerBackend*)userData)->inoPath = ImGuiFD::GetSelectionPathString(0);
     },this);
+}
+
+size_t ABB::CompilerBackend::sizeBytes() const {
+    size_t sum = 0; 
+
+    sum += sizeof(abb);
+    sum += DataUtils::approxSizeOf(inoPath);
+    sum += sizeof(fdiOpenDir.id) + sizeof(fdiOpenDir.str_id) + fdiOpenDir.str_id.capacity();
+    
+    sum += sizeof(callProc); // TODO inaccurate
+
+    sum += DataUtils::approxSizeOf(compileOutput);
+
+    sum += sizeof(autoLoad);
+
+    sum += DataUtils::approxSizeOf(winName);
+    sum += sizeof(open);
+
+    return sum;
 }

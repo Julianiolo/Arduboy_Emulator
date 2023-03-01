@@ -14,7 +14,7 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	logBackend      (&ab,    (name + " - " ADD_ICON(ICON_FA_LIST)        "Log"      ).c_str(), &devToolsOpen),
 	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display  ), 
 	debuggerBackend (this,   (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen),
-	mcuInfoBackend  (&ab,    (name + " - " ADD_ICON(ICON_FA_CIRCLE_INFO) "Mcu Info" ).c_str(), &devToolsOpen),
+	mcuInfoBackend  (this,   (name + " - " ADD_ICON(ICON_FA_CIRCLE_INFO) "Mcu Info" ).c_str(), &devToolsOpen),
 	analyticsBackend(&ab,    (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
 	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
 	symbolBackend   (&ab.mcu,(name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
@@ -56,7 +56,7 @@ void ABB::ArduboyBackend::setMcu() {
 	logBackend.ab = &ab;
 	displayBackend.display = &ab.display;
 	debuggerBackend.abb = this;
-	mcuInfoBackend.ab = &ab;
+	mcuInfoBackend.abb = this;
 	analyticsBackend.ab = &ab;
 	compilerBackend.abb = this;
 	symbolBackend.mcu = &ab.mcu;
@@ -335,6 +335,41 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 	ImGui::DockBuilderDockWindow(       logBackend.winName.c_str(), r2);
 }
 
+
+size_t ABB::ArduboyBackend::sizeBytes() const {
+	size_t sum = 0;
+
+	sum += ab.sizeBytes();
+
+	sum += DataUtils::approxSizeOf(name);
+	sum += DataUtils::approxSizeOf(devWinName);
+
+	sum += logBackend.sizeBytes();
+	sum += displayBackend.sizeBytes();
+	sum += debuggerBackend.sizeBytes();
+	sum += mcuInfoBackend.sizeBytes();
+	sum += analyticsBackend.sizeBytes();
+	sum += compilerBackend.sizeBytes();
+	sum += symbolBackend.sizeBytes();
+
+	sum += elf.sizeBytes();
+
+	sum += sizeof(id);
+
+	sum += sizeof(fullScreen);
+
+	sum += sizeof(open);
+	sum += sizeof(open_try);
+
+	sum += sizeof(winFocused);
+
+	sum += sizeof(devToolsOpen);
+	sum += sizeof(firstFrame);
+
+	sum += sizeof(rotateControls);
+
+	return sum;
+}
 
 void ABB::ArduboyBackend::tryClose() {
 	open = false;

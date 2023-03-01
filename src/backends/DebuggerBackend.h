@@ -22,7 +22,6 @@ namespace ABB{
         void drawRegisters();
         void drawGPRegisters();
 
-        bool* open;
         
         bool winFocused = false;
 
@@ -44,6 +43,7 @@ namespace ABB{
         bool drawLoadGenerateButtons(); // return true if a button was pressed
     public:
         std::string winName;
+        bool* open;
         std::vector<utils::AsmViewer> srcMixs;
         size_t selectedSrcMix = -1;
         bool stepFrame = false;
@@ -56,10 +56,10 @@ namespace ABB{
         const char* getWinName() const;
         bool isWinFocused() const;
 
-        
-
         void addSrc(const char* str, const char* title = NULL);
         bool addSrcFile(const char* path);
+
+        size_t sizeBytes() const;
     };
 }
 

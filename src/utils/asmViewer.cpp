@@ -719,6 +719,15 @@ void ABB::utils::AsmViewer::setMcu(A32u4::ATmega32u4* mcuPtr) {
 	mcu = mcuPtr;
 }
 
+size_t ABB::utils::AsmViewer::sizeBytes() const {
+	size_t sum = 0;
+
+	sum += DataUtils::approxSizeOf(title);
+	sum += file.sizeBytes();
+
+	return sum;
+}
+
 void ABB::utils::AsmViewer::drawSettings() {
 	ImGui::SliderFloat("Branch Width", &branchWidth, 0, 10);
 	ImGui::SliderFloat("Branch Spacing", &branchSpacing, 0, 10);
