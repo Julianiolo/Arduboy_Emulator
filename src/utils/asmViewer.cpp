@@ -646,6 +646,9 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr) {
 
 				addrmcu_t startAddr = file.getNextActualAddr(lastChunkEnd);
 				addrmcu_t endAddr = file.getPrevActualAddr(chunkEnd);
+
+				if (endAddr > mcu->flash.size())
+					endAddr = mcu->flash.size();
 				
 				uint64_t sum = 0;
 				for(pc_t j = startAddr/2; j<endAddr/2;j++){

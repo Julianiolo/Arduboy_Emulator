@@ -28,7 +28,7 @@ namespace ABB {
         static ImVec4 logColors[A32u4::ATmega32u4::LogLevel_COUNT];
 #if USE_ICONS
         static constexpr const char* logLevelIcons[] = {ICON_FA_CIRCLE_NOTCH, ICON_FA_BUG, ICON_FA_LIST, ICON_FA_TRIANGLE_EXCLAMATION, ICON_FA_CIRCLE_EXCLAMATION, ICON_FA_BOMB};
-        static std::map<std::string, std::string> moduleIconMap;
+        static std::map<std::string, std::pair<ImVec4,std::string>> moduleIconMap;
 #endif
     private:
         friend class ArduboyBackend;

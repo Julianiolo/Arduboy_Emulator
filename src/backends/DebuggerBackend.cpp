@@ -18,7 +18,7 @@
 
 
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open) 
-	: abb(abb), open(open), loadSrcMixFileDialogTitle(std::string(winName) + "srcMixFD"), winName(winName) 
+	: abb(abb), open(open), loadSrcMix((std::string(winName) + "srcMixFD").c_str()), winName(winName)
 {
 	
 }
@@ -312,7 +312,7 @@ bool ABB::DebuggerBackend::drawLoadGenerateButtons() {
 	
 	if(ImGui::Button("Load")){
 		pressed = true;
-		ImGuiFD::OpenDialog(loadSrcMixFileDialogTitle.c_str(), ImGuiFDMode_LoadFile, ".", NULL, ImGuiFDDialogFlags_Modal);
+		loadSrcMix.OpenDialog(ImGuiFDMode_LoadFile, ".", "Asm Dump: *.asm,*.txt", ImGuiFDDialogFlags_Modal);
 	}
 
 	bool programLoaded = abb->ab.mcu.flash.isProgramLoaded();
@@ -415,7 +415,7 @@ void ABB::DebuggerBackend::draw() {
 	}
 	ImGui::End();
 
-	if (ImGuiFD::BeginDialog(loadSrcMixFileDialogTitle.c_str())) {
+	if (loadSrcMix.Begin()) {
 		if (ImGuiFD::ActionDone()) {
 			if (ImGuiFD::SelectionMade()) {
 				addSrcFile(ImGuiFD::GetSelectionPathString(0));
@@ -592,7 +592,7 @@ size_t ABB::DebuggerBackend::sizeBytes() const {
 	sum += sizeof(gprWatchAddAt);
 
 	sum += sizeof(loadedSrcFileInc);
-	sum += DataUtils::approxSizeOf(loadSrcMixFileDialogTitle);
+	sum += loadSrcMix.sizeBytes();
 
 	sum += DataUtils::approxSizeOf(winName);
 	sum += sizeof(open);

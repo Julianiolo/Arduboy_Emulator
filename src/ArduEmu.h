@@ -3,12 +3,21 @@
 
 #include <vector>
 #include <string>
+
 #include "ActionManager.h"
 
 #include "backends/ArduboyBackend.h"
 
 
 class ArduEmu {
+public:
+	struct Info {
+		static constexpr const char* compileTime = __TIME__;
+		static constexpr const char* compileDate = __DATE__;
+		static int constexpr cplusplusStd = __cplusplus;
+	};
+
+private:
 	static struct Settings {
 		bool alwaysShowMenuFullscreen = false;
 
@@ -21,7 +30,6 @@ class ArduEmu {
 			float brightness = 0.5f;
 		} rainbowSettings;
 	} settings;
-private:
 	static std::vector<ABB::ArduboyBackend*> instances;
 	static size_t idCounter;
 	static size_t lastOpenDialogId;

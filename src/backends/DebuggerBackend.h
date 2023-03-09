@@ -5,6 +5,8 @@
 #include <vector>
 #include <stdint.h>
 
+#include "ImGuiFD_internal.h"
+
 #include "../utils/asmViewer.h"
 #include "SymbolBackend.h"
 
@@ -39,7 +41,7 @@ namespace ABB{
         void generateSrc();
         A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo genDisamsInfo();
 
-        std::string loadSrcMixFileDialogTitle;
+        ImGuiFD::FDInstance loadSrcMix;
         bool drawLoadGenerateButtons(); // return true if a button was pressed
     public:
         std::string winName;

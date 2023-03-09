@@ -152,6 +152,8 @@ void setup() {
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
 #if 1
+
+#elif 1
     abb.ab.mcu.loadFromHexFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
     abb.debuggerBackend.addSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");

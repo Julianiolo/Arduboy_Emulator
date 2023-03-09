@@ -15,14 +15,14 @@ ImVec4 ABB::LogBackend::logColors[] = {
     {    1,     1,    1,    -1},
     {    1, 0.85f,    0,     1},
     {    1,     0,    0,     1},
-    {  0.9,     0,    0,     1}
+    { 0.9f,     0,    0,     1}
 };
 
 size_t ABB::LogBackend::idCntr = 1;
 
 ABB::LogBackend::Settings ABB::LogBackend::settings;
 #if USE_ICONS
-std::map<std::string, std::string> ABB::LogBackend::moduleIconMap;
+std::map<std::string, std::pair<ImVec4,std::string>> ABB::LogBackend::moduleIconMap;
 #endif
 std::vector<ABB::LogBackend::Entry> ABB::LogBackend::systemLogs;
 
@@ -53,28 +53,30 @@ void ABB::LogBackend::init() {
     });
 
 #if USE_ICONS
-    moduleIconMap["ATmega32u4"] = ICON_FA_COMPUTER;
-    moduleIconMap["CPU"] = ICON_FA_MICROCHIP;
-    moduleIconMap["DataSpace"] = ICON_FA_MICROCHIP;
-    moduleIconMap["Flash"] = ICON_FA_HARD_DRIVE;
+    constexpr ImVec4 stdIconCol = {1,1,1,1};
 
-    moduleIconMap["Debugger"] = ICON_FA_BUG_SLASH;
-    moduleIconMap["Analytics"] = ICON_FA_CHART_LINE;
-    moduleIconMap["Disassembler"] = ICON_FA_DIAGRAM_PREDECESSOR;
-    moduleIconMap["SymbolTable"] = ICON_FA_LIST;
+    moduleIconMap["ATmega32u4"]      = { stdIconCol,ICON_FA_COMPUTER };
+    moduleIconMap["CPU"]             = { stdIconCol,ICON_FA_MICROCHIP};
+    moduleIconMap["DataSpace"]       = { stdIconCol,ICON_FA_MICROCHIP};
+    moduleIconMap["Flash"]           = { stdIconCol,ICON_FA_HARD_DRIVE};
 
-    moduleIconMap["BinTools"] = ICON_FA_TROWEL_BRICKS;
+    moduleIconMap["Debugger"]        = { stdIconCol,ICON_FA_BUG_SLASH};
+    moduleIconMap["Analytics"]       = { stdIconCol,ICON_FA_CHART_LINE};
+    moduleIconMap["Disassembler"]    = { stdIconCol,ICON_FA_DIAGRAM_PREDECESSOR};
+    moduleIconMap["SymbolTable"]     = { stdIconCol,ICON_FA_LIST};
 
-    moduleIconMap["Arduboy"] = ICON_FA_GAMEPAD;
-    moduleIconMap["Display"] = ICON_FA_DISPLAY;
+    moduleIconMap["BinTools"]        = { stdIconCol,ICON_FA_TROWEL_BRICKS};
 
-    moduleIconMap["ArduboyBackend"] = ICON_FA_CHESS_ROOK;
-    moduleIconMap["LogBackend"] = ICON_FA_BARS_STAGGERED;
-    moduleIconMap["DebuggerBackend"] = ICON_FA_BUGS;
-    moduleIconMap["McuInfoBackend"] = ICON_FA_INFO;
+    moduleIconMap["Arduboy"]         = { stdIconCol,ICON_FA_GAMEPAD};
+    moduleIconMap["Display"]         = { stdIconCol,ICON_FA_DISPLAY};
+
+    moduleIconMap["ArduboyBackend"]  = { stdIconCol,ICON_FA_CHESS_ROOK};
+    moduleIconMap["LogBackend"]      = { stdIconCol,ICON_FA_BARS_STAGGERED};
+    moduleIconMap["DebuggerBackend"] = { stdIconCol,ICON_FA_BUGS};
+    moduleIconMap["McuInfoBackend"]  = { stdIconCol,ICON_FA_INFO};
 
 
-    moduleIconMap["raylib"] = ICON_FA_BOLT;
+    moduleIconMap["raylib"]          = { { 0.2,0.2,1,1 },ICON_FA_BOLT };
 
 #endif
 }
@@ -265,11 +267,18 @@ void ABB::LogBackend::draw() {
                     if (entry.module.size() > 0) {
 #if USE_ICONS
                         auto res = moduleIconMap.find(entry.module);
-                        const char* icon = res != moduleIconMap.end() ? res->second.c_str() : ICON_FA_QUESTION;
-                        ImGuiExt::TextColored(col, icon);
+
+                        const char* icon = ICON_FA_QUESTION;
+                        ImVec4 iconCol = { 1,1,1,1 };
+                        if (res != moduleIconMap.end()) {
+                            icon = res->second.second.c_str();
+                            iconCol = res->second.first;
+                        }
+
+                        ImGuiExt::TextColored(iconCol, icon);
                         if (ImGui::IsItemHovered()) {
                             ImGui::BeginTooltip();
-                            ImGui::TextColored(col, "[%s] ", entry.module.c_str());
+                            ImGui::TextColored(iconCol, "[%s] ", entry.module.c_str());
                             ImGui::EndTooltip();
                         }
 
