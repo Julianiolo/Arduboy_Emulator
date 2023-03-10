@@ -18,9 +18,10 @@ Current dependencies are
 - Arduboy_Emulator_HL
   - ATmega32u4_Emulator
     - CPP_Utils
-- Dear ImGui
-- ImGuiFD
-- raylib
+- raylib (Graphics Library)
+- Dear ImGui (Gui Library)
+- rlImGui (ImGui Backend)
+- ImGuiFD (File Dialog Library)
 
 ## Building
 The currently supported ways of building the source are the following:
