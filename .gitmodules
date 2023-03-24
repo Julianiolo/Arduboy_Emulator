@@ -14,3 +14,6 @@
 	path = dependencies/rlImGui
 	url = https://github.com/Julianiolo/rlImGui.git
 	branch = no-deps
+[submodule "dependencies/EmuUtils"]
+	path = dependencies/EmuUtils
+	url = https://github.com/Julianiolo/EmuUtils.git
