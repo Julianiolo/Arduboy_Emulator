@@ -7,74 +7,46 @@
 #include <functional>
 #include <iostream>
 
-#include "LogBackend.h"
-
 #include "../Extensions/imguiExt.h"
+
 #include "StringUtils.h"
 #include "MathUtils.h"
 #include "DataUtils.h"
+#include "LogUtils.h"
+#include "DataUtilsSize.h"
+
+
 #include "../utils/byteVisualiser.h"
+
+#include "ArduboyBackend.h"
 
 #include "../bintools/bintools.h"
 
 #include "imgui_internal.h"
 
-#define MCU_MODULE "SymbolBackend"
+#define LU_MODULE "SymbolBackend"
 
-ABB::SymbolBackend::SymbolBackend(A32u4::ATmega32u4* mcu, const char* winName, bool* open) : mcu(mcu), winName(winName), open(open) {
-    mcu->symbolTable.setSymbolsPostProcFunc(postProcessSymbols, nullptr);
-
-    mcu->symbolTable.loadDeviceSymbolDumpFile("resources/device/regSymbs.txt");
+ABB::SymbolBackend::SymbolBackend(ArduboyBackend* abb, const char* winName, bool* open) : abb(abb), winName(winName), open(open) {
+    abb->symbolTable.setSymbolsAddDemanglFunc(demangeSymbols, nullptr);
 }
 
-void ABB::SymbolBackend::postProcessSymbols(A32u4::SymbolTable::Symbol* symbs, size_t len, void* userData) {
-    MCU_UNUSED(userData);
+std::vector<std::string> ABB::SymbolBackend::demangeSymbols(std::vector<const char*> names, void* userData) {
+    DU_UNUSED(userData);
 	
-	if (BinTools::canDemangle() && len > 0) {
-		const char** strs = new const char*[len];
-		for (size_t i = 0; i < len; i++) {
-			strs[i] = symbs[i].name.c_str();
-		}
-		std::vector<std::string> demList = BinTools::demangleList(strs, len);
-		if (demList.size() == len) {
-			for (size_t i = 0; i < len; i++) {
-				symbs[i].demangled = demList[i];
-				symbs[i].hasDemangledName = true;
-			}
+	if (BinTools::canDemangle() && names.size() > 0) {
+		std::vector<std::string> demList = BinTools::demangleList(&names[0], names.size());
+		if (demList.size() == names.size()) {
+			return demList;
 		}
 		else {
-			for (size_t i = 0; i < len; i++) {
-				symbs[i].demangled = symbs[i].name;
-			}
-			MCU_LOG_(LogBackend::LogLevel_Warning, "an error occured while trying to generate demangled list");
+			LU_LOG_(LogUtils::LogLevel_Warning, "an error occured while trying to generate demangled list");
 		}
-
-		delete[] strs;
 	}
-
-    // generate colors
-    ImVec4 lastCol = {-FLT_MAX,-FLT_MAX,-FLT_MAX,-FLT_MAX};
-	for (size_t i = 0; i<len; i++) {
-        A32u4::SymbolTable::Symbol* symbol = &symbs[i];
-        if(symbol->extraData)
-            continue; // already has a color set
-        
-		size_t cnt = 0;
-		ImVec4 col;
-		do {
-			col = {(float)(rand() % 256) / 256.0f, 0.8f, 1, 1};
-			cnt++;
-		} while(distSqCols(col, lastCol) < 1 && cnt < 32);
-		
-		lastCol = col;
-
-        ImVec4* symbCol = new ImVec4();
-
-		ImGui::ColorConvertHSVtoRGB(col.x, col.y, col.z, symbCol->x, symbCol->y, symbCol->z);
-		symbCol->w = col.w;
-
-        symbol->extraData = (void*) symbCol;
+	std::vector<std::string> dems;
+	for (size_t i = 0; i < names.size(); i++) {
+		dems.push_back(names[i]);
 	}
+	return dems;
 }
 
 float ABB::SymbolBackend::distSqCols(const ImVec4& a, const ImVec4& b){
@@ -82,8 +54,8 @@ float ABB::SymbolBackend::distSqCols(const ImVec4& a, const ImVec4& b){
 }
 
 bool ABB::SymbolBackend::compareSymbols(uint32_t a, uint32_t b) {
-	const A32u4::SymbolTable::Symbol* symbolA = mcu->symbolTable.getSymbolById(a);
-	const A32u4::SymbolTable::Symbol* symbolB = mcu->symbolTable.getSymbolById(b);
+	const EmuUtils::SymbolTable::Symbol* symbolA = abb->symbolTable.getSymbolById(a);
+	const EmuUtils::SymbolTable::Symbol* symbolB = abb->symbolTable.getSymbolById(b);
 
 	for (int i = 0; i < sortSpecs->SpecsCount; i++) {
 		auto& specs = sortSpecs->Specs[i];
@@ -175,7 +147,7 @@ void ABB::SymbolBackend::draw() {
 				}
 
 				if(ImGui::Button("OK")){
-					mcu->symbolTable.addSymbol(std::move(addSymbol));
+					abb->symbolTable.addSymbol(std::move(addSymbol));
 					ImGui::CloseCurrentPopup();
 				}
 				ImGui::SameLine();
@@ -208,10 +180,10 @@ void ABB::SymbolBackend::draw() {
 
 				
 
-				if (symbolsSortedOrder.size() != mcu->symbolTable.getSymbols().size()) {
+				if (symbolsSortedOrder.size() != abb->symbolTable.getSymbols().size()) {
 					std::set<uint32_t> seen;
 					for (size_t i = 0; i < symbolsSortedOrder.size();) {
-						if (mcu->symbolTable.getSymbolById(symbolsSortedOrder[i]) == nullptr) {
+						if (abb->symbolTable.getSymbolById(symbolsSortedOrder[i]) == nullptr) {
 							symbolsSortedOrder.erase(symbolsSortedOrder.begin() + i);
 							continue;
 						}
@@ -220,8 +192,8 @@ void ABB::SymbolBackend::draw() {
 						i++;
 					}
 
-					for (size_t i = 0; i < mcu->symbolTable.getSymbols().size(); i++) {
-						const A32u4::SymbolTable::Symbol* symbol = &mcu->symbolTable.getSymbols()[i];
+					for (size_t i = 0; i < abb->symbolTable.getSymbols().size(); i++) {
+						const auto* symbol = &abb->symbolTable.getSymbols()[i];
 						if (seen.find(symbol->id) == seen.end()) {
 							symbolsSortedOrder.push_back(symbol->id);
 						}
@@ -242,21 +214,21 @@ void ABB::SymbolBackend::draw() {
 				}
 
 				ImGuiListClipper clipper;
-				clipper.Begin((int)mcu->symbolTable.getSymbols().size());
+				clipper.Begin((int)abb->symbolTable.getSymbols().size());
 				while (clipper.Step()) {
 					for(int i = clipper.DisplayStart; i<clipper.DisplayEnd; i++) {
-						const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolById(symbolsSortedOrder[i]);
+						const auto* symbol = abb->symbolTable.getSymbolById(symbolsSortedOrder[i]);
 
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
-						ImGuiExt::TextColored(*getSymbolColor(symbol), (symbol->hasDemangledName ? symbol->demangled : symbol->name).c_str());
+						ImGuiExt::TextColored(getSymbolColor(symbol->id), (symbol->hasDemangledName ? symbol->demangled : symbol->name).c_str());
 						if(ImGui::IsItemHovered()) {
 							ImGui::BeginTooltip();
 							const uint8_t* data = nullptr;
 							if(symbol->section == ".bss" || symbol->section == ".data"){
-								data = mcu->dataspace.getData();
+								data = abb->mcu.dataspace_getData();
 							} else if(symbol->section == ".text"){
-								data = mcu->flash.getData();
+								data = abb->mcu.flash_getData();
 							}
 							drawSymbol(symbol, symbol->value, data);
 							ImGui::EndTooltip();
@@ -310,7 +282,7 @@ void ABB::SymbolBackend::draw() {
 			ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_RowBg | 
 				ImGuiTableFlags_Resizable;
 			if(ImGui::BeginTable("SectionsTable", 1, flags)){
-				for(const auto& s : mcu->symbolTable.getSections()) {
+				for(const auto& s : abb->symbolTable.getSections()) {
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 					ImGui::TextUnformatted(s.second.name.c_str());
@@ -324,14 +296,20 @@ void ABB::SymbolBackend::draw() {
     ImGui::End();
 }
 
-ImVec4* ABB::SymbolBackend::getSymbolColor(const A32u4::SymbolTable::Symbol* symbol) {
-    return (ImVec4*)symbol->extraData;
+ImVec4 ABB::SymbolBackend::getSymbolColor(size_t symbolID) {
+	uint64_t v = DataUtils::simpleHash(symbolID);
+	ImVec4 col;
+	col.z = 1;
+	ImGui::ColorConvertHSVtoRGB((float)(v % 256) / 256, 0.7, 0.7, col.x, col.y, col.z);
+    return col;
 }
 
-void ABB::SymbolBackend::drawSymbol(const A32u4::SymbolTable::Symbol* symbol, A32u4::SymbolTable::symb_size_t addr, const uint8_t* data) {
+void ABB::SymbolBackend::drawSymbol(const EmuUtils::SymbolTable::Symbol* symbol, EmuUtils::SymbolTable::symb_size_t addr, const uint8_t* data) {
+	if (addr == (decltype(addr))-1) addr = symbol->value;
+	
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
-    const ImVec4& col = *getSymbolColor(symbol);
+    ImVec4 col = getSymbolColor(symbol->id);
 
 	if (symbol->hasDemangledName) {
 		ImGuiExt::TextColored(col, symbol->demangled.c_str());
@@ -419,14 +397,14 @@ void ABB::SymbolBackend::drawSymbol(const A32u4::SymbolTable::Symbol* symbol, A3
 	}
 }
 
-const A32u4::SymbolTable::Symbol* ABB::SymbolBackend::drawAddrWithSymbol(A32u4::SymbolTable::symb_size_t Addr, const A32u4::SymbolTable::SymbolList& list) const {
+const EmuUtils::SymbolTable::Symbol* ABB::SymbolBackend::drawAddrWithSymbol(EmuUtils::SymbolTable::symb_size_t Addr, const EmuUtils::SymbolTable::SymbolList& list) const {
 	ImGui::BeginGroup();
 	ImGui::Text("%08" MCU_PRIxADDR, Addr);
 
-	const A32u4::SymbolTable::Symbol* symbol = mcu->symbolTable.getSymbolByValue(Addr, list);
+	const auto* symbol = abb->symbolTable.getSymbolByValue(Addr, list);
 	if (symbol) {
 		ImGui::SameLine();
-		ImGuiExt::TextColored(*getSymbolColor(symbol), symbol->demangled.c_str());
+		ImGuiExt::TextColored(getSymbolColor(symbol->id), symbol->demangled.c_str());
 	}
 
 	ImGui::EndGroup();
@@ -434,7 +412,7 @@ const A32u4::SymbolTable::Symbol* ABB::SymbolBackend::drawAddrWithSymbol(A32u4::
 	return symbol;
 }
 
-void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& table, const A32u4::SymbolTable::SymbolList& list, A32u4::SymbolTable::symb_size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
+void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const EmuUtils::SymbolTable& table, const EmuUtils::SymbolTable::SymbolList& list, EmuUtils::SymbolTable::symb_size_t totalSize, float* scale, const uint8_t* data, ImVec2 size) {
 	if (size.x == 0)
 		size.x = ImGui::GetContentRegionAvail().x;
 	if (size.y == 0)
@@ -452,9 +430,9 @@ void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& ta
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
-	A32u4::SymbolTable::symb_size_t lastSymbEnd = 0;
+	EmuUtils::SymbolTable::symb_size_t lastSymbEnd = 0;
 	for (size_t i = 0; i < list.size(); i++) {
-		const A32u4::SymbolTable::Symbol* symbol = table.getSymbol(list,i);
+		const auto* symbol = table.getSymbol(list,i);
 		if (symbol->size == 0)
 			continue;
 
@@ -463,7 +441,7 @@ void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& ta
 			if (i != 0)
 				ImGui::SameLine();
 
-			A32u4::SymbolTable::symb_size_t fillAmt = symbol->value - lastSymbEnd;
+			EmuUtils::SymbolTable::symb_size_t fillAmt = symbol->value - lastSymbEnd;
 			ImGuiExt::Rect(ImGuiID(symbol->value * i), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 			if (ImGui::IsItemHovered()) {
 				ImGui::PopStyleVar();
@@ -479,7 +457,7 @@ void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& ta
 		if (i != 0 || symbol->value > lastSymbEnd)
 			ImGui::SameLine();
 		float width = ((float)symbol->size / listByteLen) * size.x * (*scale);
-		ImGuiExt::Rect((ImGuiID)(symbol->value * i), *getSymbolColor(symbol), {width, size.y});
+		ImGuiExt::Rect((ImGuiID)(symbol->value * i), getSymbolColor(symbol->id), {width, size.y});
 
 		if (ImGui::IsItemHovered()) {
 			ImGui::PopStyleVar();
@@ -497,7 +475,7 @@ void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& ta
 	}
 
 	if (lastSymbEnd < totalSize) {
-		A32u4::SymbolTable::symb_size_t fillAmt = totalSize - lastSymbEnd;
+		EmuUtils::SymbolTable::symb_size_t fillAmt = totalSize - lastSymbEnd;
 		ImGui::SameLine();
 		ImGuiExt::Rect(ImGuiID(totalSize * lastSymbEnd), {0,0,0,0}, { (((float)fillAmt / listByteLen)) * size.x * (*scale), size.y });
 		if (ImGui::IsItemHovered()) {
@@ -538,7 +516,7 @@ void ABB::SymbolBackend::drawSymbolListSizeDiagramm(const A32u4::SymbolTable& ta
 size_t ABB::SymbolBackend::sizeBytes() const {
 	size_t sum = 0;
 
-	sum += sizeof(mcu);
+	sum += sizeof(abb);
 
 	sum += DataUtils::approxSizeOf(winName);
 	sum += sizeof(open);

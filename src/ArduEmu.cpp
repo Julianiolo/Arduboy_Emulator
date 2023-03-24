@@ -27,6 +27,7 @@
 #include "Extensions/imguiExt.h"
 #include "Extensions/imguiOperators.h"
 
+#include "mcu.h"
 
 #include "backends/LogBackend.h"
 
@@ -129,10 +130,10 @@ void ArduEmu::setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColo
 void ArduEmu::setupActionManager() {
 	actionManager.setTestCallB([](uint8_t type, int id, ActionManager::ActivationState activationState){
 		{
-			MCU_STATIC_ASSERT(ActionManager::ActivationState_Down == 0);
-			MCU_STATIC_ASSERT(ActionManager::ActivationState_Up == 1);
-			MCU_STATIC_ASSERT(ActionManager::ActivationState_Pressed == 2);
-			MCU_STATIC_ASSERT(ActionManager::ActivationState_Released == 3);
+			DU_STATIC_ASSERT(ActionManager::ActivationState_Down == 0);
+			DU_STATIC_ASSERT(ActionManager::ActivationState_Up == 1);
+			DU_STATIC_ASSERT(ActionManager::ActivationState_Pressed == 2);
+			DU_STATIC_ASSERT(ActionManager::ActivationState_Released == 3);
 		}
 		if(type == ActionManager::Action::Part::Type_MouseButton) {
 			std::function<bool(int)> funcs[] = {IsMouseButtonDown, IsMouseButtonUp, IsMouseButtonPressed, IsMouseButtonReleased};
@@ -227,8 +228,10 @@ void ArduEmu::draw() {
 void ArduEmu::drawBenchmark(){
 	if(!showBenchmark) return;
 
+#if 0
+
 	if(ImGui::Begin("Benchmark",&showBenchmark)){
-		static uint64_t benchCycls = (A32u4::CPU::ClockFreq/60)*1000;
+		static uint64_t benchCycls = (16000000/60)*1000;
 		constexpr uint64_t min = 0;
 		ImGui::DragScalar("##cycs",ImGuiDataType_U64, &benchCycls, 1000, &min);
 		ImGui::SameLine();
@@ -247,8 +250,8 @@ void ArduEmu::drawBenchmark(){
 
 		static std::string res = "";
 		if(ImGui::Button("Do Benchmark")){
-			A32u4::ATmega32u4 mcu;
-			mcu.flash.loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
+			ABB::MCU mcu;
+			mcu.fla .flash_loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
 			//mcu.flash.loadFromHexFile("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
 			mcu.powerOn();
 
@@ -284,6 +287,8 @@ void ArduEmu::drawBenchmark(){
 		ImGui::TextUnformatted(res.c_str());
 	}
 	ImGui::End();
+
+#endif
 }
 
 bool ArduEmu::drawMenuContents(size_t activeInstanceInd) {
@@ -348,15 +353,15 @@ void ArduEmu::drawLoadProgramDialog() {
 				ABB::ArduboyBackend* abb = nullptr;
 				if (lastOpenDialogId != (size_t)-1) {
 					abb = getInstanceById(lastOpenDialogId);
-					MCU_ASSERT(abb != nullptr); // couldnt find id
+					DU_ASSERT(abb != nullptr); // couldnt find id
 				}
 
 				if (abb == nullptr) { // also a failsafe, if it couldnt find the given id, dunno if thats smart
 					abb = &addEmulator(name.c_str());
 				}
 
-				abb->ab.mcu.loadFile(path.c_str());
-				abb->ab.mcu.powerOn();
+				abb->loadFile(path.c_str());
+				abb->mcu.powerOn();
 			}
 			ImGuiFD::CloseCurrentDialog();
 		}
@@ -459,7 +464,7 @@ void ArduEmu::drawSettings() {
 		static size_t selectedInd = SettingsSection_main;
 		if(ImGui::BeginListBox("##SubSectionSel", {std::min(ImGui::GetFrameHeight()*5.f,size.x*0.3f),size.y})){
 			constexpr const char * labels[] = {"Main","Logbackend","Asmviewer","Hexviewer","Keybinds"};
-			MCU_STATIC_ASSERT(DU_ARRAYSIZE(labels) == SettingsSection_COUNT);
+			DU_STATIC_ASSERT(DU_ARRAYSIZE(labels) == SettingsSection_COUNT);
 			
 			for(size_t i = 0; i<SettingsSection_COUNT; i++) {
 				const bool isSelected = selectedInd == i;
@@ -595,13 +600,13 @@ std::string ArduEmu::getActionKeyStr(const ActionManager::Action& action){
 		if(part.type == ActionManager::Action::Part::Type_MouseButton){
 			constexpr const char* mouseButtonNames[] = {"LEFT","RIGHT","MIDDLE","SIDE","EXTRA","FORWARD","BACK"};
 			{
-				MCU_STATIC_ASSERT(MOUSE_BUTTON_LEFT==0);
-				MCU_STATIC_ASSERT(MOUSE_BUTTON_RIGHT==1);
-				MCU_STATIC_ASSERT(MOUSE_BUTTON_MIDDLE==2);
-				MCU_STATIC_ASSERT(MOUSE_BUTTON_SIDE==3);
-				MCU_STATIC_ASSERT(MOUSE_BUTTON_EXTRA==4);
-				MCU_STATIC_ASSERT(MOUSE_BUTTON_FORWARD==5);
-				MCU_STATIC_ASSERT(MOUSE_BUTTON_BACK==6);
+				DU_STATIC_ASSERT(MOUSE_BUTTON_LEFT==0);
+				DU_STATIC_ASSERT(MOUSE_BUTTON_RIGHT==1);
+				DU_STATIC_ASSERT(MOUSE_BUTTON_MIDDLE==2);
+				DU_STATIC_ASSERT(MOUSE_BUTTON_SIDE==3);
+				DU_STATIC_ASSERT(MOUSE_BUTTON_EXTRA==4);
+				DU_STATIC_ASSERT(MOUSE_BUTTON_FORWARD==5);
+				DU_STATIC_ASSERT(MOUSE_BUTTON_BACK==6);
 			}
 			keysStr += mouseButtonNames[part.id];
 		}else if(part.type == ActionManager::Action::Part::Type_Key){

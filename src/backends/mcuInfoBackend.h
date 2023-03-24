@@ -6,27 +6,32 @@
 #include <functional>
 #include <ctime>
 
-#include "Arduboy.h"
+
 #include "imgui.h"
-#include "../utils/hexViewer.h"
 #include "ImGuiFD.h"
 #include "ImGuiFD_internal.h"
 
 #include "SymbolBackend.h"
 
+#include "../utils/hexViewer.h"
+
 namespace ABB {
 	class ArduboyBackend;
 
 	class McuInfoBackend {
+	public:
+		struct Save {
+			MCU mcu;
+			EmuUtils::SymbolTable symbolTable;
+
+			size_t sizeBytes() const;
+		};
 	private:
 		friend ArduboyBackend;
 
 		ArduboyBackend* abb;
 
-		utils::HexViewer dataspaceDataHex;
-		utils::HexViewer dataspaceEEPROMHex;
-		bool dataSpaceSplitHexView = false;
-		utils::HexViewer flashHex;
+		std::vector<utils::HexViewer> hexViewers;
 
 		bool winFocused = false;
 
@@ -41,11 +46,8 @@ namespace ABB {
 			SaveLoadFDIPair(const char* bothName);
 			size_t sizeBytes() const;
 		};
-		SaveLoadFDIPair fdiRam;
-		SaveLoadFDIPair fdiEeprom;
-		SaveLoadFDIPair fdiRom;
 
-		std::vector<std::pair<std::string,Arduboy>> states;
+		std::vector<std::pair<std::string,Save>> states;
 
 		SaveLoadFDIPair fdiState;
 		size_t stateIndToSave = 0;
@@ -69,9 +71,16 @@ namespace ABB {
 		const char* getWinName() const;
 
 		bool isWinFocused() const;
-		void addState(Arduboy& ab, const char* name = nullptr);
+		void addState(const Save& save, const char* name = nullptr);
+
 		size_t sizeBytes() const;
 	};
+}
+
+namespace DataUtils {
+	inline size_t approxSizeOf(const ABB::McuInfoBackend::Save& v) {
+		return v.sizeBytes();
+	}
 }
 
 #endif

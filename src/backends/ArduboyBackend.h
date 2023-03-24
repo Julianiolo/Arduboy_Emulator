@@ -1,9 +1,11 @@
 #ifndef _ARDUBOY_BACKEND
 #define _ARDUBOY_BACKEND
 
-#include "Arduboy.h"
 #include "raylib.h"
 #include <string>
+
+#include "mcu.h"
+#include "StringTable.h"
 
 #include "DisplayBackend.h"
 #include "DebuggerBackend.h"
@@ -13,14 +15,12 @@
 #include "CompilerBackend.h"
 #include "SymbolBackend.h"
 
-
-#include "extras/ElfReader.h"
-
 namespace ABB {
 	class ArduboyBackend {
 	public:
 
-		Arduboy ab;
+		MCU mcu;
+		EmuUtils::SymbolTable symbolTable;
 
 		std::string name;
 		std::string devWinName;
@@ -32,8 +32,6 @@ namespace ABB {
 		AnalyticsBackend analyticsBackend;
 		CompilerBackend compilerBackend;
 		SymbolBackend symbolBackend;
-
-		A32u4::ELF::ELFFile elf;
 
 		size_t id;
 
@@ -66,6 +64,11 @@ namespace ABB {
 
 		void draw();
 		void _drawMenuContents();
+
+		bool loadFile(const char* path);
+
+		bool loadFromELFFile(const char* path);
+		bool loadFromELF(const uint8_t* data, size_t dataLen);
 
 		void resetMachine();
 

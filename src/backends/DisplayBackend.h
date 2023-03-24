@@ -3,7 +3,7 @@
 
 #include "raylib.h"
 #include "imgui.h"
-#include "Arduboy.h"
+#include "mcu.h"
 
 namespace ABB {
 	class DisplayBackend {
@@ -11,7 +11,7 @@ namespace ABB {
 		friend class ArduboyBackend;
 
 		std::string name;
-		AB::Display* display;
+		MCU* mcu;
 
 		Texture2D displayTex;
 		Image displayImg;
@@ -38,7 +38,7 @@ namespace ABB {
 		bool setColorWinOpen = false;
 	public:
 
-		DisplayBackend(const char* name, AB::Display* display);
+		DisplayBackend(MCU* mcu, const char* name);
 		~DisplayBackend();
 
 		void update();

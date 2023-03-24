@@ -5,13 +5,16 @@
 #include <vector>
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "extras/SymbolTable.h"
 #include "raylib.h"
-#include "ATmega32u4.h"
+
+#include "mcu.h"
+#include "SymbolTable.h"
 
 #include "DataUtils.h"
 
 namespace ABB {
+	class ArduboyBackend;
+
 	namespace utils {
 		class HexViewer {
 		public:
@@ -59,7 +62,7 @@ namespace ABB {
 
 			public:
 
-				void openEditPopup(const uint8_t* data, size_t dataLen, addrmcu_t addr);
+				void openEditPopup(const uint8_t* data, size_t dataLen, MCU::addrmcu_t addr);
 				void setEditCallB(DataUtils::EditMemory::SetValueCallB callB, void* userData);
 
 				void draw();
@@ -83,9 +86,6 @@ namespace ABB {
 			};
 
 		private:
-			const A32u4::ATmega32u4* mcu = nullptr;
-			const uint8_t* data;
-			size_t dataLen;
 			uint8_t dataType;
 
 			bool isSelecting = false;
@@ -99,35 +99,40 @@ namespace ABB {
 
 			static constexpr size_t AddrDigits = 4;
 
-			const A32u4::SymbolTable::SymbolList* symbolList = nullptr;
+			EmuUtils::SymbolTable::SymbolList symbolList;
 
 			size_t popupAddr = -1; // symbol popup address
-			const A32u4::SymbolTable::Symbol* popupSymbol = nullptr;
+			const EmuUtils::SymbolTable::Symbol* popupSymbol = nullptr;
 
 			EditBytes eb;
 
 			ImRect getNextByteRect(const ImVec2& charSize) const;
 			size_t getBytesPerRow(float widthAvail, const ImVec2& charSize);
-			bool newSymbol(A32u4::SymbolTable::symb_size_t addr, size_t* symbolPtr, A32u4::SymbolTable::symb_size_t nextSymbolAddrEnd);
 
-			void drawHoverInfo(size_t addr, const A32u4::SymbolTable::Symbol* symbol);
+			void drawHoverInfo(size_t addr, const EmuUtils::SymbolTable::Symbol* symbol, const uint8_t* data);
 			
 			void drawEditPopup();
 		public:
-			HexViewer(const uint8_t* data, size_t dataLen, const A32u4::ATmega32u4* mcu = nullptr, uint8_t dataType = DataType_None);
+			HexViewer(uint8_t dataType = DataType_None);
 
 
 			bool isSelected(size_t addr) const;
 
-			void draw(size_t dataAmt = -1, size_t dataOff = 0);
+			void draw(const uint8_t* data, size_t dataLen, const EmuUtils::SymbolTable* symbolTable = nullptr, size_t dataAmt = -1, size_t dataOff = 0);
 			void sameFrame();
 
-			void setSymbolList(const A32u4::SymbolTable::SymbolList& list);
+			void setSymbolList(const EmuUtils::SymbolTable::SymbolList& list);
 			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
 
 			static void drawSettings();
 			size_t sizeBytes() const;
 		};
+	}
+}
+
+namespace DataUtils {
+	inline size_t approxSizeOf(const ABB::utils::HexViewer& v) {
+		return v.sizeBytes();
 	}
 }
 

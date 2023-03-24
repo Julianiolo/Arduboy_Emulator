@@ -8,8 +8,10 @@
 
 #include "StreamUtils.h"
 #include "StringUtils.h"
+#include "DataUtils.h"
 
 #include "Arduboy.h"
+#include "ElfReader.h"
 
 
 #if defined(_MSC_VER) || 1
@@ -173,7 +175,12 @@ void benchmark() {
 
 bool serialisationTest() {
     Arduboy ab;
-    ab.mcu.loadFromELFFile(ROOTDIR "resources/games/Hollow/hollow.ino.elf");
+    {
+        std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(ROOTDIR "resources/games/Hollow/hollow.ino.elf");
+        EmuUtils::ELF::ELFFile elf = EmuUtils::ELF::parseELFFile(&content[0], content.size());
+        std::vector<uint8_t> prog = EmuUtils::ELF::getProgramData(elf);
+        ab.mcu.flash.loadFromMemory(&prog[0], prog.size());
+    }
     ab.reset();
     ab.newFrame();
     {
@@ -197,7 +204,6 @@ bool serialisationTest() {
 
     TEST_AB(.mcu.analytics);
     TEST_AB(.mcu.debugger);
-    TEST_AB(.mcu.symbolTable);
 
     TEST_AB(.mcu);
     TEST_AB(.display);
@@ -239,14 +245,14 @@ bool fuzzTest() {
             ab.newFrame();
             if(ab.mcu.debugger.isHalted()) {
                 worked = false;
-                printf("### Failed on frame %" MCU_PRIuSIZE "\n",f);
+                printf("### Failed on frame %" DU_PRIuSIZE "\n",f);
                 break;
             }
         }
         if(worked)
             numWorked++;
     }
-    printf("%" MCU_PRIuSIZE "/%" MCU_PRIuSIZE " worked\n", numWorked, testFiles.size());
+    printf("%" DU_PRIuSIZE "/%" DU_PRIuSIZE " worked\n", numWorked, testFiles.size());
     return numWorked == testFiles.size();
 }
 

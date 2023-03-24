@@ -1,5 +1,7 @@
 #include "ArduboyBackend.h"
 
+#include <exception>
+
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "../rlImGui/rlImGui.h"
@@ -9,57 +11,58 @@
 
 #include "../Extensions/imguiExt.h"
 
+#define LU_MODULE "ArduboyBackend"
+#define LU_CONTEXT logBackend.getLogContext()
+
 ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	name(n), devWinName(std::string(n) + "devtools"), 
-	logBackend      (&ab,    (name + " - " ADD_ICON(ICON_FA_LIST)        "Log"      ).c_str(), &devToolsOpen),
-	displayBackend  (        (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str(), &ab.display  ), 
+	logBackend      (&mcu,   (name + " - " ADD_ICON(ICON_FA_LIST)        "Log"      ).c_str(), &devToolsOpen),
+	displayBackend  (&mcu,   (name + " - " ADD_ICON(ICON_FA_TV)          "Display"  ).c_str()),
 	debuggerBackend (this,   (name + " - " ADD_ICON(ICON_FA_BUG)         "Debugger" ).c_str(), &devToolsOpen),
 	mcuInfoBackend  (this,   (name + " - " ADD_ICON(ICON_FA_CIRCLE_INFO) "Mcu Info" ).c_str(), &devToolsOpen),
-	analyticsBackend(&ab,    (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
+	analyticsBackend(this,   (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
 	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
-	symbolBackend   (&ab.mcu,(name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
+	symbolBackend   (this,   (name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
 	id(id)
 {
-	ab.mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
-
-	ab.execFlags |= A32u4::ATmega32u4::ExecFlags_Debug | A32u4::ATmega32u4::ExecFlags_Analyse;
+	symbolTable.loadDeviceSymbolDumpFile("resources/device/regSymbs.txt");
 
 	//ImGui::DockBuilderSplitNode(ImGuiID(ImGui::GetID(devWinName.c_str())), ImGuiDir_Left, 0.5, );
 }
 
 ABB::ArduboyBackend::ArduboyBackend(const ArduboyBackend& src):
-ab(src.ab),
+mcu(src.mcu),
 name(src.name), devWinName(src.devWinName),
 logBackend(src.logBackend), displayBackend(src.displayBackend), debuggerBackend(src.debuggerBackend),
 mcuInfoBackend(src.mcuInfoBackend), analyticsBackend(src.analyticsBackend), compilerBackend(src.compilerBackend), symbolBackend(src.symbolBackend),
-elf(src.elf), id(src.id), fullScreen(src.fullScreen),
+id(src.id), fullScreen(src.fullScreen),
 open(src.open), open_try(src.open_try), winFocused(src.winFocused),
 devToolsOpen(src.devToolsOpen), firstFrame(src.firstFrame)
 {
 	setMcu();
 }
 ABB::ArduboyBackend& ABB::ArduboyBackend::operator=(const ArduboyBackend& src){
-	ab = src.ab;
+	mcu = src.mcu;
 	name = src.name; devWinName = src.name;
 	logBackend = src.logBackend; displayBackend = src.displayBackend; debuggerBackend = src.debuggerBackend;
 	mcuInfoBackend = src.mcuInfoBackend; analyticsBackend = src.analyticsBackend; compilerBackend = src.compilerBackend;
 	symbolBackend = src.symbolBackend;
 	setMcu();
 
-	elf = src.elf; id = src.id; fullScreen = src.fullScreen;
+	id = src.id; fullScreen = src.fullScreen;
 	open = src.open; open_try = src.open_try; winFocused = src.winFocused;
 	devToolsOpen = src.devToolsOpen; firstFrame = src.firstFrame;
 	return *this;
 }
 
 void ABB::ArduboyBackend::setMcu() {
-	logBackend.ab = &ab;
-	displayBackend.display = &ab.display;
+	logBackend.mcu = &mcu;
+	displayBackend.mcu = &mcu;
 	debuggerBackend.abb = this;
 	mcuInfoBackend.abb = this;
-	analyticsBackend.ab = &ab;
+	analyticsBackend.abb = this;
 	compilerBackend.abb = this;
-	symbolBackend.mcu = &ab.mcu;
+	symbolBackend.abb = this;
 }
 
 bool ABB::ArduboyBackend::isWinFocused() {
@@ -74,31 +77,31 @@ void ABB::ArduboyBackend::exitFullscreen(){
 }
 
 void ABB::ArduboyBackend::update() {
-	if(!ab.mcu.flash.isProgramLoaded())
+	if(!mcu.flash_isProgramLoaded())
 		return;
 
-	ab.buttonState = 0;
+	
 	if (isWinFocused()) {
+		bool up, down, left, right;
 		{
 			constexpr size_t loop[] = {ArduEmu::Action_Arduboy_Up,ArduEmu::Action_Arduboy_Right,ArduEmu::Action_Arduboy_Down,ArduEmu::Action_Arduboy_Left};
 			size_t rotInd = rotateControls ? displayBackend.getRotation() : 0;
-
-			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+0)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Up_Bit;    //IsKeyDown(KEY_UP)   
-			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+1)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Right_Bit; //IsKeyDown(KEY_RIGHT)
-			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+2)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Down_Bit;  //IsKeyDown(KEY_DOWN)
-			ab.buttonState |= ArduEmu::actionManager.isActionActive(loop[(rotInd+3)%4], ActionManager::ActivationState_Down) << Arduboy::Button_Left_Bit;  //IsKeyDown(KEY_LEFT) 
+			up = ArduEmu::actionManager.isActionActive(loop[(rotInd + 0) % 4], ActionManager::ActivationState_Down);
+			right = ArduEmu::actionManager.isActionActive(loop[(rotInd + 1) % 4], ActionManager::ActivationState_Down);
+			down = ArduEmu::actionManager.isActionActive(loop[(rotInd + 2) % 4], ActionManager::ActivationState_Down);
+			left = ArduEmu::actionManager.isActionActive(loop[(rotInd + 3) % 4], ActionManager::ActivationState_Down);
 		}
-		 
 		
-		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_A,     ActionManager::ActivationState_Down) << Arduboy::Button_A_Bit;     //IsKeyDown(KEY_A)    
-		ab.buttonState |= ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_B,     ActionManager::ActivationState_Down) << Arduboy::Button_B_Bit;     //IsKeyDown(KEY_B)    
+		bool a = ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_A, ActionManager::ActivationState_Down);
+		bool b = ArduEmu::actionManager.isActionActive(ArduEmu::Action_Arduboy_B, ActionManager::ActivationState_Down);
+		mcu.setButtons(up, down, left, right, a, b);
 	}
 	else {
-		ab.buttonState = Arduboy::Button_None;
+		mcu.setButtons(false, false, false, false, false, false);
 	}
 
 	//uint64_t lastCycs = ab.mcu.cpu.getTotalCycles();
-	ab.newFrame();
+	mcu.newFrame();
 	//uint64_t stopAmt = 42500000;
 	//if(ab.mcu.cpu.getTotalCycles() > stopAmt && lastCycs <= stopAmt)
 	//	ab.mcu.debugger.halt();
@@ -111,12 +114,12 @@ void ABB::ArduboyBackend::draw() {
 	if (!open)
 		return;
 
-	ab.mcu.activateLog();
+	mcu.activateLog();
 
 	update();
 
 	if(ArduEmu::actionManager.isActionActive(ArduEmu::Action_Add_State_Copy, ActionManager::ActivationState_Pressed))
-		mcuInfoBackend.addState(ab);
+		mcuInfoBackend.addState({mcu,symbolTable});
 
 	if (devToolsOpen) {
 		debuggerBackend.draw();
@@ -139,15 +142,15 @@ void ABB::ArduboyBackend::draw() {
 		{
 			char subBuf[128];
 			subBuf[0] = 0;
-			if(ab.emulationSpeed != 1) {
-				snprintf(subBuf, sizeof(subBuf), "[%.2f]",ab.emulationSpeed);
+			if(mcu.getEmuSpeed() != 1) {
+				snprintf(subBuf, sizeof(subBuf), "[%.2f]", mcu.getEmuSpeed());
 			}
 			snprintf(nameBuf, sizeof(nameBuf), "%s %s%s%s%s###%s", 
 				name.c_str(),
 				subBuf,
 				isWinFocused() ? "[Active]" : "",
-				ab.mcu.debugger.isHalted() ? "[HALTED]" : "",
-				ab.mcu.flash.isProgramLoaded() ? "" : " - NO PROGRAM LOADED!", 
+				mcu.debugger_isHalted() ? "[HALTED]" : "",
+				mcu.flash_isProgramLoaded() ? "" : " - NO PROGRAM LOADED!", 
 				
 				name.c_str()
 			);
@@ -166,7 +169,7 @@ void ABB::ArduboyBackend::draw() {
 			ImVec2 contentSize = ImGui::GetContentRegionAvail();
 			//contentSize.y = ImMax(contentSize.y - devToolSpace, 0.0f);
 
-			bool loaded = ab.mcu.flash.isProgramLoaded();
+			bool loaded = mcu.flash_isProgramLoaded();
 
 			if (!loaded) ImGui::BeginDisabled();
 
@@ -224,9 +227,74 @@ void ABB::ArduboyBackend::draw() {
 	}
 }
 
+bool ABB::ArduboyBackend::loadFile(const char* path) {
+	const char* ext = StringUtils::getFileExtension(path);
+
+	if (std::strcmp(ext, "hex") == 0) {
+		bool success = false;
+		std::string content = StringUtils::loadFileIntoString(path, &success);
+		if (!success) goto fail_open;
+
+		std::vector<uint8_t> hex;
+		try {
+			hex = StringUtils::parseHexFileStr(content.c_str(), content.c_str() + content.size());
+		}
+		catch (const std::runtime_error& e) {
+			LU_LOGF(LogUtils::LogLevel_Error, "Parsing hex failed: \"%s\"", e.what());
+			return false;
+		}
+
+		return mcu.flash_loadFromMemory(hex.size() ? & hex[0] : 0, hex.size());
+	}
+	else if (std::strcmp(ext, "bin") == 0) {
+		bool success = true;
+		std::vector<uint8_t> data = StringUtils::loadFileIntoByteArray(path, &success);
+		if (!success) goto fail_open;
+
+		return mcu.flash_loadFromMemory(data.size()>0? &data[0] : nullptr, data.size());
+	}
+	else if (std::strcmp(ext, "elf") == 0) {
+		bool success = false;
+		std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
+		if (!success) goto fail_open;
+
+		return loadFromELF(content.size() ? &content[0] : 0, content.size());
+		//return loadFromELFFile(path);
+	}
+	else {
+		LU_LOGF(LogUtils::LogLevel_Error, "Can't load file with extension %s! Trying to load: %s", ext, path);
+		return false;
+	}
+	return true;
+
+fail_open:
+	LU_LOGF(LogUtils::LogLevel_Error, "Was not able to open file: \"%s\"", path);
+	return false;
+}
+
+bool ABB::ArduboyBackend::loadFromELFFile(const char* path) {
+	bool success = false;
+	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
+	if (!success) {
+		LU_LOGF(LogUtils::LogLevel_Error, "Was not able to open file: \"%s\"", path);
+		return false;
+	}
+
+	return loadFromELF(content.size() ? &content[0] : 0, content.size());
+}
+bool ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
+	EmuUtils::ELF::ELFFile elf = EmuUtils::ELF::parseELFFile(data, dataLen);
+
+	symbolTable.loadFromELF(elf);
+
+	auto romData = EmuUtils::ELF::getProgramData(elf);
+
+	return mcu.flash_loadFromMemory(&romData[0], romData.size());
+}
+
 void ABB::ArduboyBackend::_drawMenuContents() {
 	if (ImGui::BeginMenu(ADD_ICON(ICON_FA_BARS) "Menu")) {
-		if (!ab.mcu.flash.isProgramLoaded()) {
+		if (!mcu.flash_isProgramLoaded()) {
 			if (ImGui::MenuItem(ADD_ICON(ICON_FA_FILE) "Load Program")) {
 				ArduEmu::openLoadProgramDialog(id);
 			}
@@ -235,7 +303,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 		if (ImGui::MenuItem(ADD_ICON(ICON_FA_TOOLBOX) "Dev Tools", NULL, &devToolsOpen)) {}
 
 		if(ImGui::MenuItem(ADD_ICON(ICON_FA_SQUARE_PLUS) "Backup State", ArduEmu::getActionKeyStr(ArduEmu::actionManager.getAction(ArduEmu::Action_Add_State_Copy)).c_str())) {
-			mcuInfoBackend.addState(ab);
+			mcuInfoBackend.addState({mcu,symbolTable});
 		}
 		ImGui::EndMenu();
 	}
@@ -270,13 +338,9 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 	}
 	if(ImGui::BeginMenu(ADD_ICON(ICON_FA_PLAY) "Emulation")){
 		if(ImGui::BeginMenu(ADD_ICON(ICON_FA_WRENCH) "ExecFlags")){
-			bool debug = (ab.execFlags & A32u4::ATmega32u4::ExecFlags_Debug) != 0;
+			bool debug = mcu.getDebugMode();
 			if (ImGui::MenuItem("Debug", NULL, debug))
-				ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Debug;
-
-			bool analyze = (ab.execFlags & A32u4::ATmega32u4::ExecFlags_Analyse) != 0;
-			if (ImGui::MenuItem("Analyze", NULL, analyze))
-				ab.execFlags ^= A32u4::ATmega32u4::ExecFlags_Analyse;
+				mcu.setDebugMode(!mcu.getDebugMode());
 			
 			ImGui::EndMenu();
 		}
@@ -288,14 +352,14 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 				"0.1x", "0.25x", "0.5x", "1x", "2x", "4x", "10x"
 			};
 			size_t currVal = -1;
-			for(size_t i = 0; i<MCU_ARR_SIZE(speeds); i++) {
-				if(ab.emulationSpeed == speeds[i]) {
+			for(size_t i = 0; i<DU_ARRAYSIZE(speeds); i++) {
+				if(mcu.getEmuSpeed() == speeds[i]) {
 					currVal = i;
 					break;
 				}
 			}
-			if(ImGuiExt::SelectSwitch((const char**)speedLabels, MCU_ARR_SIZE(speeds), &currVal, {300,0})) {
-				ab.emulationSpeed = speeds[currVal];
+			if(ImGuiExt::SelectSwitch((const char**)speedLabels, DU_ARRAYSIZE(speeds), &currVal, {300,0})) {
+				mcu.setEmuSpeed(speeds[currVal]);
 			}
 			ImGui::EndMenu();
 		}
@@ -304,7 +368,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 }
 
 void ABB::ArduboyBackend::resetMachine() {
-	ab.reset();
+	mcu.reset();
 	analyticsBackend.reset();
 }
 
@@ -339,7 +403,7 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 size_t ABB::ArduboyBackend::sizeBytes() const {
 	size_t sum = 0;
 
-	sum += ab.sizeBytes();
+	sum += mcu.sizeBytes();
 
 	sum += DataUtils::approxSizeOf(name);
 	sum += DataUtils::approxSizeOf(devWinName);
@@ -351,8 +415,6 @@ size_t ABB::ArduboyBackend::sizeBytes() const {
 	sum += analyticsBackend.sizeBytes();
 	sum += compilerBackend.sizeBytes();
 	sum += symbolBackend.sizeBytes();
-
-	sum += elf.sizeBytes();
 
 	sum += sizeof(id);
 

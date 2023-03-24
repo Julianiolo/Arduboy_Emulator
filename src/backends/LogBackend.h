@@ -4,11 +4,11 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "ATmega32u4.h"
 #include "imgui.h"
 #include "StringUtils.h"
-#include "Arduboy.h"
 #include "../utils/icons.h"
+
+#include "mcu.h"
 
 #define ABB_LOG(_level_,_module_,_msg_) ABB::LogBackend::_SystemLog(_level_, _module_, __FILE__, __LINE__, _msg_)
 #define ABB_LOGF(_level_,_module_,_msg_,...) ABB::LogBackend::_SystemLogf(_level_, _module_, __FILE__, __LINE__, _msg_, __VA_ARGS__)
@@ -17,15 +17,15 @@ namespace ABB {
     class LogBackend{
     public:
         enum LogLevel_ {
-            LogLevel_None        = A32u4::ATmega32u4::LogLevel_None,
-            LogLevel_DebugOutput = A32u4::ATmega32u4::LogLevel_DebugOutput,
-            LogLevel_Output      = A32u4::ATmega32u4::LogLevel_Output,
-            LogLevel_Warning     = A32u4::ATmega32u4::LogLevel_Warning,
-            LogLevel_Error       = A32u4::ATmega32u4::LogLevel_Error,
-            LogLevel_Fatal       = A32u4::ATmega32u4::LogLevel_Fatal,
+            LogLevel_None        = LogUtils::LogLevel_None,
+            LogLevel_DebugOutput = LogUtils::LogLevel_DebugOutput,
+            LogLevel_Output      = LogUtils::LogLevel_Output,
+            LogLevel_Warning     = LogUtils::LogLevel_Warning,
+            LogLevel_Error       = LogUtils::LogLevel_Error,
+            LogLevel_Fatal       = LogUtils::LogLevel_Fatal,
             LogLevel_COUNT
         };
-        static ImVec4 logColors[A32u4::ATmega32u4::LogLevel_COUNT];
+        static ImVec4 logColors[LogUtils::LogLevel_COUNT];
 #if USE_ICONS
         static constexpr const char* logLevelIcons[] = {ICON_FA_CIRCLE_NOTCH, ICON_FA_BUG, ICON_FA_LIST, ICON_FA_TRIANGLE_EXCLAMATION, ICON_FA_CIRCLE_EXCLAMATION, ICON_FA_BOMB};
         static std::map<std::string, std::pair<ImVec4,std::string>> moduleIconMap;
@@ -39,7 +39,7 @@ namespace ABB {
         } settings;
 
         struct Entry {
-            A32u4::ATmega32u4::LogLevel level;
+            uint8_t level;
             std::string msg;
 
             std::string module;
@@ -61,14 +61,14 @@ namespace ABB {
         void redoCache();
         void updateCacheWithSystemLog();
 
-        Arduboy* ab;
+        MCU* mcu;
     public:
 
         std::string winName;
         bool* open;
         uint8_t filterLevel = LogLevel_None;
 
-        LogBackend(Arduboy* ab, const char* winName, bool* open);
+        LogBackend(MCU* mcu, const char* winName, bool* open);
 
         void draw();
         void clear();
@@ -77,20 +77,24 @@ namespace ABB {
     private:
         bool winFocused = false;
 
-        void addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module);
-        static void systemAddLog(A32u4::ATmega32u4::LogLevel logLevel, const std::string& msg, const char* fileName, int lineNum, const char* module);
+        void addLog(uint8_t logLevel, const char* msg, const char* fileName, int lineNum, const char* module);
+        static void logRecive(uint8_t logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData);
+        static void systemAddLog(uint8_t logLevel, const std::string& msg, const char* fileName, int lineNum, const char* module);
     public:
 
         bool isWinFocused() const;
 
         static void init();
-        static void _SystemLog(A32u4::ATmega32u4::LogLevel logLevel, const char* module, const char* fileName, int lineNum, const std::string& msg) {
+        static void _SystemLog(uint8_t logLevel, const char* module, const char* fileName, int lineNum, const std::string& msg) {
             systemAddLog(logLevel, msg, fileName, lineNum, module);
         }
         template<typename ... Args>
-        static void _SystemLogf(A32u4::ATmega32u4::LogLevel logLevel, const char* module, const char* fileName, int lineNum, const char* msg, Args ... args) {
+        static void _SystemLogf(uint8_t logLevel, const char* module, const char* fileName, int lineNum, const char* msg, Args ... args) {
             systemAddLog(logLevel, StringUtils::format(msg, args ...), fileName, lineNum, module);
         }
+
+        std::pair<LogUtils::LogCallB, void*> getLogContext() const;
+        void activateLog() const;
 
         static void drawSettings();
 

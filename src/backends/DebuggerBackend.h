@@ -8,7 +8,8 @@
 #include "ImGuiFD_internal.h"
 
 #include "../utils/asmViewer.h"
-#include "SymbolBackend.h"
+
+#include "utils/DisasmFile.h"
 
 namespace ABB{
     class ArduboyBackend;
@@ -28,25 +29,23 @@ namespace ABB{
         bool winFocused = false;
 
         bool showGPRegs = false;
-        struct GPRWatch { // GPRegister Watch
-            uint8_t ind;
-            uint8_t len;
-            ImVec4 col;
-        };
-        std::vector<GPRWatch> gprWatches;
-        uint8_t gprWatchAddAt = 0;
 
         uint32_t loadedSrcFileInc = 0;
-        utils::AsmViewer& addSrcMix();
+        utils::AsmViewer& addSrcMix(bool selfDisassembled);
         void generateSrc();
-        A32u4::Disassembler::DisasmFile::AdditionalDisasmInfo genDisamsInfo();
 
         ImGuiFD::FDInstance loadSrcMix;
         bool drawLoadGenerateButtons(); // return true if a button was pressed
     public:
         std::string winName;
         bool* open;
-        std::vector<utils::AsmViewer> srcMixs;
+        struct SrcMix {
+            utils::AsmViewer viewer;
+            bool selfDisassembled;
+
+            size_t sizeBytes() const;
+        };
+        std::vector<SrcMix> srcMixs;
         size_t selectedSrcMix = -1;
         bool stepFrame = false;
         bool haltOnReset = false;
@@ -63,6 +62,12 @@ namespace ABB{
 
         size_t sizeBytes() const;
     };
+}
+
+namespace DataUtils {
+    inline size_t approxSizeOf(const ABB::DebuggerBackend::SrcMix& v) {
+        return v.sizeBytes();
+    }
 }
 
 #endif

@@ -147,7 +147,8 @@ bool BinTools::canDemangle() {
 #include <iostream>
 #include <array>
 #include <memory>
-#include "../backends/LogBackend.h"
+
+#include "LogUtils.h"
 
 #ifdef _MSC_VER
 #define popen _popen
@@ -156,13 +157,13 @@ bool BinTools::canDemangle() {
 
 const char* binutilsDir = "resources/binutils/";
 
-#define MCU_MODULE "BinTools"
+#define LU_MODULE "BinTools"
 
 static std::string exec(const char* cmd) {
 	std::string out = "";
 
 	std::array<char, 4096> buffer;
-	MCU_LOGF_(ABB::LogBackend::LogLevel_DebugOutput, "executing command \"%s\"", cmd);
+	LU_LOGF_(LogUtils::LogLevel_DebugOutput, "executing command \"%s\"", cmd);
 	std::unique_ptr<std::FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
 	if (!pipe)
 		throw std::runtime_error("popen() failed");

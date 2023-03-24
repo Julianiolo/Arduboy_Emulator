@@ -34,6 +34,9 @@
     <Filter Include="Source Files\ImGuiFD">
       <UniqueIdentifier>{08521704-9d1a-48ff-9be6-1288e68a3192}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\EmuUtils">
+      <UniqueIdentifier>{4e5c5f09-1a27-4aa3-a1fe-affc28811db4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp">
@@ -92,6 +95,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\tests.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\mcu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\dependencies\EmuUtils\SymbolTable.cpp">
+      <Filter>Source Files\EmuUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\utils\DisasmFile.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\dependencies\EmuUtils\ElfReader.cpp">
+      <Filter>Source Files\EmuUtils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +172,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\dependencies\rlImGui\rlImGuiColors.h">
       <Filter>Source Files\rlImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\mcu.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\dependencies\EmuUtils\SymbolTable.h">
+      <Filter>Source Files\EmuUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\utils\DisasmFile.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\dependencies\EmuUtils\ElfReader.h">
+      <Filter>Source Files\EmuUtils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

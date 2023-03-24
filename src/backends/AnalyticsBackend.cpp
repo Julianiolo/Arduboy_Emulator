@@ -8,9 +8,13 @@
 
 #include "StringUtils.h"
 #include "DataUtils.h"
+#include "DataUtilsSize.h"
 
-ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* open)
-: ab(ab), StackSizeBuf(100), sleepCycsBuf(100), instHeatOrder(A32u4::InstHandler::instList.size()), winName(winName), open(open)
+
+#include "ArduboyBackend.h"
+
+ABB::AnalyticsBackend::AnalyticsBackend(ArduboyBackend* abb, const char* winName, bool* open)
+: abb(abb), StackSizeBuf(100), sleepCycsBuf(100), instHeatOrder(MCU::numInsts), winName(winName), open(open)
 {
     StackSizeBuf.initTo(0);
     sleepCycsBuf.initTo(0);
@@ -21,13 +25,13 @@ ABB::AnalyticsBackend::AnalyticsBackend(Arduboy* ab, const char* winName, bool* 
 }
 
 void ABB::AnalyticsBackend::update(){
-    if(!(ab->mcu.debugger.isHalted() || !ab->mcu.flash.isProgramLoaded())){
-        uint16_t SP = ab->mcu.analytics.maxSP;
-        ab->mcu.analytics.maxSP = 0xFFFF;
-        StackSizeBuf.add(A32u4::DataSpace::Consts::data_size-1-SP);
+    if(!(abb->mcu.debugger_isHalted() || !abb->mcu.flash_isProgramLoaded())){
+        uint16_t SP = abb->mcu.analytics_getMaxSP();
+        abb->mcu.analytics_setMaxSP(0xFFFF);
+        StackSizeBuf.add(abb->mcu.dataspace_dataSize()-1-SP);
 
-        sleepCycsBuf.add(ab->mcu.analytics.sleepSum);
-        ab->mcu.analytics.sleepSum = 0;
+        sleepCycsBuf.add(abb->mcu.analytics_getSleepSum());
+        abb->mcu.analytics_setSleepSum(0);
     }
 }
 
@@ -36,8 +40,8 @@ void ABB::AnalyticsBackend::draw(){
         winFocused = ImGui::IsWindowFocused();
 
         {
-            addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
-            addrmcu_t max = (addrmcu_t)(A32u4::DataSpace::Consts::data_size - 1 - ab->mcu.symbolTable.getMaxRamAddrEnd());
+            MCU::addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
+            MCU::addrmcu_t max = (MCU::addrmcu_t)(abb->mcu.dataspace_dataSize() - 1 - abb->symbolTable.getMaxRamAddrEnd());
             ImGui::Text("%.2f%% of suspected Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
             uint64_t usedSum = std::accumulate(StackSizeBuf.begin(), StackSizeBuf.end(), (uint64_t)0);
             float avg = StackSizeBuf.size() > 0 ? (float)usedSum / StackSizeBuf.size() : 0; // prevent div by 0
@@ -51,16 +55,16 @@ void ABB::AnalyticsBackend::draw(){
 
         ImGui::PlotHistogram("Sleep Cycles",
             &getSleepCycsBuf, &sleepCycsBuf, (int)sleepCycsBuf.size(), 
-            0, NULL, 0, (float)ab->cycsPerFrame(), {0,70}
+            0, NULL, 0, (float)abb->mcu.cycsPerFrame(), {0,70}
         );
 
         if(ImGui::Button("reset PC heat")){
-            ab->mcu.analytics.resetPCHeat();
+            abb->mcu.analytics_resetPCHeat();
         }
 
         if(ImGui::TreeNode("Inst heat")){
             std::stable_sort(instHeatOrder.begin(), instHeatOrder.end(), [&] (size_t a, size_t b) {
-                return ab->mcu.analytics.getInstHeat()[a] > ab->mcu.analytics.getInstHeat()[b];
+                return abb->mcu.analytics_getInstHeat(a) > abb->mcu.analytics_getInstHeat(b);
             });
 
             constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders;
@@ -70,16 +74,15 @@ void ABB::AnalyticsBackend::draw(){
                 ImGui::TableSetupColumn("# of executions");
                 ImGui::TableHeadersRow();
 
-                for(size_t i = 0; i<A32u4::InstHandler::instList.size(); i++) {
+                for(size_t i = 0; i< MCU::numInsts; i++) {
                     size_t instInd = instHeatOrder[i];
-                    const auto& inst = A32u4::InstHandler::instList[instInd];
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(inst.name);
+                    ImGui::TextUnformatted(MCU::getInstName(instInd));
 
                     ImGui::TableNextColumn();
                     {
-                        std::string s = StringUtils::addThousandsSeperator(std::to_string(ab->mcu.analytics.getInstHeat()[instInd]).c_str());
+                        std::string s = StringUtils::addThousandsSeperator(std::to_string(abb->mcu.analytics_getInstHeat(instInd)).c_str());
                         ImVec2 size = ImGui::GetContentRegionAvail();
                         ImVec2 textSize = ImGui::CalcTextSize(s.c_str());
                         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+(size.x-textSize.x));
@@ -129,7 +132,7 @@ bool ABB::AnalyticsBackend::isWinFocused() const {
 size_t ABB::AnalyticsBackend::sizeBytes() const {
     size_t sum = 0;
 
-    sum += sizeof(ab);
+    sum += sizeof(abb);
 
     sum += DataUtils::approxSizeOf(StackSizeBuf);
     sum += DataUtils::approxSizeOf(sleepCycsBuf);

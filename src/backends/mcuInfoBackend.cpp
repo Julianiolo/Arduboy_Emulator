@@ -15,10 +15,24 @@
 #include "LogBackend.h"
 #include "ArduboyBackend.h"
 
+#include "../utils/hexViewer.h"
+
 #include "StringUtils.h"
 #include "DataUtils.h"
+#include "DataUtilsSize.h"
 
-#define MCU_MODULE "McuInfoBackend"
+
+#define LU_MODULE "McuInfoBackend"
+#define LU_CONTEXT (abb->logBackend.getLogContext())
+
+size_t ABB::McuInfoBackend::Save::sizeBytes() const {
+	size_t sum = 0;
+
+	sum += mcu.sizeBytes();
+	sum += symbolTable.sizeBytes();
+
+	return sum;
+}
 
 ABB::McuInfoBackend::SaveLoadFDIPair::SaveLoadFDIPair(const char* bothName):
 	save((std::string("Save ") + bothName).c_str()), load((std::string("Load ") + bothName).c_str())
@@ -32,20 +46,12 @@ size_t ABB::McuInfoBackend::SaveLoadFDIPair::sizeBytes() const {
 
 ABB::McuInfoBackend::McuInfoBackend(ArduboyBackend* abb, const char* winName, bool* open) :
 	abb(abb),
-	dataspaceDataHex(abb->ab.mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, &abb->ab.mcu, utils::HexViewer::DataType_Ram), 
-	dataspaceEEPROMHex(abb->ab.mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, nullptr, utils::HexViewer::DataType_Eeprom),
-	flashHex(abb->ab.mcu.flash.getData(), A32u4::Flash::sizeMax, &abb->ab.mcu, utils::HexViewer::DataType_Rom),
-	fdiRam((std::string("Ram - ")+winName).c_str()), fdiEeprom((std::string("Eeprom - ")+winName).c_str()), fdiRom((std::string("Rom - ")+winName).c_str()),
 	fdiState((std::string("State - ")+winName).c_str()),
 	winName(winName), open(open)
 {
-	dataspaceDataHex.setSymbolList(abb->ab.mcu.symbolTable.getSymbolsRam());
-	dataspaceDataHex.setEditCallback(setRamValue, this);
-
-	dataspaceEEPROMHex.setEditCallback(setEepromValue, this);
-
-	flashHex.setSymbolList(abb->ab.mcu.symbolTable.getSymbolsRom());
-	flashHex.setEditCallback(setRomValue, this);
+	for (size_t i = 0; i < abb->mcu.numHexViewers(); i++) {
+		hexViewers.push_back(utils::HexViewer(utils::HexViewer::DataType_None));
+	}
 }
 
 void ABB::McuInfoBackend::drawSaveLoadButtons(SaveLoadFDIPair* fdi) {
@@ -63,46 +69,30 @@ void ABB::McuInfoBackend::draw() {
 		winFocused = ImGui::IsWindowFocused();
 
 		if (ImGui::TreeNode("CPU")) {
+			/*
 			ImGui::Text("PC: 0x%04x => PC Addr: 0x%04x", abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr());
-			ImGui::Text("Cycles: %s", std::to_string(abb->ab.mcu.cpu.getTotalCycles()).c_str());
+			ImGui::Text("Cycles: %s", std::to_string(abb->mcu.totalCycles()).c_str());
 			ImGui::Text("Is Sleeping: %d", abb->ab.mcu.cpu.isSleeping());
+			*/
 			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("DataSpace")) {
-			if (ImGui::TreeNode("Data")) {
-				drawSaveLoadButtons(&fdiRam);
+		if (ImGui::TreeNode("Hex Viewers")) {
+			for (size_t i = 0; i < abb->mcu.numHexViewers(); i++) {
+				auto hex = abb->mcu.getHexViewer(i);
 
-				if (!dataSpaceSplitHexView) {
-					dataspaceDataHex.draw();
+				ImGui::PushID((int)i);
+
+				if (ImGui::TreeNode(hex.name)) {
+					hexViewers[i].draw(hex.data, hex.dataLen, &abb->symbolTable);
+					ImGui::TreePop();
 				}
-				else {
-					ImGui::TextUnformatted("General Pourpose Registers:");
-					dataspaceDataHex.draw(A32u4::DataSpace::Consts::GPRs_size);
-					ImGui::TextUnformatted("IO Registers:");
-					dataspaceDataHex.sameFrame();
-					dataspaceDataHex.draw(A32u4::DataSpace::Consts::total_io_size, A32u4::DataSpace::Consts::GPRs_size);
-					ImGui::TextUnformatted("ISRAM:");
-					dataspaceDataHex.sameFrame();
-					dataspaceDataHex.draw(A32u4::DataSpace::Consts::ISRAM_size, A32u4::DataSpace::Consts::GPRs_size + A32u4::DataSpace::Consts::total_io_size);
-				}
-				
-				ImGui::TreePop();
+
+				ImGui::PopID();
 			}
-			if (ImGui::TreeNode("EEPROM")) {
-				drawSaveLoadButtons(&fdiEeprom);
-				dataspaceEEPROMHex.draw();
-				ImGui::TreePop();
-			}
-			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("Flash")) {
-			drawSaveLoadButtons(&fdiRom);
-			flashHex.draw();
-			ImGui::TreePop();
-		}
-
+		/*
 		if (ImGui::TreeNode("Find Strings")) {
 			ImGui::PushID("fstr");
 			if (ImGui::TreeNode("Ram")) {
@@ -144,6 +134,7 @@ void ABB::McuInfoBackend::draw() {
 			ImGui::PopID();
 			ImGui::TreePop();
 		}
+		*/
 	
 		drawStates();
 
@@ -170,30 +161,17 @@ void ABB::McuInfoBackend::draw() {
 			if (ImGui::BeginTable("MemUsage", 2)) {
 				
 				if (func("Arduboy Backend", abb->sizeBytes(), true)) {
-					if (func("Arduboy", abb->ab.sizeBytes(), true)) {
-						if (func("Mcu",         abb->ab.mcu.sizeBytes(), true)) {
-							func("CPU",         abb->ab.mcu.cpu.sizeBytes());
-							func("DataSpace",   abb->ab.mcu.dataspace.sizeBytes());
-							func("Flash",       abb->ab.mcu.flash.sizeBytes());
-
-							func("Debugger",    abb->ab.mcu.debugger.sizeBytes());
-							func("Analytics",   abb->ab.mcu.analytics.sizeBytes());
-							func("SymbolTable", abb->ab.mcu.symbolTable.sizeBytes());
-							ImGui::TreePop();
-						}
-						func("Display", abb->ab.display.sizeBytes());
-						ImGui::TreePop();
-					}
+					func("Arduboy", abb->mcu.sizeBytes());
 
 					func("Log Backend",      abb->logBackend.sizeBytes());
 					func("Display Backend",  abb->displayBackend.sizeBytes());
 					if (func("DebuggerBackend", abb->debuggerBackend.sizeBytes(), true)) {
-						for (const auto& srcMix : abb->debuggerBackend.srcMixs) {
-							if (func(srcMix.title.c_str(), srcMix.sizeBytes(), true)) {
-								if (func("File", srcMix.file.sizeBytes(), true)) {
+						for (const auto& srcMixP : abb->debuggerBackend.srcMixs) {
+							if (func(srcMixP.viewer.title.c_str(), srcMixP.viewer.sizeBytes(), true)) {
+								if (func("File", srcMixP.viewer.file.sizeBytes(), true)) {
 									func("Contents", 
-										DataUtils::approxSizeOf(srcMix.file.content) + DataUtils::approxSizeOf(srcMix.file.addrs) + 
-										DataUtils::approxSizeOf(srcMix.file.lines) + DataUtils::approxSizeOf(srcMix.file.isLineProgram) + DataUtils::approxSizeOf(srcMix.file.labels)
+										DataUtils::approxSizeOf(srcMixP.viewer.file.content) + DataUtils::approxSizeOf(srcMixP.viewer.file.addrs) + 
+										DataUtils::approxSizeOf(srcMixP.viewer.file.lines) + DataUtils::approxSizeOf(srcMixP.viewer.file.isLineProgram) + DataUtils::approxSizeOf(srcMixP.viewer.file.labels)
 									);
 									//func("Branchs", 
 									//	DataUtils::approxSizeOf(srcMix.file.branchRoots, [](const A32u4::Disassembler::DisasmFile::BranchRoot& v) {return sizeof(A32u4::Disassembler::DisasmFile::BranchRoot); }) + DataUtils::approxSizeOf(srcMix.file.branchRootInds) +
@@ -213,7 +191,6 @@ void ABB::McuInfoBackend::draw() {
 					func("CompilerBackend",  abb->compilerBackend.sizeBytes());
 					func("SymbolBackend",    abb->symbolBackend.sizeBytes());
 					ImGui::Spacing();
-					func("ELF",         abb->elf.sizeBytes());
 
 					ImGui::TreePop();
 				}
@@ -229,72 +206,6 @@ void ABB::McuInfoBackend::draw() {
 		winFocused = false;
 	}
 	ImGui::End();
-
-	fdiRam.save.DrawDialog([](void* userData){
-		const char* path = ImGuiFD::GetSelectionPathString(0);
-		std::ofstream file(path, std::ios::binary);
-		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
-			return;
-		}
-
-		((Arduboy*)userData)->mcu.dataspace.getRamState(file);
-		//StringUtils::writeBytesToFile(ab->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size, path);
-	}, &abb->ab);
-	fdiRam.load.DrawDialog([](void* userData){
-		const char* path = ImGuiFD::GetSelectionPathString(0);
-		std::ifstream file(path, std::ios::binary);
-		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
-			return;
-		}
-
-		((Arduboy*)userData)->mcu.dataspace.setRamState(file);
-	},&abb->ab);
-
-	fdiEeprom.save.DrawDialog([](void* userData){
-		const char* path = ImGuiFD::GetSelectionPathString(0);
-		std::ofstream file(path, std::ios::binary);
-		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
-			return;
-		}
-
-		((Arduboy*)userData)->mcu.dataspace.getEepromState(file);
-		//StringUtils::writeBytesToFile(ab->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, path);
-	});
-	fdiEeprom.load.DrawDialog([](void* userData){
-		const char* path = ImGuiFD::GetSelectionPathString(0);
-		std::ifstream file(path, std::ios::binary);
-		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
-			return;
-		}
-
-		((Arduboy*)userData)->mcu.dataspace.setEepromState(file);
-	},&abb->ab);
-
-	fdiRom.save.DrawDialog([](void* userData){
-		const char* path = ImGuiFD::GetSelectionPathString(0);
-		std::ofstream file(path, std::ios::binary);
-		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
-			return;
-		}
-
-		((Arduboy*)userData)->mcu.flash.getRomState(file);
-		//StringUtils::writeBytesToFile(ab->mcu.flash.getData(), A32u4::Flash::sizeMax, path);
-	},&abb->ab);
-	fdiRom.load.DrawDialog([](void* userData){
-		const char* path = ImGuiFD::GetSelectionPathString(0);
-		std::ifstream file(path, std::ios::binary);
-		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
-			return;
-		}
-
-		((Arduboy*)userData)->mcu.flash.setRomState(file);
-	},&abb->ab);
 }
 
 const char* ABB::McuInfoBackend::getWinName() const {
@@ -307,15 +218,15 @@ bool ABB::McuInfoBackend::isWinFocused() const {
 
 void ABB::McuInfoBackend::setRamValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
-	info->abb->ab.mcu.dataspace.setDataByte((addrmcu_t)addr, val);
+	//info->abb->ab.mcu.dataspace.setDataByte((addrmcu_t)addr, val);
 }
 void ABB::McuInfoBackend::setEepromValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
-	info->abb->ab.mcu.dataspace.getEEPROM()[addr] = val;
+	//info->abb->ab.mcu.dataspace.getEEPROM()[addr] = val;
 }
 void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) {
 	McuInfoBackend* info = (McuInfoBackend*)userData;
-	info->abb->ab.mcu.flash.setByte((addrmcu_t)addr, val);
+	//info->abb->ab.mcu.flash.setByte((addrmcu_t)addr, val);
 }
 
 void ABB::McuInfoBackend::drawStates() {
@@ -344,7 +255,8 @@ void ABB::McuInfoBackend::drawStates() {
 
 					ImGui::TableNextColumn();
 					if(ImGui::Button("Load")){
-						abb->ab = entry.second;
+						abb->mcu = entry.second.mcu;
+						abb->symbolTable = entry.second.symbolTable;
 					}
 					ImGui::SameLine();
 					if(ImGui::Button("Save")) {
@@ -370,33 +282,36 @@ void ABB::McuInfoBackend::drawStates() {
 	}
 	
 	fdiState.save.DrawDialog([](void* userData) {
-		MCU_ASSERT(userData != nullptr);
+		DU_ASSERT(userData != nullptr);
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ofstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			LU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		((Arduboy*)userData)->getState(file);
-	},states.size() > 0 ? & states[stateIndToSave].second : nullptr);
+
+		((Save*)userData)->mcu.getState(file);
+		((Save*)userData)->symbolTable.getState(file);
+	},states.size() > 0 ? &states[stateIndToSave].second : nullptr);
 
 	fdiState.load.DrawDialog([](void* userData){
 		const char* path = ImGuiFD::GetSelectionPathString(0);
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open()) {
-			MCU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+			LU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
 			return;
 		}
 
-		Arduboy ab;
-		ab.setState(file);
-		((McuInfoBackend*)userData)->addState(ab, ImGuiFD::GetSelectionNameString(0));
+		Save save;
+		save.mcu.setState(file);
+		save.symbolTable.setState(file);
+		((McuInfoBackend*)userData)->addState(save, ImGuiFD::GetSelectionNameString(0));
 	},this);
 	
 }
 
-void ABB::McuInfoBackend::addState(Arduboy& ab, const char* name){
+void ABB::McuInfoBackend::addState(const Save& ab, const char* name){
 	std::string n;
 	if(name == nullptr) {
 		time_t t = std::time(0);
@@ -407,27 +322,20 @@ void ABB::McuInfoBackend::addState(Arduboy& ab, const char* name){
 	}
 	states.push_back({n, ab});
 
-	MCU_LOGF_(A32u4::ATmega32u4::LogLevel_DebugOutput, "Added State: \"%s\"", n.c_str());
+	LU_LOGF(LogUtils::LogLevel_DebugOutput, "Added State: \"%s\"", n.c_str());
 }
 size_t ABB::McuInfoBackend::sizeBytes() const {
 	size_t sum = 0;
 
 	sum += sizeof(abb);
 
-	sum += dataspaceDataHex.sizeBytes();
-	sum += dataspaceEEPROMHex.sizeBytes();
-	sum += sizeof(dataSpaceSplitHexView);
-	sum += flashHex.sizeBytes();
+	sum += DataUtils::approxSizeOf(hexViewers);
 
 	sum += sizeof(winFocused);
 
 	sum += DataUtils::approxSizeOf(ramStrings);
 	sum += DataUtils::approxSizeOf(eepromStrings);
 	sum += DataUtils::approxSizeOf(romStrings);
-
-	sum += fdiRam.sizeBytes();
-	sum += fdiEeprom.sizeBytes();
-	sum += fdiRom.sizeBytes();
 
 	sum += DataUtils::approxSizeOf(states);
 

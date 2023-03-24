@@ -26,6 +26,7 @@
 #define ROOTDIR "../../../../"
 #endif
 
+
 void setup();
 void draw();
 void destroy();
@@ -126,7 +127,7 @@ void setup() {
         auto end = std::chrono::high_resolution_clock::now();
 
         double ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/1000.0;
-        ABB_LOGF(A32u4::ATmega32u4::LogLevel_DebugOutput, "raylib", "window init took: %f ms", ms);
+        ABB_LOGF(LogUtils::LogLevel_DebugOutput, "raylib", "window init took: %f ms", ms);
     }
     //SetTargetFPS(60);
 
@@ -211,7 +212,7 @@ void setup() {
     
     */
 
-    abb.ab.mcu.powerOn();
+    abb.mcu.powerOn();
 #endif
     std::cout << "Completed Setup" << std::endl;
 }

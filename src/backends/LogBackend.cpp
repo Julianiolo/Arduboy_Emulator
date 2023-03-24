@@ -8,6 +8,8 @@
 #include "../Extensions/imguiExt.h"
 
 #include "DataUtils.h"
+#include "DataUtilsSize.h"
+
 
 ImVec4 ABB::LogBackend::logColors[] = {
     { 0.7f,  0.7f, 0.7f,    -1},
@@ -40,13 +42,13 @@ void ABB::LogBackend::init() {
 
         uint8_t level;
         switch (logLevel) {
-            case LOG_NONE:    level = A32u4::ATmega32u4::LogLevel_None;        break;
-            case LOG_DEBUG:   level = A32u4::ATmega32u4::LogLevel_DebugOutput; break;
-            case LOG_INFO:    level = A32u4::ATmega32u4::LogLevel_Output;      break;
-            case LOG_WARNING: level = A32u4::ATmega32u4::LogLevel_Warning;     break;
-            case LOG_ERROR:   level = A32u4::ATmega32u4::LogLevel_Error;       break;
-            case LOG_FATAL:   level = A32u4::ATmega32u4::LogLevel_Fatal;       break;
-            default:          level = A32u4::ATmega32u4::LogLevel_Fatal;       break;
+            case LOG_NONE:    level = LogUtils::LogLevel_None;        break;
+            case LOG_DEBUG:   level = LogUtils::LogLevel_DebugOutput; break;
+            case LOG_INFO:    level = LogUtils::LogLevel_Output;      break;
+            case LOG_WARNING: level = LogUtils::LogLevel_Warning;     break;
+            case LOG_ERROR:   level = LogUtils::LogLevel_Error;       break;
+            case LOG_FATAL:   level = LogUtils::LogLevel_Fatal;       break;
+            default:          level = LogUtils::LogLevel_Fatal;       break;
         }
 
         systemAddLog(level, s, NULL, -1, "raylib");
@@ -82,21 +84,35 @@ void ABB::LogBackend::init() {
 }
 
 
-ABB::LogBackend::LogBackend(Arduboy* ab, const char* winName, bool* open) : ab(ab), winName(winName), open(open) {
-    ab->mcu.setLogCallB([](A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData) {
+ABB::LogBackend::LogBackend(MCU* mcu, const char* winName, bool* open) : mcu(mcu), winName(winName), open(open) {
+    activateLog();
+    mcu->setLogCallB([](uint8_t logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData) {
         ((LogBackend*)userData)->addLog(logLevel, msg, fileName, lineNum, module);
     }, this);
+    mcu->activateLog();
 }
 
-void ABB::LogBackend::systemAddLog(A32u4::ATmega32u4::LogLevel logLevel, const std::string& msg, const char* fileName, int lineNum, const char* module) {
+void ABB::LogBackend::systemAddLog(uint8_t logLevel, const std::string& msg, const char* fileName, int lineNum, const char* module) {
     systemLogs.push_back({ logLevel,msg,module ? module : "",fileName ? fileName : "",lineNum, idCntr++});
 }
 
-void ABB::LogBackend::addLog(A32u4::ATmega32u4::LogLevel logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
+void ABB::LogBackend::addLog(uint8_t logLevel, const char* msg, const char* fileName, int lineNum, const char* module) {
     updateCacheWithSystemLog();
     logs.push_back({logLevel,msg,module?module:"",fileName?fileName:"",lineNum, idCntr++});
     if (logLevel >= filterLevel)
         cache.push_back({ true, logs.size() - 1 });
+}
+
+void ABB::LogBackend::logRecive(uint8_t logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData) {
+    ((LogBackend*)userData)->addLog(logLevel, msg, fileName, lineNum, module);
+}
+
+std::pair<LogUtils::LogCallB, void*> ABB::LogBackend::getLogContext() const {
+    return {logRecive, (void*)this};
+}
+
+void ABB::LogBackend::activateLog() const {
+    LogUtils::activateLogTarget(logRecive, (void*)this);
 }
 
 ABB::LogBackend::Entry& ABB::LogBackend::getEntryFromCache(size_t i) {
@@ -180,13 +196,13 @@ void ABB::LogBackend::draw() {
         ImGui::PushItemWidth(100);
         {
 #if USE_ICONS
-            MCU_STATIC_ASSERT(MCU_ARR_SIZE(A32u4::ATmega32u4::logLevelStrs) == MCU_ARR_SIZE(logLevelIcons));
+            DU_STATIC_ASSERT(DU_ARRAYSIZE(LogUtils::logLevelStrs) == DU_ARRAYSIZE(logLevelIcons));
 
             char buf[32];
-            std::snprintf(buf, sizeof(buf), "%s %s", logLevelIcons[filterLevel], A32u4::ATmega32u4::logLevelStrs[filterLevel]);
+            std::snprintf(buf, sizeof(buf), "%s %s", logLevelIcons[filterLevel], LogUtils::logLevelStrs[filterLevel]);
             if (ImGui::BeginCombo("Filter Level", buf)) {
-                for (size_t i = 0; i < A32u4::ATmega32u4::LogLevel_COUNT; i++) {
-                    std::snprintf(buf, sizeof(buf), "%s %s", logLevelIcons[i], A32u4::ATmega32u4::logLevelStrs[i]);
+                for (size_t i = 0; i < LogUtils::LogLevel_COUNT; i++) {
+                    std::snprintf(buf, sizeof(buf), "%s %s", logLevelIcons[i], LogUtils::logLevelStrs[i]);
                     if (ImGui::Selectable(buf)) {
                         if (filterLevel != i)
                             changed = true;
@@ -241,7 +257,7 @@ void ABB::LogBackend::draw() {
             while (clipper.Step()) {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
                     auto& entry = getEntryFromCache(line_no);
-                    MCU_ASSERT(entry.level < A32u4::ATmega32u4::LogLevel_COUNT);
+                    DU_ASSERT(entry.level < LogUtils::LogLevel_COUNT);
 
                     ImVec4 col = logColors[entry.level];
                     if(col.w < 0) {
@@ -255,11 +271,11 @@ void ABB::LogBackend::draw() {
                     ImGuiExt::TextColored(col, logLevelIcons[entry.level]);
                     if (ImGui::IsItemHovered()) {
                         ImGui::BeginTooltip();
-                        ImGui::TextColored(col, "[%s]", A32u4::ATmega32u4::logLevelStrs[entry.level]);
+                        ImGui::TextColored(col, "[%s]", LogUtils::logLevelStrs[entry.level]);
                         ImGui::EndTooltip();
                     }
 #else
-                    ImGui::TextColored(col, "[%s]", A32u4::ATmega32u4::logLevelStrs[entry.level]);
+                    ImGui::TextColored(col, "[%s]", MCU::logLevelStrs[entry.level]);
 #endif
 
                     ImGui::TableNextColumn();
@@ -343,7 +359,7 @@ void ABB::LogBackend::drawSettings() {
             ImGui::Separator();
         ImGui::PushID((int)i);
 
-        ImGui::TextUnformatted(A32u4::ATmega32u4::logLevelStrs[i]);
+        ImGui::TextUnformatted(LogUtils::logLevelStrs[i]);
 
         ImGui::Indent();
 
@@ -400,7 +416,7 @@ size_t ABB::LogBackend::sizeBytes() const {
     sum += sizeof(lastUpdatedSystemLogLen);
     sum += DataUtils::approxSizeOf(cache);
 
-    sum += sizeof(ab);
+    sum += sizeof(mcu);
 
     sum += DataUtils::approxSizeOf(winName);
     sum += sizeof(open);

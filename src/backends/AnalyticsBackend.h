@@ -1,17 +1,19 @@
 #ifndef __ANALYTICSBACKEND_H__
 #define __ANALYTICSBACKEND_H__
 
-#include "Arduboy.h"
+#include "mcu.h"
 #include "SymbolBackend.h"
 
 #include "ringBuffer.h"
 
 namespace ABB{
+    class ArduboyBackend;
+
     class AnalyticsBackend{
     private:
         friend class ArduboyBackend;
 
-        Arduboy* ab = nullptr;
+        ArduboyBackend* abb = nullptr;
         
         RingBuffer<uint16_t> StackSizeBuf;
         RingBuffer<uint64_t> sleepCycsBuf;
@@ -23,7 +25,7 @@ namespace ABB{
         std::string winName;
         bool* open;
 
-        AnalyticsBackend(Arduboy* ab, const char* winName, bool* open);
+        AnalyticsBackend(ArduboyBackend* abb, const char* winName, bool* open);
 
         void update();
         void draw();
