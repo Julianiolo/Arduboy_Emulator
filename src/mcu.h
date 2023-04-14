@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cinttypes>
 #include <set>
+#include <functional>
 
 #include "raylib.h"
 #include "LogUtils.h"
@@ -78,6 +79,7 @@ namespace ABB {
 		const uint8_t* flash_getData();
 		size_t flash_size() const;
 		bool flash_isProgramLoaded() const;
+		size_t programSize() const; // size of Program in PC steps
 
 
 		// ### Extras ###
@@ -89,7 +91,7 @@ namespace ABB {
 			const std::vector<std::pair<uint32_t, std::string>>* srcLines = nullptr,
 			const std::vector<std::pair<uint32_t, std::string>>* funcSymbs = nullptr,
 			const std::vector<std::tuple<std::string, uint32_t, uint32_t>>* dataSymbs = nullptr,
-			const std::vector<addrmcu_t>* additionalDisasmSeeds = nullptr
+			const std::vector<uint32_t>* additionalDisasmSeeds = nullptr
 		) const;
 
 		// Debugger
@@ -112,13 +114,28 @@ namespace ABB {
 
 		// Analytics
 		sizemcu_t analytics_getMaxSP() const;
-		void analytics_setMaxSP(sizemcu_t val);
+		void analytics_resetMaxSP();
 		uint64_t analytics_getSleepSum() const;
 		void analytics_setSleepSum(uint64_t val);
 		void analytics_resetPCHeat();
 		uint64_t analytics_getPCHeat(pc_t pc) const;
 		uint64_t analytics_getInstHeat(size_t ind) const;
 
+		enum {
+			ParamType_None = 0,
+			ParamType_Register,
+			ParamType_RamAddrRegister,
+			ParamType_RomAddrRegister,
+			ParamType_Literal,
+			ParamType_RomAddr,
+			ParamType_RamAddr,
+			ParamType_COUNT
+		};
+		struct ParamInfo {
+			uint8_t type;
+			uint32_t val;
+		};
+		ParamInfo getParamInfo(const char* start, const char* end, const char* instStart, const char* instEnd, uint32_t pcAddr) const;
 
 		void draw_asmLiteral(const char* instStart, const char* instEnd, const char* start, const char* end) const;
 		void draw_stateInfo() const;
@@ -127,6 +144,20 @@ namespace ABB {
 			const char* name;
 			const uint8_t* data;
 			size_t dataLen;
+
+			enum {
+				Type_None = 0,
+				Type_Ram,
+				Type_Rom
+			};
+			uint8_t type;
+
+			std::function<void(addrmcu_t addr, uint8_t val)> setData = nullptr;
+			std::function<void(const uint8_t* data, size_t len)> setDataAll = nullptr;
+
+			const uint64_t* readCnt = nullptr;
+			const uint64_t* writeCnt = nullptr;
+			std::function<void()> resetRWAnalytics = nullptr;
 		};
 		size_t numHexViewers() const;
 		Hex getHexViewer(size_t ind) const;

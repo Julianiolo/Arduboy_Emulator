@@ -56,7 +56,7 @@ DEF_FLAGS:=$(addprefix -D,$(PLATFORM))
 
 BUILD_MODE_FLAGS:=
 ifeq ($(BUILD_MODE),DEBUG)
-	BUILD_MODE_FLAGS +=-g
+	BUILD_MODE_FLAGS +=-g -fsanitize=address
 	DEF_FLAGS += -D_DEBUG
 else
 	BUILD_MODE_FLAGS +=$(RELEASE_OPTIM)
@@ -70,10 +70,10 @@ SRC_FILES:=$(shell find $(SRC_DIR) -name '*.cpp')
 OBJ_FILES:=$(addprefix $(OBJ_DIR),${SRC_FILES:.cpp=.o})
 DEP_FILES:=$(patsubst %.o,%.d,$(OBJ_FILES))
 
-DEPENDENCIES_INCLUDE_PATHS:=$(addprefix $(ROOT_DIR)dependencies/,Arduboy_Emulator_HL/src Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui ImGuiFD rlImGui Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/dependencies/CPP_Utils/src)
+DEPENDENCIES_INCLUDE_PATHS:=$(addprefix $(ROOT_DIR)dependencies/,Arduboy_Emulator_HL/src EmuUtils Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/src raylib/src imgui ImGuiFD emscripten-browser-clipboard rlImGui Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/dependencies/CPP_Utils/src)
 DEPENDENCIES_LIBS_DIR:=$(BUILD_DIR)objs/libs/
 
-DEP_LIBS:=raylib imgui Arduboy_Emulator_HL ATmega32u4_Emulator ImGuiFD rlImGui CPP_Utils
+DEP_LIBS:=raylib imgui Arduboy_Emulator_HL ATmega32u4_Emulator ImGuiFD rlImGui CPP_Utils EmuUtils
 DEP_LIBS_PATH:=$(addprefix $(DEPENDENCIES_LIBS_DIR)/,$(DEP_LIBS))
 
 DEP_LIBS_INCLUDE_FLAGS:=$(addprefix -I,$(DEPENDENCIES_INCLUDE_PATHS))
@@ -98,8 +98,8 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
 	EXTRA_FLAGS:= -s USE_GLFW=3 --shell-file $(SHELL_HTML) --preload-file ./resources/device/regSymbs.txt
-	CFLAGS += -sEXPORTED_FUNCTIONS=_main,_ArduEmu_loadFile -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
-	CXXFLAGS += -sEXPORTED_FUNCTIONS=_main,_ArduEmu_loadFile -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
+	CFLAGS += -fexceptions -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=_main -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
+	CXXFLAGS += -fexceptions -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=_main -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
 endif
 
 CFLAGS += $(BUILD_MODE_FLAGS)

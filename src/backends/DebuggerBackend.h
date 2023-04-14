@@ -5,11 +5,13 @@
 #include <vector>
 #include <stdint.h>
 
+#include "../mcu.h"
+
 #include "ImGuiFD_internal.h"
 
 #include "../utils/asmViewer.h"
 
-#include "utils/DisasmFile.h"
+#include "../utils/DisasmFile.h"
 
 namespace ABB{
     class ArduboyBackend;
@@ -32,10 +34,11 @@ namespace ABB{
 
         uint32_t loadedSrcFileInc = 0;
         utils::AsmViewer& addSrcMix(bool selfDisassembled);
-        void generateSrc();
+        
 
         ImGuiFD::FDInstance loadSrcMix;
         bool drawLoadGenerateButtons(); // return true if a button was pressed
+        std::string disasmProg();
     public:
         std::string winName;
         bool* open;
@@ -59,6 +62,7 @@ namespace ABB{
 
         void addSrc(const char* str, const char* title = NULL);
         bool addSrcFile(const char* path);
+        void generateSrc();
 
         size_t sizeBytes() const;
     };

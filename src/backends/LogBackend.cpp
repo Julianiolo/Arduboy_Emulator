@@ -77,8 +77,10 @@ void ABB::LogBackend::init() {
     moduleIconMap["DebuggerBackend"] = { stdIconCol,ICON_FA_BUGS};
     moduleIconMap["McuInfoBackend"]  = { stdIconCol,ICON_FA_INFO};
 
+    moduleIconMap["ELF"]             = { stdIconCol,ICON_FA_FILE_PEN };
+    moduleIconMap["DisasmFile"]      = { stdIconCol,ICON_FA_FILE_CODE };
 
-    moduleIconMap["raylib"]          = { { 0.2,0.2,1,1 },ICON_FA_BOLT };
+    moduleIconMap["raylib"]          = { { 0.2f,0.2f,1,1 },ICON_FA_BOLT };
 
 #endif
 }
@@ -246,8 +248,8 @@ void ABB::LogBackend::draw() {
         if(ImGui::BeginTable((winName+" logWin").c_str(), 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_ScrollY)){ //ImGuiTableFlags_Resizable
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             const float iconWidth = ImGui::GetTextLineHeight() + 2;
-            ImGui::TableSetupColumn("Level", 0, (USE_ICONS) ? iconWidth : 60);
             ImGui::TableSetupColumn("Module", (USE_ICONS)?0:ImGuiTableColumnFlags_DefaultHide, (USE_ICONS) ? iconWidth : 90);
+            ImGui::TableSetupColumn("Level", 0, (USE_ICONS) ? iconWidth : 60);
             ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch); //middleWidth);
             ImGui::TableSetupColumn("File info", ImGuiTableColumnFlags_DefaultHide, 170);
             ImGui::TableHeadersRow();
@@ -265,19 +267,6 @@ void ABB::LogBackend::draw() {
                     }
 
                     ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-
-#if USE_ICONS
-                    ImGuiExt::TextColored(col, logLevelIcons[entry.level]);
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::BeginTooltip();
-                        ImGui::TextColored(col, "[%s]", LogUtils::logLevelStrs[entry.level]);
-                        ImGui::EndTooltip();
-                    }
-#else
-                    ImGui::TextColored(col, "[%s]", MCU::logLevelStrs[entry.level]);
-#endif
-
                     ImGui::TableNextColumn();
 
                     if (entry.module.size() > 0) {
@@ -303,6 +292,18 @@ void ABB::LogBackend::draw() {
 #endif
                     }
 
+                    ImGui::TableNextColumn();
+
+#if USE_ICONS
+                    ImGuiExt::TextColored(col, logLevelIcons[entry.level]);
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::BeginTooltip();
+                        ImGui::TextColored(col, "[%s]", LogUtils::logLevelStrs[entry.level]);
+                        ImGui::EndTooltip();
+                    }
+#else
+                    ImGui::TextColored(col, "[%s]", MCU::logLevelStrs[entry.level]);
+#endif
 
                     ImGui::TableNextColumn();
                     

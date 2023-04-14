@@ -35,15 +35,10 @@ void ABB::MCU::newFrame() {
 	ARDUBOY->newFrame();
 }
 bool ABB::MCU::getDebugMode() const {
-	return !!(ARDUBOY->execFlags & A32u4::ATmega32u4::ExecFlags_Debug | A32u4::ATmega32u4::ExecFlags_Analyse);
+	return ARDUBOY->debug;
 }
 void ABB::MCU::setDebugMode(bool on) {
-	if (on) {
-		ARDUBOY->execFlags |= A32u4::ATmega32u4::ExecFlags_Debug | A32u4::ATmega32u4::ExecFlags_Analyse;
-	}
-	else {
-		ARDUBOY->execFlags &= ~(A32u4::ATmega32u4::ExecFlags_Debug | A32u4::ATmega32u4::ExecFlags_Analyse);
-	}
+	ARDUBOY->debug = on;
 }
 float ABB::MCU::getEmuSpeed() const {
 	return ARDUBOY->emulationSpeed;
@@ -64,7 +59,7 @@ void ABB::MCU::setButtons(bool up, bool down, bool left, bool right, bool a, boo
 
 
 Color ABB::MCU::display_getPixel(size_t x, size_t y) const {
-	return ARDUBOY->display.getPixel(x, y) ? WHITE : BLACK;
+	return ARDUBOY->display.getPixel((uint8_t)x, (uint8_t)y) ? WHITE : BLACK;
 }
 
 
@@ -98,7 +93,7 @@ std::pair<const char*, ABB::MCU::reg_t> ABB::MCU::getReg(size_t ind) const {
 		"R24","R25","R26","R27","R28","R29","R30","R31"
 	};
 
-	return {names[ind], ARDUBOY->mcu.dataspace.getGPReg(ind)};
+	return {names[ind], ARDUBOY->mcu.dataspace.getGPReg((regind_t)ind)};
 }
 
 const char* ABB::MCU::getInstName(size_t ind) {
@@ -125,7 +120,9 @@ size_t ABB::MCU::flash_size() const {
 bool ABB::MCU::flash_isProgramLoaded() const {
 	return ARDUBOY->mcu.flash.isProgramLoaded();
 }
-
+size_t ABB::MCU::programSize() const {
+	return ARDUBOY->mcu.flash.sizeWords();
+}
 
 ABB::MCU::pc_t ABB::MCU::disassembler_getJumpDests(uint16_t word, uint16_t word2, pc_t pc) {
 	return A32u4::Disassembler::getJumpDests(word, word2, pc);
@@ -137,7 +134,7 @@ std::string ABB::MCU::disassembler_disassembleProg(
 	const std::vector<std::pair<uint32_t, std::string>>* srcLines,
 	const std::vector<std::pair<uint32_t, std::string>>* funcSymbs,
 	const std::vector<std::tuple<std::string, uint32_t, uint32_t>>* dataSymbs,
-	const std::vector<addrmcu_t>* additionalDisasmSeeds
+	const std::vector<uint32_t>* additionalDisasmSeeds
 ) const {
 	A32u4::Disassembler::AdditionalDisasmInfo info;
 	info.analytics = &ARDUBOY->mcu.analytics;
@@ -185,17 +182,17 @@ size_t ABB::MCU::getStackPtr() const {
 	return ARDUBOY->mcu.debugger.getCallStackPointer();
 }
 pc_t ABB::MCU::getStackTo(size_t ind) const {
-	return ARDUBOY->mcu.debugger.getStackPCAt(ind);
+	return ARDUBOY->mcu.debugger.getStackPCAt((uint8_t)ind);
 }
 pc_t ABB::MCU::getStackFrom(size_t ind) const {
-	return ARDUBOY->mcu.debugger.getStackFromPCAt(ind);
+	return ARDUBOY->mcu.debugger.getStackFromPCAt((uint8_t)ind);
 }
 
 sizemcu_t ABB::MCU::analytics_getMaxSP() const {
 	return ARDUBOY->mcu.analytics.maxSP;
 }
-void ABB::MCU::analytics_setMaxSP(sizemcu_t val) {
-	ARDUBOY->mcu.analytics.maxSP = val;
+void ABB::MCU::analytics_resetMaxSP() {
+	ARDUBOY->mcu.analytics.maxSP = 0xFFFF;
 }
 uint64_t ABB::MCU::analytics_getSleepSum() const {
 	return ARDUBOY->mcu.analytics.sleepSum;
@@ -213,64 +210,105 @@ uint64_t ABB::MCU::analytics_getInstHeat(size_t ind) const {
 	return ARDUBOY->mcu.analytics.getInstHeat()[ind];
 }
 
-void ABB::MCU::draw_asmLiteral(const char* instStart, const char* instEnd, const char* start, const char* end) const {
-	size_t len = end-start;
-
-	if (len == 0)
-		return;
+ABB::MCU::ParamInfo ABB::MCU::getParamInfo(const char* start, const char* end, const char* instStart, const char* instEnd, uint32_t pcAddr) const {
+	size_t len = end - start;
 
 	switch (start[0]) {
 		case 'R':
 		case 'r': {
-			uint8_t regInd = (uint8_t)StringUtils::numBaseStrToUIntT<10,uint8_t>(start + 1, start + len);
-			if (regInd < A32u4::DataSpace::Consts::GPRs_size) {
-				uint8_t regVal = ARDUBOY->mcu.dataspace.getGPReg(regInd);
-				ImGui::SetTooltip("r%d: 0x%02x => %d (%d)", regInd, regVal, regVal, (int8_t)regVal);
-			}
-		} break;
+			regind_t ind = StringUtils::numBaseStrToUIntT<10, regind_t>(start + 1, end);
+			return {ParamType_Register, ARDUBOY->mcu.dataspace.getGPReg(ind)};
+		}
 
 		case 'X':
 		case 'Y':
 		case 'Z':
 		{
+			bool isRam = false;
 			uint16_t regVal = -1;
 			switch (start[0]) {
 				case 'X':
 					regVal = ARDUBOY->mcu.dataspace.getX();
+					isRam = true;
 					break;
 				case 'Y':
 					regVal = ARDUBOY->mcu.dataspace.getY();
+					isRam = true;
 					break;
 				case 'Z':
 					regVal = ARDUBOY->mcu.dataspace.getZ();
+					isRam = true;
 					break;
 			}
 
-			ImGui::SetTooltip("%c: 0x%04x => %d", start[0], regVal, regVal);
-		} break;
+			return {(uint8_t)(isRam ? ParamType_RamAddrRegister : ParamType_RomAddrRegister), regVal};
+		}
 
 		case '0': {
 			if(len > 1 && start[1] == 'x'){
-				if(len >= 2+4) {
-					ImGui::BeginTooltip();
+				size_t literalLen = len - 2;
+				uint32_t val = StringUtils::hexStrToUIntLen<decltype(val)>(start + 2, literalLen);
+				uint8_t type = ParamType_Literal;
 
-					addrmcu_t addr = StringUtils::hexStrToUIntLen<decltype(addr)>(start + 2, 4);
+				bool isIO = StringUtils::strcasecmp(instStart, "out", instEnd) == 0 || StringUtils::strcasecmp(instStart, "in", instEnd) == 0;
+				if (isIO) {
+					val += A32u4::DataSpace::Consts::io_start;
+					return { ParamType_RamAddr, val };
+				}
+				else {
+					{
+						constexpr const char* ramAddrInstList[] = { "lds", "sts"};
+						bool isRamAddr = false;
+						for (size_t i = 0; i < DU_ARRAYSIZE(ramAddrInstList); i++) {
+							if (StringUtils::strcasecmp(instStart, ramAddrInstList[i], instEnd) == 0) {
+								isRamAddr = true;
+								break;
+							}
+						}
 
-					ImGui::Text("0x%04x => %u", addr, addr);
-
-					/*
-					size_t symbolID = symboltable_getSymbolIdByValue(addr, 1);
-					if(symbolID != (size_t)-1) {
-						ImGui::Separator();
-						draw_symbol(symbolID, addr);
+						if(isRamAddr)
+							return { ParamType_RamAddr, val };
 					}
-					*/
+					{
+						constexpr const char* romAddrInstList[] = { "jmp" };
+						bool isRomAddr = false;
+						for (size_t i = 0; i < DU_ARRAYSIZE(romAddrInstList); i++) {
+							if (StringUtils::strcasecmp(instStart, romAddrInstList[i], instEnd) == 0) {
+								isRomAddr = true;
+								break;
+							}
+						}
 
-					ImGui::EndTooltip();
+						if (isRomAddr)
+							return {ParamType_RomAddr, val};
+					}
+
+					return { ParamType_Literal, val };
 				}
 			}
 		} break;
+
+		case '.': {
+			int32_t rawVal = std::stoi(std::string(start+1,end));
+			uint32_t val = rawVal + pcAddr;
+
+			return {ParamType_RomAddr, val};
+		}
+
+		default:
+		{
+			if (start[0] >= '0' && start[1] <= '9') {
+				uint32_t val = StringUtils::numBaseStrToUIntT<10, uint32_t>(start, end);
+				return { ParamType_Literal, val };
+			}
+		}
 	}
+
+	return { ParamType_None, 0 };
+}
+
+void ABB::MCU::draw_asmLiteral(const char* instStart, const char* instEnd, const char* start, const char* end) const {
+	
 }
 void ABB::MCU::draw_stateInfo() const {
 	uint8_t sreg_val = ARDUBOY->mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
@@ -303,9 +341,38 @@ ABB::MCU::Hex ABB::MCU::getHexViewer(size_t ind) const {
 	DU_ASSERT(ind < 3);
 
 	switch (ind) {
-		case 0: return Hex{"Dataspace", ARDUBOY->mcu.dataspace.getData(), A32u4::DataSpace::Consts::data_size};
-		case 1: return Hex{"Eeprom",    ARDUBOY->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size};
-		case 2: return Hex{"Flash",     ARDUBOY->mcu.flash.getData(), A32u4::Flash::sizeMax};
+		case 0: return Hex{"Dataspace", ARDUBOY->mcu.dataspace.getData(),   A32u4::DataSpace::Consts::data_size,   Hex::Type_Ram,
+			[=](addrmcu_t addr, uint8_t val) {
+				DU_ASSERT(addr < A32u4::DataSpace::Consts::data_size);
+				ARDUBOY->mcu.dataspace.setDataByte(addr, val);
+			},
+			[=](const uint8_t* data_, size_t len) {
+				ARDUBOY->mcu.dataspace.loadDataFromMemory(data_, len);
+			},
+			ARDUBOY->mcu.analytics.getRamRead(), ARDUBOY->mcu.analytics.getRamWrite(),
+			[=]() {
+				ARDUBOY->mcu.analytics.clearRamRead();
+				ARDUBOY->mcu.analytics.clearRamWrite();
+			}
+		};
+		case 1: return Hex{"Eeprom",    ARDUBOY->mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::eeprom_size, Hex::Type_None, 
+			[=](addrmcu_t addr, uint8_t val) {
+				DU_ASSERT(addr < A32u4::DataSpace::Consts::eeprom_size);
+				ARDUBOY->mcu.dataspace.getEEPROM()[addr] = val;
+			},
+			[=](const uint8_t* data_, size_t len) {
+				std::memcpy(ARDUBOY->mcu.dataspace.getEEPROM(), data_, std::min(len, (size_t)A32u4::DataSpace::Consts::eeprom_size));
+			}
+		};
+		case 2: return Hex{"Flash",     ARDUBOY->mcu.flash.getData(),       A32u4::Flash::sizeMax,                 Hex::Type_Rom,
+			[=](addrmcu_t addr, uint8_t val) {
+				DU_ASSERT(addr < A32u4::Flash::sizeMax);
+				ARDUBOY->mcu.flash.setByte(addr, val);
+			},
+			[=](const uint8_t* data_, size_t len) {
+				ARDUBOY->mcu.flash.loadFromMemory(data_, len);
+			}
+		};
 	}
 	abort();
 }

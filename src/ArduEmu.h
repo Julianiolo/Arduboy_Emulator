@@ -65,6 +65,8 @@ public:
 	};
 	static ActionManager actionManager;
 
+	static std::string clipboardContent;
+
 	static void init();
 	static void destroy();
 

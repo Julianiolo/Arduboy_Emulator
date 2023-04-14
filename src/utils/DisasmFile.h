@@ -9,12 +9,15 @@
 #include <functional>
 #include <memory>
 
-#include "mcu.h"
+#include "../mcu.h"
 
 namespace ABB {
 	class DisasmFile{
 	public:
 		struct FileConsts {
+			static constexpr size_t addrEnd = 8;
+			static constexpr size_t addrEndExt = 10;
+
 			static constexpr size_t instBytesStart = 10;
 			static constexpr size_t instBytesEnd = 21;
 		};

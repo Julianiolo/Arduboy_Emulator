@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     
-    <title>raylib web game</title>
+    <title>Arduboy_Emulator</title>
     
-    <meta name="title" content="raylib web game">
+    <meta name="title" content="Arduboy_Emulator">
     <meta name="description" content="New raylib web videogame, developed using raylib videogames library">
     <meta name="keywords" content="raylib, games, html5, programming, C, C++, library, learn, videogames">
     <meta name="viewport" content="width=device-width">
@@ -63,6 +63,7 @@
         <p id="output">
         <script>
             var Module = {
+                arguments: [],
                 print: (function() {
                     var element = document.getElementById('output');
                     if (element) element.value = ''; // clear browser cache
@@ -79,10 +80,10 @@
                     var canvas = document.getElementById('canvas');
                     return canvas;
                 })(),
-                preRun: ([function(){
+                preInit: ([function(){
                     const urlParams = new URLSearchParams(window.location.search);
                     if(urlParams.has("prog")){
-                        loadProgram(urlParams.get("prog"));
+                        Module.arguments.push(urlParams.get("prog"));
                     }
                 }])
             };
@@ -92,31 +93,18 @@
         <script>
             var preventStuff = false;
 
-            var SendArrToMCU = null;
+            var pasteFunc = null;
+            var loadFileFunc = null;
 
             const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')
 
-            function loadProgramBtn(){
-                let url = document.getElementById("LoadProgramDialog").value;
-                loadProgram(url);
-            }
-
-            function loadProgram(url) {
-                if(SendArrToMCU == null) {
-                    SendArrToMCU = Module.cwrap("ArduEmu_loadFile", null, ["string","array","number"]);
+            function loadFile(url) {
+                if(loadFileFunc == null) {
+                    loadFileFunc = Module.cwrap("ArduEmu_loadFile", null, ["string"]);
                 }
 
-                console.log(url);
-                fetch(url)
-                .then((response) => {
-                    return response.arrayBuffer();
-                })
-                .then(buffer => {
-                    let arr = new Uint8Array(buffer);
-                    let name = genRanHex(10);
-                    console.log(name);
-                    SendArrToMCU(name, arr, arr.length);
-                })
+                console.log("sending load File: " + url);
+                loadFileFunc(url);
             }
 
             function keyStuff(event) {
@@ -138,9 +126,6 @@
                 preventStuff = !(event.target.tagName.toUpperCase() == "CANVAS");
             }, true);
         </script>
-        <input type="text" id="LoadProgramDialog"></input>
-        <button onclick="loadProgram()">Load</button>
-
         <script type="text/javascript">
             
         </script>

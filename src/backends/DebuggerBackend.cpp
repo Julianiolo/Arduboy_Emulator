@@ -17,7 +17,8 @@
 #include "StringUtils.h"
 #include "DataUtilsSize.h"
 
-
+#define LU_MODULE "DebuggerBackend"
+#define LU_CONTEXT abb->logBackend.getLogContext()
 
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open) 
 	: abb(abb), open(open), loadSrcMix((std::string(winName) + "srcMixFD").c_str()), winName(winName)
@@ -95,10 +96,10 @@ void ABB::DebuggerBackend::drawControls(){
 
 void ABB::DebuggerBackend::drawDebugStack() {
 	if (ImGui::BeginChild("DebugStack", { 0,80 }, true)) {
-		int32_t stackSize = abb->mcu.getStackPtr();
+		size_t stackSize = abb->mcu.getStackPtr();
 		ImGui::Text("Stack Size: %d", stackSize);
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
-			for (int32_t i = stackSize-1; i >= 0; i--) {
+			for (int32_t i = (int32_t)stackSize-1; i >= 0; i--) {
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				
@@ -196,6 +197,18 @@ bool ABB::DebuggerBackend::drawLoadGenerateButtons() {
 		loadSrcMix.OpenDialog(ImGuiFDMode_LoadFile, ".", "Asm Dump: *.asm,*.txt", ImGuiFDDialogFlags_Modal);
 	}
 
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Browse or drop file here");
+		if (IsFileDropped()) {
+			auto files = LoadDroppedFiles();
+			for (size_t i = 0; i < files.count; i++) {
+				if (addSrcFile(files.paths[i]))
+					LU_LOGF(LogUtils::LogLevel_Output, "sucessfully loaded file %s", files.paths[i]);
+			}
+			UnloadDroppedFiles(files);
+		}
+	}
+
 	bool programLoaded = abb->mcu.flash_isProgramLoaded();
 	if (!programLoaded)
 		ImGui::BeginDisabled();
@@ -206,10 +219,10 @@ bool ABB::DebuggerBackend::drawLoadGenerateButtons() {
 	}
 
 	if (!programLoaded) {
+		ImGui::EndDisabled();
 		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 			ImGui::SetTooltip("Cannot generate assembly because there is no program present in flash memory!");
 		}
-		ImGui::EndDisabled();
 	}
 
 	return pressed;
@@ -279,7 +292,7 @@ void ABB::DebuggerBackend::draw() {
 					ImGui::Text("Disassembled %" DU_PRIdSIZE " lines", srcMixs[selectedSrcMix].viewer.numOfDisasmLines());
 					ImGui::SameLine();
 					if(ImGui::Button("Update with analytics data")) {
-						std::string disasmed = abb->mcu.disassembler_disassembleProg();
+						std::string disasmed = disasmProg();
 						srcMixs[selectedSrcMix].viewer.loadSrc(disasmed.c_str(), disasmed.c_str() + disasmed.size());
 					}
 				}
@@ -325,11 +338,40 @@ ABB::utils::AsmViewer& ABB::DebuggerBackend::addSrcMix(bool selfDisassembled) {
 	return srcMix;
 }
 
+std::string ABB::DebuggerBackend::disasmProg() {
+	std::vector<std::pair<uint32_t, std::string>> srcLines;
+	if (abb->elfFile) {
+		srcLines = EmuUtils::ELF::genSourceSnippets(*abb->elfFile);
+	}
+	const std::vector<std::pair<uint32_t, std::string>> funcSymbs = abb->symbolTable.getFuncSymbols();
+
+	auto ret = abb->symbolTable.getDataSymbolsAndDisasmSeeds();
+	auto& dataSymbs = ret.first;
+	auto& seeds = ret.second;
+
+	// merge in analytics seeds
+	{
+		size_t ind = 0;
+		for (size_t i = 0; i < abb->mcu.flash_size(); i+=2) {
+			while (ind < seeds.size() && i > seeds[ind])
+				ind++;
+
+			if (abb->mcu.analytics_getPCHeat(i/2) && (ind >= seeds.size() || seeds[ind] != i)) {
+				seeds.insert(seeds.begin() + ind, i);
+			}
+		}
+	}
+
+	return abb->mcu.disassembler_disassembleProg(
+		srcLines.size() ? &srcLines : nullptr,
+		&funcSymbs, &dataSymbs, &seeds
+	);
+}
 void ABB::DebuggerBackend::generateSrc() {
 	utils::AsmViewer& srcMix = addSrcMix(true);
 	
 	srcMix.title = ADD_ICON(ICON_FA_FILE_CODE) "Generated";
-	std::string disasmed = abb->mcu.disassembler_disassembleProg();
+	std::string disasmed = disasmProg();
 	srcMix.loadSrc(disasmed.c_str(), disasmed.c_str() + disasmed.size());
 }
 
@@ -340,14 +382,17 @@ void ABB::DebuggerBackend::addSrc(const char* str, const char* title) {
 	srcMix.loadSrc(str);
 }
 bool ABB::DebuggerBackend::addSrcFile(const char* path) {
-	bool success = false;
-	std::string content = StringUtils::loadFileIntoString(path,&success);
-
-	if (success) {
-		addSrc(content.c_str(), (std::string(ADD_ICON(ICON_FA_FILE_CODE)) + StringUtils::getFileName(path)).c_str());
+	std::string content;
+	try {
+		content = StringUtils::loadFileIntoString(path);
+	}
+	catch (const std::runtime_error&) {
+		return false;
 	}
 
-	return success;
+	addSrc(content.c_str(), (std::string(ADD_ICON(ICON_FA_FILE_CODE)) + StringUtils::getFileName(path)).c_str());
+
+	return true;
 }
 
 size_t ABB::DebuggerBackend::SrcMix::sizeBytes() const {

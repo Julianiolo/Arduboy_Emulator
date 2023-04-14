@@ -26,6 +26,7 @@
 #define ROOTDIR "../../../../"
 #endif
 
+#define SYS_LOG_MODULE "raylib"
 
 void setup();
 void draw();
@@ -46,6 +47,7 @@ int main(int argc, char** argv) {
 
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(draw, 0, 1);
+    SetTargetFPS(60);
 #else
     while (!WindowShouldClose()) {
         draw();
@@ -127,7 +129,7 @@ void setup() {
         auto end = std::chrono::high_resolution_clock::now();
 
         double ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/1000.0;
-        ABB_LOGF(LogUtils::LogLevel_DebugOutput, "raylib", "window init took: %f ms", ms);
+        SYS_LOGF(LogUtils::LogLevel_DebugOutput, "window init took: %f ms", ms);
     }
     //SetTargetFPS(60);
 
@@ -152,22 +154,29 @@ void setup() {
     ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
-#if 1
+#if 0
 
-#elif 1
+#elif 0
     abb.ab.mcu.loadFromHexFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
     abb.debuggerBackend.addSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
-#elif 1
+#elif 0
     abb.ab.mcu.loadFromELFFile(ROOTDIR"resources/games/Arduboy3D/Arduboy3D.ino.elf");
-#elif 1
+#elif 0
     abb.ab.mcu.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
-#elif 1
+#elif 0
     abb.ab.loadFromHexFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.hex");
     abb.ab.mcu.symbolTable.loadFromDumpFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/symbs.asm");
     abb.debuggerBackend.addSrcFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/srcMix.asm");
 #elif 0
-    abb.loadFromELFFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.elf");
+    //abb.loadFromELFFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.elf");
+    //abb.loadFromELFFile(ROOTDIR"resources/games/almostPong/almostPong.ino.elf");
+    abb.loadFromELFFile(ROOTDIR"resources/games/HelloWorld/HelloWorld.ino.elf");
+#elif 1
+    abb.loadFile(ROOTDIR"resources/games/HelloWorld/HelloWorld.ino.hex");
+    //abb.loadFromELFFile(ROOTDIR"resources/games/HelloWorld/HelloWorld.ino.elf");
+    //abb.debuggerBackend.generateSrc();
+    //abb.debuggerBackend.addSrcFile(ROOTDIR"resources/games/HelloWorld/srcMix.asm");
 #elif 0
     abb.ab.load(ROOTDIR"resources/games/MicroCity/MicroCity.ino.hex");
     abb.debuggerBackend.srcMix.loadSrcFile(ROOTDIR"resources/games/MicroCity/srcMix.asm");

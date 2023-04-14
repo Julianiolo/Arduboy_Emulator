@@ -1,7 +1,7 @@
 #ifndef __ANALYTICSBACKEND_H__
 #define __ANALYTICSBACKEND_H__
 
-#include "mcu.h"
+#include "../mcu.h"
 #include "SymbolBackend.h"
 
 #include "ringBuffer.h"
@@ -15,8 +15,8 @@ namespace ABB{
 
         ArduboyBackend* abb = nullptr;
         
-        RingBuffer<uint16_t> StackSizeBuf;
-        RingBuffer<uint64_t> sleepCycsBuf;
+        RingBuffer<uint32_t> StackSizeBuf;
+        RingBuffer<uint32_t> sleepCycsBuf;
 
         bool winFocused = false;
 

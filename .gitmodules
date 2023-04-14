@@ -17,3 +17,6 @@
 [submodule "dependencies/EmuUtils"]
 	path = dependencies/EmuUtils
 	url = https://github.com/Julianiolo/EmuUtils.git
+[submodule "dependencies/emscripten-browser-clipboard"]
+	path = dependencies/emscripten-browser-clipboard
+	url = https://github.com/Armchair-Software/emscripten-browser-clipboard.git

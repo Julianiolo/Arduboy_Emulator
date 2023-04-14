@@ -43,24 +43,24 @@ ABB::DisplayBackend::~DisplayBackend() {
 void ABB::DisplayBackend::update() {
 
 	// update main part of Image
-	for (int y = 0; y < MCU::DISPLAY_HEIGHT; y++) {
-		for (int x = 0; x < MCU::DISPLAY_WIDTH; x++) {
+	for (size_t y = 0; y < MCU::DISPLAY_HEIGHT; y++) {
+		for (size_t x = 0; x < MCU::DISPLAY_WIDTH; x++) {
 			((Color3*)displayImg.data)[(y+1) * displayImg.width + (x+1)] = mcu->display_getPixel(x, y).r ? lightColor : darkColor;
 		}
 	}
 
 	// update edges with duplicates
-	for (int x = 0; x < MCU::DISPLAY_WIDTH; x++) { // top edge
+	for (size_t x = 0; x < MCU::DISPLAY_WIDTH; x++) { // top edge
 		((Color3*)displayImg.data)[x+1]                                            = mcu->display_getPixel(                 x,                     0).r ? lightColor : darkColor;
 	}
-	for (int x = 0; x < MCU::DISPLAY_WIDTH; x++) { // bottom edge
+	for (size_t x = 0; x < MCU::DISPLAY_WIDTH; x++) { // bottom edge
 		((Color3*)displayImg.data)[(displayImg.height-1) * displayImg.width + x+1] = mcu->display_getPixel(                 x, MCU::DISPLAY_HEIGHT-1).r ? lightColor : darkColor;
 	}
 
-	for (int y = 0; y < MCU::DISPLAY_HEIGHT; y++) { // left edge
+	for (size_t y = 0; y < MCU::DISPLAY_HEIGHT; y++) { // left edge
 		((Color3*)displayImg.data)[(y+1)*displayImg.width]                         = mcu->display_getPixel(                   0,                     y).r ? lightColor : darkColor;
 	}
-	for (int y = 0; y < MCU::DISPLAY_HEIGHT; y++) { // right edge
+	for (size_t y = 0; y < MCU::DISPLAY_HEIGHT; y++) { // right edge
 		((Color3*)displayImg.data)[(y+1)*displayImg.width + displayImg.width-1]    = mcu->display_getPixel(MCU::DISPLAY_WIDTH-1,                     y).r ? lightColor : darkColor;
 	}
 

@@ -3,8 +3,9 @@
 
 #include "raylib.h"
 #include <string>
+#include <memory>
 
-#include "mcu.h"
+#include "../mcu.h"
 #include "StringTable.h"
 
 #include "DisplayBackend.h"
@@ -21,6 +22,8 @@ namespace ABB {
 
 		MCU mcu;
 		EmuUtils::SymbolTable symbolTable;
+
+		std::unique_ptr<EmuUtils::ELF::ELFFile> elfFile = nullptr;
 
 		std::string name;
 		std::string devWinName;

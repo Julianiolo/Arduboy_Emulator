@@ -44,13 +44,23 @@ size_t ABB::McuInfoBackend::SaveLoadFDIPair::sizeBytes() const {
 	return load.sizeBytes() + save.sizeBytes();
 }
 
+std::vector<uint8_t> ABB::McuInfoBackend::saveData;
+
 ABB::McuInfoBackend::McuInfoBackend(ArduboyBackend* abb, const char* winName, bool* open) :
 	abb(abb),
-	fdiState((std::string("State - ")+winName).c_str()),
+	fdiState((std::string("State - ")+winName).c_str()), loadDatafdi((std::string("MIB Load - ") + winName).c_str()),
 	winName(winName), open(open)
 {
 	for (size_t i = 0; i < abb->mcu.numHexViewers(); i++) {
-		hexViewers.push_back(utils::HexViewer(utils::HexViewer::DataType_None));
+		MCU::Hex hex = abb->mcu.getHexViewer(i);
+
+		uint8_t dataType = utils::HexViewer::DataType_None;
+		switch (hex.type) {
+			case MCU::Hex::Type_Ram: dataType = utils::HexViewer::DataType_Ram; break;
+			case MCU::Hex::Type_Rom: dataType = utils::HexViewer::DataType_Rom; break;
+		}
+
+		hexViewers.push_back(utils::HexViewer(hex.dataLen, dataType));
 	}
 }
 
@@ -69,9 +79,10 @@ void ABB::McuInfoBackend::draw() {
 		winFocused = ImGui::IsWindowFocused();
 
 		if (ImGui::TreeNode("CPU")) {
+			
+			ImGui::Text("PC: 0x%04x => PC Addr: 0x%04x", abb->mcu.getPC(), abb->mcu.getPCAddr());
+			ImGui::Text("Cycles: %" PRIu64, abb->mcu.totalCycles());
 			/*
-			ImGui::Text("PC: 0x%04x => PC Addr: 0x%04x", abb->ab.mcu.cpu.getPC(), abb->ab.mcu.cpu.getPCAddr());
-			ImGui::Text("Cycles: %s", std::to_string(abb->mcu.totalCycles()).c_str());
 			ImGui::Text("Is Sleeping: %d", abb->ab.mcu.cpu.isSleeping());
 			*/
 			ImGui::TreePop();
@@ -84,13 +95,50 @@ void ABB::McuInfoBackend::draw() {
 				ImGui::PushID((int)i);
 
 				if (ImGui::TreeNode(hex.name)) {
-					hexViewers[i].draw(hex.data, hex.dataLen, &abb->symbolTable);
+					if (ImGui::Button("Save")) {
+						saveData.resize(hex.dataLen);
+						std::memcpy(&saveData[0], hex.data, hex.dataLen);
+						ImGuiFD::OpenDialog("McuInfo - Save Data", ImGuiFDMode_SaveFile, ".");
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Load")) {
+						loadDatafdi.OpenDialog(ImGuiFDMode_LoadFile, ".");
+						loadDataInd = i;
+					}
+					if (ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Browse or drop file here");
+						if (IsFileDropped()) {
+							auto files = LoadDroppedFiles();
+							for (size_t i = 0; i < files.count; i++) {
+								loadHexData(files.paths[i], i);
+							}
+							UnloadDroppedFiles(files);
+						}
+					}
+
+					const EmuUtils::SymbolTable::SymbolList* list = nullptr;
+					switch (hex.type) {
+						case MCU::Hex::Type_Ram: list = &abb->symbolTable.getSymbolsRam(); break;
+						case MCU::Hex::Type_Rom: list = &abb->symbolTable.getSymbolsRom(); break;
+					}
+
+					hexViewers[i].setEditCallback(hex.setData ? [](size_t addr, uint8_t val, void* userData) {
+						((MCU::Hex*)userData)->setData((addrmcu_t)addr, val);
+					} : nullptr, &hex);
+
+					hexViewers[i].draw(hex.data, hex.dataLen, &abb->symbolTable, list, hex.readCnt, hex.writeCnt);
+					if (hex.resetRWAnalytics)
+						hex.resetRWAnalytics();
+
 					ImGui::TreePop();
 				}
 
 				ImGui::PopID();
 			}
+			ImGui::TreePop();
 		}
+
+		
 
 		/*
 		if (ImGui::TreeNode("Find Strings")) {
@@ -194,8 +242,6 @@ void ABB::McuInfoBackend::draw() {
 
 					ImGui::TreePop();
 				}
-				
-
 				ImGui::EndTable();
 			}
 
@@ -206,6 +252,30 @@ void ABB::McuInfoBackend::draw() {
 		winFocused = false;
 	}
 	ImGui::End();
+
+	loadDatafdi.DrawDialog([](void* userData) {
+		DU_ASSERT(userData != nullptr);
+		McuInfoBackend* mib = (McuInfoBackend*)userData;
+		const char* path = ImGuiFD::GetSelectionPathString(0);
+
+		mib->loadHexData(path, mib->loadDataInd);
+	}, this);
+}
+
+
+
+void ABB::McuInfoBackend::drawStatic() {
+	if (ImGuiFD::BeginDialog("McuInfo - Save Data")) {
+		if (ImGuiFD::ActionDone()) {
+			if (ImGuiFD::SelectionMade()) {
+				std::string path = ImGuiFD::GetSelectionPathString(0);
+				StringUtils::writeBytesToFile(&saveData[0], saveData.size(), path.c_str());
+				saveData.clear();
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+		ImGuiFD::EndDialog();
+	}
 }
 
 const char* ABB::McuInfoBackend::getWinName() const {
@@ -216,23 +286,20 @@ bool ABB::McuInfoBackend::isWinFocused() const {
 	return winFocused;
 }
 
-void ABB::McuInfoBackend::setRamValue(size_t addr, uint8_t val, void* userData) {
-	McuInfoBackend* info = (McuInfoBackend*)userData;
-	//info->abb->ab.mcu.dataspace.setDataByte((addrmcu_t)addr, val);
-}
-void ABB::McuInfoBackend::setEepromValue(size_t addr, uint8_t val, void* userData) {
-	McuInfoBackend* info = (McuInfoBackend*)userData;
-	//info->abb->ab.mcu.dataspace.getEEPROM()[addr] = val;
-}
-void ABB::McuInfoBackend::setRomValue(size_t addr, uint8_t val, void* userData) {
-	McuInfoBackend* info = (McuInfoBackend*)userData;
-	//info->abb->ab.mcu.flash.setByte((addrmcu_t)addr, val);
-}
-
 void ABB::McuInfoBackend::drawStates() {
 	if (ImGui::TreeNode("States")) {
-		if(ImGui::Button("+")){
+		if(ImGui::Button("Load")){
 			fdiState.load.OpenDialog(ImGuiFDMode_LoadFile, ".");
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Browse or drop file here");
+			if (IsFileDropped()) {
+				auto files = LoadDroppedFiles();
+				for (size_t i = 0; i < files.count; i++) {
+					loadState(files.paths[i], StringUtils::getFileName(files.paths[i]));
+				}
+				UnloadDroppedFiles(files);
+			}
 		}
 
 		constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
@@ -290,25 +357,52 @@ void ABB::McuInfoBackend::drawStates() {
 			return;
 		}
 
-
 		((Save*)userData)->mcu.getState(file);
 		((Save*)userData)->symbolTable.getState(file);
 	},states.size() > 0 ? &states[stateIndToSave].second : nullptr);
 
 	fdiState.load.DrawDialog([](void* userData){
+		DU_ASSERT(userData != nullptr);
 		const char* path = ImGuiFD::GetSelectionPathString(0);
-		std::ifstream file(path, std::ios::binary);
-		if(!file.is_open()) {
-			LU_LOGF_(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
-			return;
-		}
+		((McuInfoBackend*)userData)->loadState(path, ImGuiFD::GetSelectionNameString(0));
+	},this);
+}
 
+bool ABB::McuInfoBackend::loadHexData(const char* path, size_t ind) {
+	std::vector<uint8_t> data;
+	try {
+		data = StringUtils::loadFileIntoByteArray(path);
+	}
+	catch (const std::runtime_error& e) {
+		LU_LOGF_(LogUtils::LogLevel_Error, "Could not open file: \"%s\"", e.what());
+		return false;
+	}
+	abb->mcu.getHexViewer(ind).setDataAll(&data[0], data.size());
+
+	LU_LOGF(LogUtils::LogLevel_Output, "Successfully loaded file for Hex: %s", path);
+	return true;
+}
+
+bool ABB::McuInfoBackend::loadState(const char* path, const char* name) {
+	std::ifstream file(path, std::ios::binary);
+	if(!file.is_open()) {
+		LU_LOGF(LogBackend::LogLevel_Error, "Could not open file \"%s\"", path);
+		return false;
+	}
+
+	try {
 		Save save;
 		save.mcu.setState(file);
 		save.symbolTable.setState(file);
-		((McuInfoBackend*)userData)->addState(save, ImGuiFD::GetSelectionNameString(0));
-	},this);
-	
+		addState(save, name);
+	}
+	catch (const std::runtime_error& e) {
+		LU_LOGF(LogUtils::LogLevel_Error, "Error while parsing state: %s", e.what());
+		return false;
+	}
+
+	LU_LOGF(LogUtils::LogLevel_Output, "Successfully loaded state: %s", path);
+	return true;
 }
 
 void ABB::McuInfoBackend::addState(const Save& ab, const char* name){

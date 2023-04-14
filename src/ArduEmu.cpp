@@ -12,6 +12,7 @@
 
 #ifdef __EMSCRIPTEN__
 	#include "emscripten.h"
+	#include "emscripten_browser_clipboard.h"
 #endif
 
 
@@ -36,6 +37,9 @@
 #include "StringUtils.h"
 
 #include "utils/icons.h"
+
+#define LU_MODULE "ArduEmu"
+#define SYS_LOG_MODULE "ArduEmu"
 
 ArduEmu::Settings ArduEmu::settings;
 
@@ -63,7 +67,26 @@ bool ArduEmu::showAbout = false;
 
 ActionManager ArduEmu::actionManager;
 
+std::string ArduEmu::clipboardContent;
+
 void ArduEmu::init() {
+#ifdef __EMSCRIPTEN__
+	ImGuiIO& io = ImGui::GetIO();
+	io.GetClipboardTextFn = [](void* userData) {
+		SYS_LOGF(LogUtils::LogLevel_DebugOutput, "ImGui requested clipboard, returing: \"%s\"", clipboardContent.c_str());
+		return clipboardContent.c_str();
+	};
+	io.SetClipboardTextFn = [](void* userData, const char* text) {
+		clipboardContent = text;
+		SYS_LOGF(LogUtils::LogLevel_DebugOutput, "setting ImGui clipboard to: \"%s\"", clipboardContent.c_str());
+		emscripten_browser_clipboard::copy(clipboardContent);  // send clipboard data to the browser
+	};
+	emscripten_browser_clipboard::paste([](std::string const &paste_data, void *callback_data [[maybe_unused]]){
+		/// Callback to handle clipboard paste from browser
+		SYS_LOGF(LogUtils::LogLevel_DebugOutput, "Clipboard updated from paste data: \"%s\"", paste_data.c_str());
+		clipboardContent = std::move(paste_data);
+	});
+#endif
 	setupImGuiStyle(settings.accentColor, settings.frameColor);
 	setupActionManager();
 	ABB::utils::ByteVisualiser::init();
@@ -201,7 +224,7 @@ void ArduEmu::draw() {
 				if(ImGui::BeginMenu("Fullscreen")){
 					menuUsed = true;
 					if(ImGui::MenuItem(ADD_ICON(ICON_FA_COMPRESS) "Exit Fullscreen")) {
-						wantsFullscreenInd = -1;
+						instances[wantsFullscreenInd]->exitFullscreen();
 					}
 					ImGui::EndMenu();
 				}
@@ -217,12 +240,29 @@ void ArduEmu::draw() {
 		fullscreenMenuUsedLastFrame = menuUsed;
 	}
 
+	ABB::McuInfoBackend::drawStatic();
+
 	drawBenchmark();
 	drawSettings();
 	drawAbout();
 
 	if(showImGuiDemo)
 		ImGui::ShowDemoWindow(&showImGuiDemo);
+
+	if (IsFileDropped()) {
+		auto files = LoadDroppedFiles();
+		for (size_t i = 0; i < files.count; i++) {
+			const char* path = files.paths[i];
+			const char* name = StringUtils::getFileName(path);
+
+			SYS_LOGF(LogUtils::LogLevel_Output, "Loading dropped file: %s", path);
+
+			auto& abb = addEmulator(name);
+			if (abb.loadFile(path))
+				abb.mcu.powerOn();
+		}
+		UnloadDroppedFiles(files);
+	}
 }
 
 void ArduEmu::drawBenchmark(){
@@ -360,8 +400,8 @@ void ArduEmu::drawLoadProgramDialog() {
 					abb = &addEmulator(name.c_str());
 				}
 
-				abb->loadFile(path.c_str());
-				abb->mcu.powerOn();
+				if(abb->loadFile(path.c_str()))
+					abb->mcu.powerOn();
 			}
 			ImGuiFD::CloseCurrentDialog();
 		}
@@ -370,7 +410,7 @@ void ArduEmu::drawLoadProgramDialog() {
 	}
 #else
 
-#if 0
+#if 1
 	if(simpleLoadDialogLoadedData.size() > 0) {
 		ABB::ArduboyBackend* abb = nullptr;
 		if (lastOpenDialogId != (size_t)-1) {
@@ -439,12 +479,10 @@ void ArduEmu::openLoadProgramDialog(size_t ownId) {
 #endif
 }
 
-#ifdef __EMSCRIPTEN__
+#if 0 && defined(__EMSCRIPTEN__)
 extern "C" {
-__attribute__((used)) void ArduEmu_loadFile(const char* name, const uint8_t* data, size_t size) {
-	ABB::ArduboyBackend* abb = &ArduEmu::addEmulator(name);
-	abb->ab.muc.load(data, size);
-	abb->ab.mcu.powerOn();
+__attribute__((used)) void ArduEmu_loadFile(const char* url) {
+	printf("File: %s\n", url);
 }
 }
 #endif

@@ -1,6 +1,7 @@
 #include "ArduboyBackend.h"
 
 #include <exception>
+#include <chrono>
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -100,11 +101,11 @@ void ABB::ArduboyBackend::update() {
 		mcu.setButtons(false, false, false, false, false, false);
 	}
 
-	//uint64_t lastCycs = ab.mcu.cpu.getTotalCycles();
+	//auto start = std::chrono::high_resolution_clock::now();
 	mcu.newFrame();
-	//uint64_t stopAmt = 42500000;
-	//if(ab.mcu.cpu.getTotalCycles() > stopAmt && lastCycs <= stopAmt)
-	//	ab.mcu.debugger.halt();
+	//auto end = std::chrono::high_resolution_clock::now();
+	//printf("%fms\n", (double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
+	
 
 	displayBackend.update();
 	analyticsBackend.update();
@@ -231,65 +232,83 @@ bool ABB::ArduboyBackend::loadFile(const char* path) {
 	const char* ext = StringUtils::getFileExtension(path);
 
 	if (std::strcmp(ext, "hex") == 0) {
-		bool success = false;
-		std::string content = StringUtils::loadFileIntoString(path, &success);
-		if (!success) goto fail_open;
+		std::string content;
+		try {
+			content = StringUtils::loadFileIntoString(path);
+		}
+		catch (const std::runtime_error& e) {
+			LU_LOGF(LogUtils::LogLevel_Error, "Couldn't load File: %s", e.what());
+			return false;
+		}
 
 		std::vector<uint8_t> hex;
 		try {
 			hex = StringUtils::parseHexFileStr(content.c_str(), content.c_str() + content.size());
 		}
 		catch (const std::runtime_error& e) {
-			LU_LOGF(LogUtils::LogLevel_Error, "Parsing hex failed: \"%s\"", e.what());
+			LU_LOGF(LogUtils::LogLevel_Error, "Parsing hex failed: %s", e.what());
 			return false;
 		}
 
 		return mcu.flash_loadFromMemory(hex.size() ? & hex[0] : 0, hex.size());
 	}
 	else if (std::strcmp(ext, "bin") == 0) {
-		bool success = true;
-		std::vector<uint8_t> data = StringUtils::loadFileIntoByteArray(path, &success);
-		if (!success) goto fail_open;
+		std::vector<uint8_t> data;
+		try {
+			data = StringUtils::loadFileIntoByteArray(path);
+		}
+		catch (const std::runtime_error& e) {
+			LU_LOGF(LogUtils::LogLevel_Error, "Couldn't load File: %s", e.what());
+			return false;
+		}
 
 		return mcu.flash_loadFromMemory(data.size()>0? &data[0] : nullptr, data.size());
 	}
 	else if (std::strcmp(ext, "elf") == 0) {
-		bool success = false;
-		std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
-		if (!success) goto fail_open;
+		std::vector<uint8_t> content;
+		try {
+			content = StringUtils::loadFileIntoByteArray(path);
+		}
+		catch (const std::runtime_error& e) {
+			LU_LOGF(LogUtils::LogLevel_Error, "Couldn't load File: %s", e.what());
+			return false;
+		}
 
 		return loadFromELF(content.size() ? &content[0] : 0, content.size());
-		//return loadFromELFFile(path);
 	}
 	else {
 		LU_LOGF(LogUtils::LogLevel_Error, "Can't load file with extension %s! Trying to load: %s", ext, path);
 		return false;
 	}
 	return true;
-
-fail_open:
-	LU_LOGF(LogUtils::LogLevel_Error, "Was not able to open file: \"%s\"", path);
-	return false;
 }
 
 bool ABB::ArduboyBackend::loadFromELFFile(const char* path) {
-	bool success = false;
-	std::vector<uint8_t> content = StringUtils::loadFileIntoByteArray(path, &success);
-	if (!success) {
-		LU_LOGF(LogUtils::LogLevel_Error, "Was not able to open file: \"%s\"", path);
+	std::vector<uint8_t> content;
+	try {
+		content = StringUtils::loadFileIntoByteArray(path);
+	}
+	catch (const std::runtime_error& e) {
+		LU_LOGF(LogUtils::LogLevel_Error, "Couldn't load File: %s", e.what());
 		return false;
 	}
 
 	return loadFromELF(content.size() ? &content[0] : 0, content.size());
 }
 bool ABB::ArduboyBackend::loadFromELF(const uint8_t* data, size_t dataLen) {
-	EmuUtils::ELF::ELFFile elf = EmuUtils::ELF::parseELFFile(data, dataLen);
+	try {
+		elfFile = std::make_unique<EmuUtils::ELF::ELFFile>(EmuUtils::ELF::parseELFFile(data, dataLen));
 
-	symbolTable.loadFromELF(elf);
+		symbolTable.loadFromELF(*elfFile);
 
-	auto romData = EmuUtils::ELF::getProgramData(elf);
+		auto romData = EmuUtils::ELF::getProgramData(*elfFile);
 
-	return mcu.flash_loadFromMemory(&romData[0], romData.size());
+		return mcu.flash_loadFromMemory(&romData[0], romData.size());
+	}
+	catch (const std::runtime_error& e) {
+		LU_LOGF(LogUtils::LogLevel_Error, "Couldn't load ELF File: %s", e.what());
+		return false;
+	}
 }
 
 void ABB::ArduboyBackend::_drawMenuContents() {

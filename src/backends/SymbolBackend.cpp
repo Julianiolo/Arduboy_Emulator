@@ -1,7 +1,5 @@
 #include "SymbolBackend.h"
 
-#define __STDC_FORMAT_MACROS 1
-#include <inttypes.h> // for printing uint64_t
 #include <cmath>
 #include <algorithm>
 #include <functional>
@@ -25,8 +23,9 @@
 #include "imgui_internal.h"
 
 #define LU_MODULE "SymbolBackend"
+#define LU_CONTEXT abb->logBackend.getLogContext()
 
-ABB::SymbolBackend::SymbolBackend(ArduboyBackend* abb, const char* winName, bool* open) : abb(abb), winName(winName), open(open) {
+ABB::SymbolBackend::SymbolBackend(ArduboyBackend* abb, const char* winName, bool* open) : abb(abb), winName(winName), open(open), fdiLoadSymbols((std::string(winName)+"_loadSymb").c_str()) {
     abb->symbolTable.setSymbolsAddDemanglFunc(demangeSymbols, nullptr);
 }
 
@@ -114,6 +113,21 @@ void ABB::SymbolBackend::clearAddSymbol(){
 
 void ABB::SymbolBackend::draw() {
     if(ImGui::Begin(winName.c_str(), open)) {
+		if (ImGui::Button("Load")) {
+			fdiLoadSymbols.OpenDialog(ImGuiFDMode_LoadFile, ".");
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Browse or drop file here");
+			if (IsFileDropped()) {
+				auto files = LoadDroppedFiles();
+				for (size_t i = 0; i < files.count; i++) {
+					if (abb->symbolTable.loadFromDumpFile(files.paths[i]))
+						LU_LOGF(LogUtils::LogLevel_Output, "sucessfully loaded file %s", files.paths[i]);
+				}
+				UnloadDroppedFiles(files);
+			}
+		}
+
 		ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
 		if(ImGui::TreeNode("Symbols")){
 			char buf[512];
@@ -176,9 +190,6 @@ void ABB::SymbolBackend::draw() {
 					ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_None, approx_char_width*4, SB_ID);
 					ImGui::TableHeadersRow();
 				}
-				
-
-				
 
 				if (symbolsSortedOrder.size() != abb->symbolTable.getSymbols().size()) {
 					std::set<uint32_t> seen;
@@ -193,7 +204,7 @@ void ABB::SymbolBackend::draw() {
 					}
 
 					for (size_t i = 0; i < abb->symbolTable.getSymbols().size(); i++) {
-						const auto* symbol = &abb->symbolTable.getSymbols()[i];
+						const auto* symbol = abb->symbolTable.getSymbol(abb->symbolTable.getSymbols(),i);
 						if (seen.find(symbol->id) == seen.end()) {
 							symbolsSortedOrder.push_back(symbol->id);
 						}
@@ -294,37 +305,50 @@ void ABB::SymbolBackend::draw() {
 		}
     }
     ImGui::End();
+
+	if (fdiLoadSymbols.Begin()) {
+		if (ImGuiFD::ActionDone()) {
+			if (ImGuiFD::SelectionMade()) {
+				abb->symbolTable.loadFromDumpFile(ImGuiFD::GetSelectionPathString(0));
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+		ImGuiFD::EndDialog();
+	}
 }
 
 ImVec4 ABB::SymbolBackend::getSymbolColor(size_t symbolID) {
 	uint64_t v = DataUtils::simpleHash(symbolID);
 	ImVec4 col;
-	col.z = 1;
-	ImGui::ColorConvertHSVtoRGB((float)(v % 256) / 256, 0.7, 0.7, col.x, col.y, col.z);
+	col.w = 1;
+	ImGui::ColorConvertHSVtoRGB((float)(v % 256) / 256, 0.9f, 0.9f, col.x, col.y, col.z);
     return col;
 }
 
 void ABB::SymbolBackend::drawSymbol(const EmuUtils::SymbolTable::Symbol* symbol, EmuUtils::SymbolTable::symb_size_t addr, const uint8_t* data) {
 	if (addr == (decltype(addr))-1) addr = symbol->value;
 	
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
 
     ImVec4 col = getSymbolColor(symbol->id);
 
 	if (symbol->hasDemangledName) {
-		ImGuiExt::TextColored(col, symbol->demangled.c_str());
-		ImGui::SameLine();
-		ImGui::TextUnformatted(": ");
-		if(symbol->demangled.size() < 40) // only put name in same line if it isnt already super long
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,0 });
+			ImGuiExt::TextColored(col, symbol->demangled.c_str());
 			ImGui::SameLine();
+			ImGui::TextUnformatted(": ");
+		ImGui::PopStyleVar();
+		if (symbol->demangled.size() < 40) // only put name in same line if it isnt already super long
+			ImGui::SameLine();
+		else
+			ImGui::Spacing();
 	}
 	ImGuiExt::TextColored(col, symbol->name.c_str());
 
-	ImGui::PopStyleVar();
 
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImGui::GetStyle().ItemSpacing.y);
 
 	if (addr > symbol->value && addr < symbol->addrEnd()) {
+		ImGui::SameLine();
 		ImGui::Text("<+%04x>", (uint16_t)(addr - symbol->value));
 	}
 

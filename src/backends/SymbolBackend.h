@@ -2,7 +2,9 @@
 #define __ABB_SYMBOLBACKEND_H__
 
 #include "imgui.h"
-#include "mcu.h"
+#include "ImGuiFD.h"
+#include "ImGuiFD_internal.h"
+#include "../mcu.h"
 #include "SymbolTable.h"
 
 namespace ABB {
@@ -31,6 +33,8 @@ namespace ABB {
 
         EmuUtils::SymbolTable::Symbol addSymbol;
         void clearAddSymbol();
+
+        ImGuiFD::FDInstance fdiLoadSymbols;
 
         static float distSqCols(const ImVec4& a, const ImVec4& b);
 

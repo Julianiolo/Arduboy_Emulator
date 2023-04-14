@@ -11,6 +11,8 @@
 #include "ImGuiFD.h"
 #include "ImGuiFD_internal.h"
 
+#include "../mcu.h"
+
 #include "SymbolBackend.h"
 
 #include "../utils/hexViewer.h"
@@ -52,14 +54,16 @@ namespace ABB {
 		SaveLoadFDIPair fdiState;
 		size_t stateIndToSave = 0;
 
-		void drawSaveLoadButtons(SaveLoadFDIPair* fdi);
+		static std::vector<uint8_t> saveData;
+		ImGuiFD::FDInstance loadDatafdi;
+		size_t loadDataInd = -1;
 
-		static void setRamValue(size_t addr, uint8_t val, void* userData);
-		static void setEepromValue(size_t addr, uint8_t val, void* userData);
-		static void setRomValue(size_t addr, uint8_t val, void* userData);
+		void drawSaveLoadButtons(SaveLoadFDIPair* fdi);
 
 		void drawStates();
 
+		bool loadHexData(const char* path, size_t ind);
+		bool loadState(const char* path, const char* name);
 	public:
 		std::string winName;
 		bool* open;
@@ -67,6 +71,7 @@ namespace ABB {
 		McuInfoBackend(ArduboyBackend* abb, const char* winName, bool* open);
 
 		void draw();
+		static void drawStatic();
 
 		const char* getWinName() const;
 

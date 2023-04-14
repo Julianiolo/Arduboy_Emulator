@@ -7,7 +7,7 @@
 #include "imgui_internal.h"
 #include "raylib.h"
 
-#include "mcu.h"
+#include "../mcu.h"
 #include "SymbolTable.h"
 
 #include "DataUtils.h"
@@ -20,11 +20,14 @@ namespace ABB {
 		public:
 			static struct Settings {
 				float vertSpacing = 0;
-				bool showTex = true;
 
 				bool showAscii = true;
+				bool showTex = true;
+
 				bool showSymbols = true;
 				bool invertTextColOverSymbols = true;
+				bool showRWViz = false;
+
 				bool upperCaseHex = false;
 
 
@@ -37,7 +40,7 @@ namespace ABB {
 				ImVec4 bytes = {0.7f,0.7f,0.9f,1};
 				ImVec4 ascii = {0.5f,0.6f,0.5f,1};
 			} syntaxColors;
-			static constexpr SyntaxColors defSyntaxColors{};
+			static const SyntaxColors defSyntaxColors;
 
 			class EditBytes {
 			private:
@@ -76,6 +79,7 @@ namespace ABB {
 				void drawTypeChoose(size_t maxByteLen);
 
 				void writeVal();
+				void loadVal();
 			};
 
 			enum {
@@ -92,19 +96,18 @@ namespace ABB {
 			size_t selectStart = 0;
 			size_t selectEnd = 0;
 
-			bool newFrame = true;
-
 			bool isHovered = false;
 			size_t hoveredAddr = -1;
 
 			static constexpr size_t AddrDigits = 4;
 
-			EmuUtils::SymbolTable::SymbolList symbolList;
-
 			size_t popupAddr = -1; // symbol popup address
 			const EmuUtils::SymbolTable::Symbol* popupSymbol = nullptr;
 
 			EditBytes eb;
+
+			std::vector<float> readViz;
+			std::vector<float> writeViz;
 
 			ImRect getNextByteRect(const ImVec2& charSize) const;
 			size_t getBytesPerRow(float widthAvail, const ImVec2& charSize);
@@ -113,15 +116,13 @@ namespace ABB {
 			
 			void drawEditPopup();
 		public:
-			HexViewer(uint8_t dataType = DataType_None);
+			HexViewer(size_t size, uint8_t dataType = DataType_None);
 
 
 			bool isSelected(size_t addr) const;
 
-			void draw(const uint8_t* data, size_t dataLen, const EmuUtils::SymbolTable* symbolTable = nullptr, size_t dataAmt = -1, size_t dataOff = 0);
-			void sameFrame();
+			void draw(const uint8_t* data, size_t dataLen, const EmuUtils::SymbolTable* symbolTable = nullptr, const EmuUtils::SymbolTable::SymbolList* symbolList = nullptr, const uint64_t* newReads = nullptr, const uint64_t* newWrites = nullptr);
 
-			void setSymbolList(const EmuUtils::SymbolTable::SymbolList& list);
 			void setEditCallback(DataUtils::EditMemory::SetValueCallB func, void* userData);
 
 			static void drawSettings();

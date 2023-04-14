@@ -14,11 +14,8 @@
 #include "ElfReader.h"
 
 
-#if defined(_MSC_VER) || 1
 #define ROOTDIR "./"
-#else
-#define ROOTDIR "../../../../"
-#endif
+
 
 constexpr std::array<const char*,8*2+7> testFiles = {
     ROOTDIR "resources/games/almostPong/almostPong.ino.hex",
@@ -110,13 +107,12 @@ void benchmark() {
 
     std::string r;
 
-    uint64_t avgFlags[4] = {0,0,0,0};
+    uint64_t avgFlags[2] = {0,0};
 
-    for (uint8_t flags = 0; flags < 4; flags++) {
+    for (uint8_t flags = 0; flags < 2; flags++) {
         {
-            r = StringUtils::format("Starting warmup [%u] with flags [d:%u,a:%u]\n", benchFiles.size()-1, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0
+            r = StringUtils::format("Starting warmup [%u] with flags [d:%u]\n", benchFiles.size()-1, 
+                (flags)!=0
             );
             printf("%s", r.c_str());
             res += r;
@@ -132,8 +128,7 @@ void benchmark() {
 
         for (size_t i = 0; i < benchFiles.size(); i++) {
             r = StringUtils::format("\tStarting benchmark [%u] with flags [d:%u,a:%u]\n", i, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
-                (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0
+                (flags)!=0
             );
             printf("%s", r.c_str());
             res += r;
@@ -153,13 +148,12 @@ void benchmark() {
         //break;
     }
 
-    for (uint8_t flags = 0; flags < 4; flags++) {
+    for (uint8_t flags = 0; flags < 2; flags++) {
         double avgMs = ((double)avgFlags[flags]/1000) / benchFiles.size();
         double avgPerc = avgMs / 1000.0;
 
         r = StringUtils::format("AVGs[d:%d,a:%d]: took: %14.7fms => %12.7f%%\n", 
-            (flags&A32u4::ATmega32u4::ExecFlags_Debug)!=0, 
-            (flags&A32u4::ATmega32u4::ExecFlags_Analyse)!=0,
+            flags!=0,
             avgMs, avgPerc
         );
         printf("%s", r.c_str());

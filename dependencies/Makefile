@@ -82,6 +82,25 @@ ABHL_OUTNAME:=libArduboy_Emulator_HL.a
 ABHL_OUTPATH:=$(ABHL_BUILD_DIR)$(ABHL_OUTNAME)
 ABHL_DEPS:=$(shell find $(ABHL_SRC_DIR) -name '*.*') $(shell find $(ABHL_DEP_DIR) -name '*.*')
 
+# EmuUtils:
+
+EU_DIR:=EmuUtils/
+
+EU_BUILD_DIR:=$(BUILD_DIR)libs/
+EU_SRC_DIR:=$(EU_DIR)
+EU_OBJ_DIR:=$(EU_BUILD_DIR)objs/EmuUtils/
+
+EU_INCLUDE_DIRS:=$(addprefix -I,./Arduboy_Emulator_HL/dependencies/ATmega32u4_Emulator/dependencies/CPP_Utils/src)
+
+EU_OUTNAME:=libEmuUtils.a
+EU_OUTPATH:=$(EU_BUILD_DIR)$(EU_OUTNAME)
+
+EU_CXXSTD:=-std=gnu++17
+
+EU_SRC_FILES:=$(shell cd $(EU_SRC_DIR) && find . -maxdepth 1 -name '*.cpp')
+EU_OBJ_FILES:=$(addprefix $(EU_OBJ_DIR),$(notdir ${EU_SRC_FILES:.cpp=.o}))
+EU_DEP_FILES:=$(patsubst %.o,%.d,$(EU_OBJ_FILES))
+
 # ImGuiFD
 
 IMGUIFD_DIR:=ImGuiFD/
@@ -126,7 +145,7 @@ CXXFLAGS += $(BUILD_MODE_FLAGS)
 
 .PHONY:all clean clean_raylib
 
-all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH) $(IMGUIFD_OUTPATH) $(RLIMGUI_OUTPATH)
+all:$(RAYLIB_OUTPATH) $(IMGUI_OUTPATH) $(ABHL_OUTPATH) $(EU_OUTPATH) $(IMGUIFD_OUTPATH) $(RLIMGUI_OUTPATH)
 	touch $(BUILD_DIR)Arduboy_Emulator_depFile.dep
 
 # raylib:
@@ -150,6 +169,16 @@ $(ABHL_OUTPATH):$(ABHL_DEPS)
 	mkdir -p $(ABHL_BUILD_DIR)
 	$(MAKE) -C "$(ABHL_DIR)" PLATFORM=$(PLATFORM) BUILD_MODE=$(BUILD_MODE) BUILD_DIR="$(ABHL_BUILD_DIR)" "RELEASE_OPTIM=$(RELEASE_OPTIM)" CUSTOM_CFLAGS="$(CUSTOM_CFLAGS)" CUSTOM_CXXFLAGS="$(CUSTOM_CXXFLAGS)" CSTD="$(CSTD)" CXXSTD="$(CXXSTD)"
 
+# EmuUtils
+$(EU_OUTPATH):$(EU_OBJ_FILES)
+	mkdir -p $(EU_BUILD_DIR)
+	$(AR) rvs $@ $(EU_OBJ_FILES)
+
+-include $(EU_DEP_FILES)
+
+$(EU_OBJ_DIR)%.o: $(EU_SRC_DIR)%.cpp
+	mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(EU_CXXSTD) $(DEF_FLAGS) $(EU_INCLUDE_DIRS) -c $< -o $@ $(DEP_FLAGS)
 
 # ImGuiFD:
 $(IMGUIFD_OUTPATH):$(IMGUIFD_OBJ_FILES)

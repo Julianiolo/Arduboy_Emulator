@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-#include "mcu.h"
+#include "../mcu.h"
 
 #include "imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS 1
@@ -26,17 +26,20 @@ namespace ABB{
 
         public:
 
-            static constexpr float breakpointExtraPadding = 3;
+            struct Settings {
+                static constexpr float breakpointExtraPadding = 3;
 
-            static float branchWidth;
-            static float branchSpacing;
-            static constexpr float branchArrowSpace = 10; // TODO: adj this to fit bigger fonts
+                float branchWidth = 2;
+                float branchSpacing = 1;
+                static constexpr float branchArrowSpace = 10; // TODO: adj this to fit bigger fonts
+
+                bool showBranches = true;
+                size_t maxBranchDepth = 16;
+
+                bool showBreakpoints = true;
+            };
+            static Settings settings;
             
-            static bool showBranches;
-            static size_t maxBranchDepth;
-        public:
-            bool breakpointsEnabled = true;
-
             struct SyntaxColors{
                 ImVec4 PCAddr = { 1,0.5f,0,1 };
                 ImVec4 rawInstBytes = {1,1,0,1};
@@ -58,7 +61,7 @@ namespace ABB{
                 ImVec4 branchClipped = {70/255.0f, 245/255.0f, 130/255.0f, 1};
             };
             static SyntaxColors syntaxColors;
-            static constexpr SyntaxColors defSyntaxColors{};
+            static const SyntaxColors defSyntaxColors;
 
             bool showScollBarHints = true;
             bool showScollBarHeat = true;
@@ -69,6 +72,7 @@ namespace ABB{
             void loadDisasmFile(const DisasmFile& file);
             void drawFile(uint16_t PCAddr, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
             void scrollToLine(size_t line, bool select = false);
+            void scrollToAddr(size_t addr, bool select = false);
 
             size_t numOfDisasmLines();
 
@@ -78,7 +82,7 @@ namespace ABB{
         private:
             void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
             void drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
-            void drawInstParams(const char* instStart, const char* instEnd, const char* start, const char* end, MCU* mcu);
+            void drawInstParams(const char* start, const char* end, const char* instStart, const char* instEnd, const char* addrStart, const char* addrEnd, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
             void drawSymbolComment(const char* lineStart, const char* lineEnd, const char* symbolStartOff, const char* symbolEndOff, bool* hasAlreadyClicked, const EmuUtils::SymbolTable* symbolTable);
             void drawData(const char* lineStart, const char* lineEnd);
             void drawSymbolLabel(const char* lineStart, const char* lineEnd, const EmuUtils::SymbolTable* symbolTable);
