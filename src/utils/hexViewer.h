@@ -74,7 +74,7 @@ namespace ABB {
 
 				size_t sizeBytes() const;
 			private:
-				void editPopupError(const char* msg);
+				void editError(const std::string& msg);
 				
 				void drawTypeChoose(size_t maxByteLen);
 

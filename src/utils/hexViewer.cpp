@@ -382,10 +382,10 @@ void ABB::utils::HexViewer::EditBytes::openEditPopup(const uint8_t* data_, size_
 	dataLen = dataLen_;
 
 	editAddr = addr;
+	editErrorStr = "";
 	loadVal();
 }
-void ABB::utils::HexViewer::EditBytes::editPopupError(const char* msg) {
-	ImGui::OpenPopup("hexViewEditError");
+void ABB::utils::HexViewer::EditBytes::editError(const std::string& msg) {
 	editErrorStr = msg;
 }
 void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
@@ -495,6 +495,8 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 		}
 	}
 
+	if (editErrorStr.size() > 0)
+		ImGuiExt::TextColored({1,0.2,0.2,1}, editErrorStr.c_str());
 
 	if (editType != DataUtils::EditMemory::EditType_string && editType != DataUtils::EditMemory::EditType_bytestream) {
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
@@ -518,78 +520,34 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 
 
 void ABB::utils::HexViewer::EditBytes::writeVal() {
-	if (editType == DataUtils::EditMemory::EditType_bytestream) {
-		if (editStr.size() % 2 == 1) {
-			editPopupError("bytestream invalid, must be of even length!");
-			return;
-		}
+	editErrorStr = "";
+
+	try {
+		DataUtils::EditMemory::writeValue(editAddr, editValTemp, editStr, setValueCallB, setValueUserData, dataLen, editStringTerm, editReversed, editType, editEndian);
 	}
-	bool success = DataUtils::EditMemory::writeValue(editAddr, editValTemp, editStr, setValueCallB, setValueUserData, dataLen, editStringTerm, editReversed, editType, editEndian);
-	if (!success) {
-		editPopupError("Couldn't Edit Value due to an unexpected error");
+	catch (const std::runtime_error& e) {
+		editError(StringUtils::format("Error writing: %s",e.what()));
 	}
 }
 void ABB::utils::HexViewer::EditBytes::loadVal() {
 	editStr = "";
 	editValTemp = 0;
+	editErrorStr = "";
 
-	if (editType == DataUtils::EditMemory::EditType_string) {
-		size_t i = editAddr;
-		if (!editReversed) {
-			bool isString = true;
-			while (true) {
-				char c = data[i];
-
-				if (!c)
-					break;
-
-				if (!StringUtils::isprint(c)) {
-					isString = false;
-					break;
-				}
-
-				i++;
-
-				if (i >= dataLen) {
-					isString = false;
-					break;
-				}
-			}
-			if (isString) {
-				editStr = std::string(data + editAddr, data + i);
-			}
+	try {
+		if (editType == DataUtils::EditMemory::EditType_string) {
+			editStr = DataUtils::EditMemory::readString(data, dataLen, editAddr, editType, editReversed);
 		}
-		else {
-			bool isString = true;
-			while (true) {
-				char c = data[i];
-
-				if (!c)
-					break;
-
-				if (!StringUtils::isprint(c)) {
-					isString = false;
-					break;
-				}
-
-				if (i == 0) {
-					isString = false;
-					break;
-				}
-
-				i--;
-			}
-			if (isString) {
-				size_t len = editAddr - i;
-				editStr.resize(len);
-				for (size_t j = 0; j < len; j++) {
-					editStr[j] = data[i + len - j - 1];
-				}
-			}
+		else if (
+			editType == DataUtils::EditMemory::EditType_8bit || editType == DataUtils::EditMemory::EditType_16bit || 
+			editType == DataUtils::EditMemory::EditType_32bit || editType == DataUtils::EditMemory::EditType_64bit || 
+			editType == DataUtils::EditMemory::EditType_float || editType == DataUtils::EditMemory::EditType_double) 
+		{
+			editValTemp = DataUtils::EditMemory::readValue(data, dataLen, editAddr, editType, editEndian);
 		}
 	}
-	else if (editType == DataUtils::EditMemory::EditType_8bit || editType == DataUtils::EditMemory::EditType_16bit || editType == DataUtils::EditMemory::EditType_32bit || editType == DataUtils::EditMemory::EditType_64bit || editType == DataUtils::EditMemory::EditType_float || editType == DataUtils::EditMemory::EditType_double) {
-		editValTemp = DataUtils::EditMemory::readValue(data + editAddr, dataLen - editAddr, editType, editEndian);
+	catch (const std::runtime_error& e) {
+		editError(StringUtils::format("Error reading: %s",e.what()));
 	}
 }
 
@@ -606,7 +564,8 @@ void ABB::utils::HexViewer::EditBytes::draw() {
 		if (ImGui::Button("OK")) {
 			writeVal();
 			editValTemp = 0;
-			ImGui::CloseCurrentPopup();
+			if(editErrorStr.size() == 0)
+				ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
 		if(ImGui::Button("Cancel")) {
@@ -614,15 +573,6 @@ void ABB::utils::HexViewer::EditBytes::draw() {
 		}
 
 
-		ImGui::EndPopup();
-	}
-
-	if (ImGui::BeginPopup("hexViewEditError")) {
-		ImGui::TextUnformatted(editErrorStr.c_str());
-		if (ImGui::Button("OK", { ImGui::GetContentRegionAvail().x, 0 })) {
-			editErrorStr = "";
-			ImGui::CloseCurrentPopup();
-		}
 		ImGui::EndPopup();
 	}
 }
