@@ -21,7 +21,7 @@
 #define LU_CONTEXT abb->logBackend.getLogContext()
 
 ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, bool* open) 
-	: abb(abb), open(open), loadSrcMix((std::string(winName) + "srcMixFD").c_str()), winName(winName)
+	: abb(abb), loadSrcMix((std::string(winName) + "srcMixFD").c_str()), winName(winName), open(open)
 {
 	
 }
@@ -97,7 +97,7 @@ void ABB::DebuggerBackend::drawControls(){
 void ABB::DebuggerBackend::drawDebugStack() {
 	if (ImGui::BeginChild("DebugStack", { 0,80 }, true)) {
 		size_t stackSize = abb->mcu.getStackPtr();
-		ImGui::Text("Stack Size: %d", stackSize);
+		ImGui::Text("Stack Size: %" DU_PRIuSIZE, stackSize);
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
 			for (int32_t i = (int32_t)stackSize-1; i >= 0; i--) {
 				ImGui::TableNextRow();

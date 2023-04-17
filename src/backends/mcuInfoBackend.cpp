@@ -122,9 +122,14 @@ void ABB::McuInfoBackend::draw() {
 						case MCU::Hex::Type_Rom: list = &abb->symbolTable.getSymbolsRom(); break;
 					}
 
-					hexViewers[i].setEditCallback(hex.setData ? [](size_t addr, uint8_t val, void* userData) {
-						((MCU::Hex*)userData)->setData((addrmcu_t)addr, val);
-					} : nullptr, &hex);
+					if(hex.setData) {
+						hexViewers[i].setEditCallback([](size_t addr, uint8_t val, void* userData) {
+							((MCU::Hex*)userData)->setData((addrmcu_t)addr, val);
+						}, &hex);
+					}else{
+						hexViewers[i].setEditCallback(nullptr, nullptr);
+					}
+					
 
 					hexViewers[i].draw(hex.data, hex.dataLen, &abb->symbolTable, list, hex.readCnt, hex.writeCnt);
 					if (hex.resetRWAnalytics)

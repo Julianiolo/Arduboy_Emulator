@@ -557,7 +557,7 @@ size_t ABB::DisasmFile::sizeBytes() const {
 	sum += DataUtils::approxSizeOf(isLineProgram); // [linenumber] = true if line is part of the program, false if not (like data, empty...)
 	sum += DataUtils::approxSizeOf(labels); // [symbAddress] = linenumber
 
-	sum += DataUtils::approxSizeOf(branchRoots, [](const BranchRoot& v) {return sizeof(BranchRoot); });
+	sum += DataUtils::approxSizeOf(branchRoots, [](const BranchRoot& v) { DU_UNUSED(v); return sizeof(BranchRoot); });
 	sum += DataUtils::approxSizeOf(branchRootInds); // [linenumber] = ind to branch root object of this line (-1 if line is not a branchroot)
 
 	sum += DataUtils::approxSizeOf(passingBranchesVec[0]);

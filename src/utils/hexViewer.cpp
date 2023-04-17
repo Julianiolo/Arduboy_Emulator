@@ -184,7 +184,7 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, const EmuU
 
 				if (settings.showRWViz) {
 					float val = std::max(readViz[addrOff], writeViz[addrOff]);
-					float bright = std::logf(val)*0.2f;
+					float bright = std::log(val)*0.2f;
 					if (bright > 1)
 						bright = 1;
 

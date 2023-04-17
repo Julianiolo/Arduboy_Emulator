@@ -423,7 +423,7 @@ void ABB::SymbolBackend::drawSymbol(const EmuUtils::SymbolTable::Symbol* symbol,
 
 const EmuUtils::SymbolTable::Symbol* ABB::SymbolBackend::drawAddrWithSymbol(EmuUtils::SymbolTable::symb_size_t Addr, const EmuUtils::SymbolTable::SymbolList& list) const {
 	ImGui::BeginGroup();
-	ImGui::Text("%08" MCU_PRIxADDR, Addr);
+	ImGui::Text("%08" PRIx64, Addr);
 
 	const auto* symbol = abb->symbolTable.getSymbolByValue(Addr, list);
 	if (symbol) {

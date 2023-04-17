@@ -1,6 +1,7 @@
 #include "ArduEmu.h"
 
 #include <chrono>
+#include <cmath>
 
 #ifndef __EMSCRIPTEN__
 	#ifdef _WIN32
@@ -579,7 +580,7 @@ void ArduEmu::drawSettings() {
 						ImGui::DragFloat("Brightness", &settings.rainbowSettings.brightness, 0.01f, 0, 1);
 
 						rainbowCurrHue += settings.rainbowSettings.speed;
-						rainbowCurrHue = std::fmodf(rainbowCurrHue, 1);
+						rainbowCurrHue = std::fmod(rainbowCurrHue, 1);
 
 						ImVec4 col;
 						ImGui::ColorConvertHSVtoRGB(

@@ -137,7 +137,6 @@ namespace ABB {
 		};
 		ParamInfo getParamInfo(const char* start, const char* end, const char* instStart, const char* instEnd, uint32_t pcAddr) const;
 
-		void draw_asmLiteral(const char* instStart, const char* instEnd, const char* start, const char* end) const;
 		void draw_stateInfo() const;
 
 		struct Hex {

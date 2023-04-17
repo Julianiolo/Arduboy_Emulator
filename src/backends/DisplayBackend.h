@@ -2,6 +2,7 @@
 #define _ARDUBOY_DISPLAY_BACKEND
 
 #include "raylib.h"
+#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "../mcu.h"
 

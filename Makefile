@@ -56,7 +56,7 @@ DEF_FLAGS:=$(addprefix -D,$(PLATFORM))
 
 BUILD_MODE_FLAGS:=
 ifeq ($(BUILD_MODE),DEBUG)
-	BUILD_MODE_FLAGS +=-g -fsanitize=address
+	BUILD_MODE_FLAGS +=-g
 	DEF_FLAGS += -D_DEBUG
 else
 	BUILD_MODE_FLAGS +=$(RELEASE_OPTIM)

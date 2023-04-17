@@ -306,10 +306,6 @@ ABB::MCU::ParamInfo ABB::MCU::getParamInfo(const char* start, const char* end, c
 
 	return { ParamType_None, 0 };
 }
-
-void ABB::MCU::draw_asmLiteral(const char* instStart, const char* instEnd, const char* start, const char* end) const {
-	
-}
 void ABB::MCU::draw_stateInfo() const {
 	uint8_t sreg_val = ARDUBOY->mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
 	constexpr const char* bitNames[] = {"I","T","H","S","V","N","Z","C"};

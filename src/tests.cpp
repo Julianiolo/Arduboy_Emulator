@@ -252,6 +252,8 @@ bool fuzzTest() {
 
 
 int test(int argc, char** argv) {
+    DU_UNUSED(argc);
+    DU_UNUSED(argv);
     bool worked = true;
     //worked = serialisationTest() && worked;
     worked = fuzzTest() && worked;
