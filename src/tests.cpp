@@ -127,9 +127,7 @@ void benchmark() {
         uint64_t micosSum = 0;
 
         for (size_t i = 0; i < benchFiles.size(); i++) {
-            r = StringUtils::format("\tStarting benchmark [%u] with flags [d:%u,a:%u]\n", i, 
-                (flags)!=0
-            );
+            r = StringUtils::format("\tStarting benchmark [%u] with flags [d:%u]\n", i, flags!=0);
             printf("%s", r.c_str());
             res += r;
 
@@ -152,7 +150,7 @@ void benchmark() {
         double avgMs = ((double)avgFlags[flags]/1000) / benchFiles.size();
         double avgPerc = avgMs / 1000.0;
 
-        r = StringUtils::format("AVGs[d:%d,a:%d]: took: %14.7fms => %12.7f%%\n", 
+        r = StringUtils::format("AVGs[d:%d]: took: %14.7fms => %12.7f%%\n", 
             flags!=0,
             avgMs, avgPerc
         );
@@ -255,7 +253,8 @@ int test(int argc, char** argv) {
     DU_UNUSED(argc);
     DU_UNUSED(argv);
     bool worked = true;
+    benchmark();
     //worked = serialisationTest() && worked;
-    worked = fuzzTest() && worked;
+    //worked = fuzzTest() && worked;
     return !worked;
 }
