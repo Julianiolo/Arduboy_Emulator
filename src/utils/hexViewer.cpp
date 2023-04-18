@@ -536,7 +536,7 @@ void ABB::utils::HexViewer::EditBytes::loadVal() {
 
 	try {
 		if (editType == DataUtils::EditMemory::EditType_string) {
-			editStr = DataUtils::EditMemory::readString(data, dataLen, editAddr, editType, editReversed);
+			editStr = DataUtils::EditMemory::readString(data, dataLen, editAddr, editReversed);
 		}
 		else if (
 			editType == DataUtils::EditMemory::EditType_8bit || editType == DataUtils::EditMemory::EditType_16bit || 

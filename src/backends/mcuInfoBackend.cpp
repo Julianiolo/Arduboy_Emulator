@@ -329,6 +329,7 @@ void ABB::McuInfoBackend::drawStates() {
 					if(ImGui::Button("Load")){
 						abb->mcu = entry.second.mcu;
 						abb->symbolTable = entry.second.symbolTable;
+						LU_LOGF(LogUtils::LogLevel_DebugOutput, "Loaded State \"%s\"", entry.first.c_str());
 					}
 					ImGui::SameLine();
 					if(ImGui::Button("Save")) {
@@ -415,7 +416,9 @@ void ABB::McuInfoBackend::addState(const Save& ab, const char* name){
 	if(name == nullptr) {
 		time_t t = std::time(0);
 		n += "From: ";
-		n += std::ctime(&t);
+		char buf[128];
+		std::strftime(buf, sizeof(buf), "%d.%m.%Y %H:%M:%S", std::localtime(&t));
+		n += buf;
 	}else{
 		n = name;
 	}

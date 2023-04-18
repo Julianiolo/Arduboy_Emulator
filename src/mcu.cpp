@@ -14,8 +14,18 @@ ABB::MCU::MCU() : data(std::make_unique<Arduboy>()) {
 	activateLog();
 	setDebugMode(true);
 }
+ABB::MCU::MCU(const MCU& src) : data(std::make_unique<Arduboy>(*((Arduboy*)src.data.get()))) {
+	ARDUBOY->mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
+	activateLog();
+	setDebugMode(true);
+}
 ABB::MCU::~MCU() {
 	
+}
+
+ABB::MCU& ABB::MCU::operator=(const MCU& other){
+	(*ARDUBOY) = *((Arduboy*)other.data.get());
+	return *this;
 }
 
 void ABB::MCU::reset() {

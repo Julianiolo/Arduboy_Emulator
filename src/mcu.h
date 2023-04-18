@@ -30,8 +30,6 @@ namespace ABB {
 
 		static constexpr size_t addrmcu_t_MAX = 0xFFFF;
 
-		
-
 		static constexpr size_t numInsts = 111;
 		static constexpr size_t DISPLAY_WIDTH = 128;
 		static constexpr size_t DISPLAY_HEIGHT = 64;
@@ -40,7 +38,10 @@ namespace ABB {
 	public:
 
 		MCU();
+		MCU(const MCU& src);
 		~MCU();
+
+		MCU& operator=(const MCU& other);
 
 		void reset();
 		void powerOn();
