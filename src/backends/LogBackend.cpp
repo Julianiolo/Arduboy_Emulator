@@ -10,6 +10,7 @@
 #include "DataUtils.h"
 #include "DataUtilsSize.h"
 
+#define LU_MODULE "LogBackend"
 
 ImVec4 ABB::LogBackend::logColors[] = {
     { 0.7f,  0.7f, 0.7f,    -1},
@@ -31,8 +32,9 @@ std::vector<ABB::LogBackend::Entry> ABB::LogBackend::systemLogs;
 void ABB::LogBackend::init() {
     SetTraceLogCallback([](int logLevel, const char* text, va_list args) {
         int len = std::vsnprintf(NULL, 0, text, args);
-        if (len <= 0) {
-            abort();
+        if(len <= 0) {
+            LU_LOGF_(LogUtils::LogLevel_Error, "Cannot format raylib log: \"%s\"", text);
+            return;
         }
 
         char* buf = new char[len];
