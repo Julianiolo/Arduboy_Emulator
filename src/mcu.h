@@ -34,7 +34,7 @@ namespace ABB {
 		static constexpr size_t DISPLAY_WIDTH = 128;
 		static constexpr size_t DISPLAY_HEIGHT = 64;
 	private:
-		std::shared_ptr<void> data;
+		void* data;
 	public:
 
 		MCU();

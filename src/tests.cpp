@@ -143,7 +143,7 @@ void benchmark() {
 
         avgFlags[flags] += micosSum;
 
-        //break;
+        break;
     }
 
     for (uint8_t flags = 0; flags < 2; flags++) {
@@ -162,7 +162,7 @@ void benchmark() {
     printf("%s", r.c_str());
     res += r;
 
-    StringUtils::writeStringToFile(res, (std::to_string(id) + "_benchmark.txt").c_str());
+    //StringUtils::writeStringToFile(res, (std::to_string(id) + "_benchmark.txt").c_str());
 }
 
 bool serialisationTest() {

@@ -7,24 +7,24 @@
 
 #include "DataUtils.h"
 
-#define ARDUBOY ((Arduboy*)data.get())
+#define ARDUBOY ((Arduboy*)data)
 
-ABB::MCU::MCU() : data(std::make_unique<Arduboy>()) {
+ABB::MCU::MCU() : data(new Arduboy()) {
 	ARDUBOY->mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	activateLog();
 	setDebugMode(true);
 }
-ABB::MCU::MCU(const MCU& src) : data(std::make_unique<Arduboy>(*((Arduboy*)src.data.get()))) {
+ABB::MCU::MCU(const MCU& src) : data(new Arduboy(*((Arduboy*)src.data))) {
 	ARDUBOY->mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	activateLog();
 	setDebugMode(true);
 }
 ABB::MCU::~MCU() {
-	
+	delete ARDUBOY;
 }
 
 ABB::MCU& ABB::MCU::operator=(const MCU& other){
-	(*ARDUBOY) = *((Arduboy*)other.data.get());
+	(*ARDUBOY) = *((Arduboy*)other.data);
 	return *this;
 }
 
