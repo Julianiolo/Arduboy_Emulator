@@ -258,7 +258,6 @@ ABB::MCU::ParamInfo ABB::MCU::getParamInfo(const char* start, const char* end, c
 			if(len > 1 && start[1] == 'x'){
 				size_t literalLen = len - 2;
 				uint32_t val = StringUtils::hexStrToUIntLen<decltype(val)>(start + 2, literalLen);
-				uint8_t type = ParamType_Literal;
 
 				bool isIO = StringUtils::strcasecmp(instStart, "out", instEnd) == 0 || StringUtils::strcasecmp(instStart, "in", instEnd) == 0;
 				if (isIO) {
