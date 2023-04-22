@@ -28,9 +28,9 @@ void ABB::AnalyticsBackend::update(){
     if(!(abb->mcu.debugger_isHalted() || !abb->mcu.flash_isProgramLoaded())){
         size_t SP = abb->mcu.analytics_getMaxSP();
         abb->mcu.analytics_resetMaxSP();
-        StackSizeBuf.add(abb->mcu.dataspace_dataSize()-1-SP);
+        StackSizeBuf.add((uint32_t)(abb->mcu.dataspace_dataSize()-1-SP));
 
-        sleepCycsBuf.add(abb->mcu.analytics_getSleepSum());
+        sleepCycsBuf.add((uint32_t)abb->mcu.analytics_getSleepSum());
         abb->mcu.analytics_setSleepSum(0);
     }
 }

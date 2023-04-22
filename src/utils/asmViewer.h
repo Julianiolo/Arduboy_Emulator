@@ -72,7 +72,7 @@ namespace ABB{
             void loadDisasmFile(const DisasmFile& file);
             void drawFile(uint16_t PCAddr, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
             void scrollToLine(size_t line, bool select = false);
-            void scrollToAddr(size_t addr, bool select = false);
+            void scrollToAddr(MCU::addrmcu_t addr, bool select = false);
 
             size_t numOfDisasmLines();
 

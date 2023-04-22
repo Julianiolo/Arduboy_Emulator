@@ -496,7 +496,7 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 	}
 
 	if (editErrorStr.size() > 0)
-		ImGuiExt::TextColored({1,0.2,0.2,1}, editErrorStr.c_str());
+		ImGuiExt::TextColored({1,0.2f,0.2f,1}, editErrorStr.c_str());
 
 	if (editType != DataUtils::EditMemory::EditType_string && editType != DataUtils::EditMemory::EditType_bytestream) {
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;

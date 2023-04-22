@@ -580,7 +580,7 @@ void ArduEmu::drawSettings() {
 						ImGui::DragFloat("Brightness", &settings.rainbowSettings.brightness, 0.01f, 0, 1);
 
 						rainbowCurrHue += settings.rainbowSettings.speed;
-						rainbowCurrHue = std::fmod(rainbowCurrHue, 1);
+						rainbowCurrHue = (float)std::fmod(rainbowCurrHue, 1);
 
 						ImVec4 col;
 						ImGui::ColorConvertHSVtoRGB(

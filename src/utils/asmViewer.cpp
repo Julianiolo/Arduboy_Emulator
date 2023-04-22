@@ -717,7 +717,7 @@ void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
 	if (select)
 		selectedLine = line;
 }
-void ABB::utils::AsmViewer::scrollToAddr(size_t addr, bool select) {
+void ABB::utils::AsmViewer::scrollToAddr(MCU::addrmcu_t addr, bool select) {
 	size_t line = file.getLineIndFromAddr(addr);
 
 	if (line != (size_t)-1) {
