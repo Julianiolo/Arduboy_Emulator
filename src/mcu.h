@@ -57,7 +57,6 @@ namespace ABB {
 
 		Color display_getPixel(size_t x, size_t y) const;
 		
-		void activateLog() const;
 		void setLogCallB(LogUtils::LogCallB callB, void* userData);
 
 		uint64_t totalCycles() const;

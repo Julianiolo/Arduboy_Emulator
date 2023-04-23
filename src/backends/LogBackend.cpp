@@ -93,7 +93,6 @@ ABB::LogBackend::LogBackend(MCU* mcu, const char* winName, bool* open) : mcu(mcu
     mcu->setLogCallB([](uint8_t logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData) {
         ((LogBackend*)userData)->addLog(logLevel, msg, fileName, lineNum, module);
     }, this);
-    mcu->activateLog();
 }
 
 void ABB::LogBackend::systemAddLog(uint8_t logLevel, const std::string& msg, const char* fileName, int lineNum, const char* module) {

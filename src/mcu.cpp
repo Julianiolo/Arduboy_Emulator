@@ -11,12 +11,10 @@
 
 ABB::MCU::MCU() : data(new Arduboy()) {
 	ARDUBOY->mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
-	activateLog();
 	setDebugMode(true);
 }
 ABB::MCU::MCU(const MCU& src) : data(new Arduboy(*((Arduboy*)src.data))) {
 	ARDUBOY->mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
-	activateLog();
 	setDebugMode(true);
 }
 ABB::MCU::~MCU() {
@@ -72,10 +70,6 @@ Color ABB::MCU::display_getPixel(size_t x, size_t y) const {
 	return ARDUBOY->display.getPixel((uint8_t)x, (uint8_t)y) ? WHITE : BLACK;
 }
 
-
-void ABB::MCU::activateLog() const {
-	ARDUBOY->mcu.activateLog();
-}
 void ABB::MCU::setLogCallB(LogUtils::LogCallB callB, void* userData) {
 	ARDUBOY->mcu.setLogCallB(callB, userData);
 }

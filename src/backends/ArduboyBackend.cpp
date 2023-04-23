@@ -26,7 +26,12 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	symbolBackend   (this,   (name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
 	id(id)
 {
-	symbolTable.loadDeviceSymbolDumpFile("resources/device/regSymbs.txt");
+	try {
+		symbolTable.loadDeviceSymbolDumpFile("resources/device/regSymbs.txt");
+	}
+	catch (const std::runtime_error& e) {
+		LU_LOGF(LogUtils::LogLevel_Error, "Error loading device symbols: %s", e.what());
+	}
 
 	//ImGui::DockBuilderSplitNode(ImGuiID(ImGui::GetID(devWinName.c_str())), ImGuiDir_Left, 0.5, );
 }
@@ -115,7 +120,7 @@ void ABB::ArduboyBackend::draw() {
 	if (!open)
 		return;
 
-	mcu.activateLog();
+	logBackend.activateLog();
 
 	update();
 
