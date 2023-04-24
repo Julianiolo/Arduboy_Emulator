@@ -121,8 +121,7 @@ void ABB::SymbolBackend::draw() {
 			if (IsFileDropped()) {
 				auto files = LoadDroppedFiles();
 				for (size_t i = 0; i < files.count; i++) {
-					if (abb->symbolTable.loadFromDumpFile(files.paths[i]))
-						LU_LOGF(LogUtils::LogLevel_Output, "sucessfully loaded file %s", files.paths[i]);
+					loadSymbolDumpFile(files.paths[i]);
 				}
 				UnloadDroppedFiles(files);
 			}
@@ -309,13 +308,26 @@ void ABB::SymbolBackend::draw() {
 	if (fdiLoadSymbols.Begin()) {
 		if (ImGuiFD::ActionDone()) {
 			if (ImGuiFD::SelectionMade()) {
-				abb->symbolTable.loadFromDumpFile(ImGuiFD::GetSelectionPathString(0));
+				loadSymbolDumpFile(ImGuiFD::GetSelectionPathString(0));
 			}
 			ImGuiFD::CloseCurrentDialog();
 		}
 		ImGuiFD::EndDialog();
 	}
 }
+
+bool ABB::SymbolBackend::loadSymbolDumpFile(const char* path){
+	try {
+		bool ret = abb->symbolTable.loadFromDumpFile(path);
+		if (ret)
+			LU_LOGF(LogUtils::LogLevel_Output, "sucessfully loaded file %s", path);
+		return ret;
+	} catch (const std::exception& e) {
+		LU_LOGF(LogUtils::LogLevel_Error, "Error loading symbol dump: %s", e.what());
+		return false;
+	}
+}
+
 
 ImVec4 ABB::SymbolBackend::getSymbolColor(size_t symbolID) {
 	uint64_t v = DataUtils::simpleHash(symbolID);

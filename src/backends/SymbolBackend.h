@@ -46,6 +46,8 @@ namespace ABB {
 
         void draw();
 
+        bool loadSymbolDumpFile(const char* path);
+
         static ImVec4 getSymbolColor(size_t symbolID);
 
         static void drawSymbol(const EmuUtils::SymbolTable::Symbol* symbol, EmuUtils::SymbolTable::symb_size_t addr = -1, const uint8_t* data = nullptr);
