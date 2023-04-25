@@ -15,7 +15,7 @@ CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CFLAGS)
 CXXFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CXXFLAGS)
 CSTD:=-std=c99
 CXXSTD:=-std=c++17
-RELEASE_OPTIM?= -O3 -flto
+RELEASE_OPTIM?= -O2 -flto
 
 ROOT_DIR:=./
 SRC_DIR:=$(ROOT_DIR)src/
