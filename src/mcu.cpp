@@ -85,6 +85,26 @@ ABB::MCU::addrmcu_t ABB::MCU::getPCAddr() const {
 	return ARDUBOY->mcu.cpu.getPCAddr();
 }
 
+std::vector<uint8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
+	uint64_t start = ARDUBOY->sound.bufferStart;
+	uint64_t end = ARDUBOY->mcu.cpu.getTotalCycles();
+	double dur = (end-start)/(double)A32u4::CPU::ClockFreq;
+	uint32_t numSamples = std::round(dur*samplesPerSec);
+
+	std::vector<uint8_t> res(numSamples, 0);
+
+	size_t off = 0;
+	for(auto& sample : ARDUBOY->sound.buffer) {
+		size_t ind = std::round((sample.offset/(double)A32u4::CPU::ClockFreq)*samplesPerSec);
+		if(ind > res.size()) ind = res.size();
+		uint8_t val = sample.on ? (sample.isLoud ? 0xFF:0x7F) : 0;
+		std::memset(&res[off], val, ind-val);
+		off = ind;
+	}
+	ARDUBOY->sound.clearBuffer(ARDUBOY->mcu.cpu.getTotalCycles());
+	return res;
+}
+
 
 size_t ABB::MCU::getRegNum() {
 	return A32u4::DataSpace::Consts::GPRs_size;
