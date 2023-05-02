@@ -42,6 +42,10 @@
 #define LU_MODULE "ArduEmu"
 #define SYS_LOG_MODULE "ArduEmu"
 
+#ifndef GIT_COMMIT
+#define GIT_COMMIT "N/A"
+#endif
+
 ArduEmu::Settings ArduEmu::settings;
 
 std::vector<ABB::ArduboyBackend*> ArduEmu::instances;
@@ -53,6 +57,9 @@ size_t ArduEmu::wantsFullscreenInd = -1;
 bool ArduEmu::fullscreenMenuUsedLastFrame = false;
 
 float ArduEmu::rainbowCurrHue = 0;
+
+std::string ArduEmu::benchmarkProgPath;
+
 
 #if defined(__EMSCRIPTEN__)
 bool ArduEmu::isSimpleLoadDialogOpen = false;
@@ -269,10 +276,16 @@ void ArduEmu::draw() {
 void ArduEmu::drawBenchmark(){
 	if(!showBenchmark) return;
 
-#if 0
+#if 1
 
 	if(ImGui::Begin("Benchmark",&showBenchmark)){
-		static uint64_t benchCycls = (16000000/60)*1000;
+		ImGui::Text("File to run: \"%s\"", benchmarkProgPath.c_str());
+		ImGui::SameLine();
+		if(ImGui::Button("Change")) {
+			ImGuiFD::OpenDialog("Load Benchmark Programm", ImGuiFDMode_LoadFile, ".");
+		}
+
+		uint64_t benchCycls = (ABB::MCU::clockFreq()/60)*1000;
 		constexpr uint64_t min = 0;
 		ImGui::DragScalar("##cycs",ImGuiDataType_U64, &benchCycls, 1000, &min);
 		ImGui::SameLine();
@@ -283,51 +296,66 @@ void ArduEmu::drawBenchmark(){
 			benchCycls /= 10;
 		
 		ImGui::TextUnformatted("Run Flags:");
-			ImGui::Indent();
-			static bool debug = false, analyse = false;
+		ImGui::Indent();
+			static bool debug = false;
 			ImGui::Checkbox("Debug",&debug);
-			ImGui::Checkbox("Analyze", &analyse);
 		ImGui::Unindent();
 
 		static std::string res = "";
 		if(ImGui::Button("Do Benchmark")){
 			ABB::MCU mcu;
-			mcu.fla .flash_loadFromHexFile("C:/Users/korma/Desktop/Julian/dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
-			//mcu.flash.loadFromHexFile("C:/Users/Julian/Desktop/Dateien/scriipts/cpp/Arduboy/ArduboyWorks-master/_hexs/hollow_v0.32.hex");
-			mcu.powerOn();
+			try {
+				std::string content = StringUtils::loadFileIntoString(benchmarkProgPath.c_str());
+				auto data = StringUtils::parseHexFileStr(content.c_str(), content.c_str()+content.size());
+				mcu.flash_loadFromMemory(data.size()?&data[0]:nullptr, data.size());
+			}catch(const std::exception& e) {
+				res = StringUtils::format("Error loading file: %s", e.what()) + res;
+			}
 
-			uint8_t execFlags = 0;
-			if(debug)
-				execFlags |= A32u4::ATmega32u4::ExecFlags_Debug;
-			if(analyse)
-				execFlags |= A32u4::ATmega32u4::ExecFlags_Analyse;
+			if(mcu.flash_isProgramLoaded()) {
+				mcu.powerOn();
+				mcu.setButtons(false, false, false, false, false, false);
+				mcu.setDebugMode(debug);
 
-			auto start = std::chrono::high_resolution_clock::now();
-			#ifndef __EMSCRIPTEN__
-			uint64_t cpu_start = __rdtsc();
-			#endif
-			mcu.execute(benchCycls, execFlags);
-			#ifndef __EMSCRIPTEN__
-			uint64_t cpu_end = __rdtsc();
-			#endif
-			auto end = std::chrono::high_resolution_clock::now();
+				auto start = std::chrono::high_resolution_clock::now();
+				#ifndef __EMSCRIPTEN__
+				uint64_t cpu_start = __rdtsc();
+				#endif
+				mcu.execute(benchCycls);
+				#ifndef __EMSCRIPTEN__
+				uint64_t cpu_end = __rdtsc();
+				#endif
+				auto end = std::chrono::high_resolution_clock::now();
 
-			auto time = end - start;
+				auto time = end - start;
 
-			#ifndef __EMSCRIPTEN__
-			uint64_t cycles = cpu_end - cpu_start;
-			#else
-			uint64_t cycles = 0;
-			#endif
-			double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
-			double frames = (double)benchCycls/(A32u4::CPU::ClockFreq/60);
-			double fps = 1000/(ms/frames);
-			res = StringUtils::format("%s/%s cycles run in %.4f ms => %.2f frames => %.4ffps; %s cycles\n", std::to_string(mcu.cpu.getTotalCycles()).c_str(), std::to_string(benchCycls).c_str(), ms, frames, fps, std::to_string(cycles).c_str()) + res;
+				#ifndef __EMSCRIPTEN__
+				uint64_t cycles = cpu_end - cpu_start;
+				#else
+				uint64_t cycles = 0;
+				#endif
+				double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
+				double frames = (double)benchCycls/(ABB::MCU::clockFreq()/60);
+				double fps = 1000/(ms/frames);
+				res = StringUtils::format("%" PRIu64 "/%" PRIu64 " cycles run in %.4f ms => %.2f frames => %.4ffps; %" PRIu64 " cycles\n", mcu.totalCycles(), benchCycls, ms, frames, fps, cycles) + res;
+			}
 		}
 
 		ImGui::TextUnformatted(res.c_str());
 	}
 	ImGui::End();
+
+	if (ImGuiFD::BeginDialog("Load Benchmark Programm")) {
+		if (ImGuiFD::ActionDone()) {
+			if(ImGuiFD::SelectionMade()) {
+				std::string path = ImGuiFD::GetSelectionPathString(0);
+				benchmarkProgPath = path;
+			}
+			ImGuiFD::CloseCurrentDialog();
+		}
+
+		ImGuiFD::EndDialog();
+	}
 
 #endif
 }
@@ -743,6 +771,13 @@ void ArduEmu::drawAbout(){
 
 	if(ImGui::Begin("About Arduboy_Emulator", &showAbout)) {
 		ImGui::TextUnformatted("TODO");
+		ImGui::Separator();
+		ImGui::TextUnformatted("Build info:");
+		ImGui::Indent();
+			ImGui::Text("Version: %s", AB_VERSION);
+			ImGui::Text("Build date: %s %s", __DATE__, __TIME__);
+			ImGui::Text("Git commit: %s", GIT_COMMIT);
+		ImGui::Unindent();
 	}
 	ImGui::End();
 }

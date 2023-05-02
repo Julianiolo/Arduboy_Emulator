@@ -342,7 +342,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 			}
 		}
 
-		if (ImGui::BeginMenu("Rotate Display")) {
+		if (ImGui::BeginMenu(ADD_ICON(ICON_FA_ARROW_ROTATE_LEFT) "Rotate Display")) {
 			if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ARROW_ROTATE_LEFT,"CCW"))) {
 				displayBackend.rotateCCW();
 			}
@@ -355,7 +355,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 			
 			ImGui::EndMenu();
 		}
-		if (ImGui::MenuItem("Set Colors")) {
+		if (ImGui::MenuItem(ADD_ICON(ICON_FA_PAINT_ROLLER) "Set Colors")) {
 			displayBackend.openSetColorWin();
 		}
 		ImGui::EndMenu();

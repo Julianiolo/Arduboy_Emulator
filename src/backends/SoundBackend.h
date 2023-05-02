@@ -7,14 +7,11 @@
 #include "raylib.h"
 #include "SystemUtils.h"
 
-
 namespace ABB {
     class SoundBackend {
     private:
         AudioStream stream;
-        static constexpr size_t streamBufSize = 4096;
-        std::vector<uint8_t> buffer;
-
+        std::vector<std::vector<uint8_t>> buffer;
     public:
         SoundBackend();
         ~SoundBackend();

@@ -33,15 +33,21 @@ void ABB::MCU::powerOn() {
 	ARDUBOY->mcu.powerOn();
 }
 
-uint64_t ABB::MCU::clockFreq() const {
+uint64_t ABB::MCU::clockFreq() {
 	return A32u4::CPU::ClockFreq;
 }
 uint64_t ABB::MCU::cycsPerFrame() const {
 	return ARDUBOY->cycsPerFrame();
 }
+
+void ABB::MCU::execute(uint64_t amt){
+	ARDUBOY->mcu.execute(amt, ARDUBOY->debug);
+}
+
 void ABB::MCU::newFrame() {
 	ARDUBOY->newFrame();
 }
+
 bool ABB::MCU::getDebugMode() const {
 	return ARDUBOY->debug;
 }

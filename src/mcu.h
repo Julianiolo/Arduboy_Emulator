@@ -46,9 +46,12 @@ namespace ABB {
 		void reset();
 		void powerOn();
 
-		uint64_t clockFreq() const;
+		static uint64_t clockFreq();
 		uint64_t cycsPerFrame() const;
+		
+		void execute(uint64_t amt);
 		void newFrame();
+
 		bool getDebugMode() const;
 		void setDebugMode(bool on);
 		float getEmuSpeed() const;

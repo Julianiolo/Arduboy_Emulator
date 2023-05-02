@@ -8,6 +8,7 @@
 
 #include "backends/ArduboyBackend.h"
 
+#define AB_VERSION "1.0 Alpha"
 
 class ArduEmu {
 public:
@@ -39,6 +40,8 @@ private:
 	static bool fullscreenMenuUsedLastFrame;
 
 	static float rainbowCurrHue;
+
+	static std::string benchmarkProgPath;
 
 
 #if defined(__EMSCRIPTEN__)

@@ -6,11 +6,11 @@
 #if USE_ICONS
 #include "extras/IconsFontAwesome6.h"
 
-#define ADD_ICON(icon) icon " "
-#define ICON_OR_TEXT(icon,text) icon
+#define ADD_ICON(_icon_) _icon_ " "
+#define ICON_OR_TEXT(_icon_,_text_) _icon_
 #else
-#define ADD_ICON(icon) 
-#define ICON_OR_TEXT(icon,text) text
+#define ADD_ICON(_icon_) 
+#define ICON_OR_TEXT(_icon_,_text_) _text_
 #endif
 
 #endif

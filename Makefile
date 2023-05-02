@@ -51,8 +51,10 @@ endif
 # get current dir
 current_dir :=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+GIT_COMMIT := \"$(shell git describe --always --dirty --match 'NOT A TAG')\"
 
 DEF_FLAGS:=$(addprefix -D,$(PLATFORM))
+DEF_FLAGS+= "-DGIT_COMMIT=$(GIT_COMMIT)"
 
 BUILD_MODE_FLAGS:=
 ifeq ($(BUILD_MODE),DEBUG)
