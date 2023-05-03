@@ -15,6 +15,7 @@
 #include "AnalyticsBackend.h"
 #include "CompilerBackend.h"
 #include "SymbolBackend.h"
+#include "SoundBackend.h"
 
 namespace ABB {
 	class ArduboyBackend {
@@ -35,6 +36,7 @@ namespace ABB {
 		AnalyticsBackend analyticsBackend;
 		CompilerBackend compilerBackend;
 		SymbolBackend symbolBackend;
+		SoundBackend soundBackend;
 
 		size_t id;
 

@@ -206,6 +206,7 @@
     <ClCompile Include="..\..\..\..\src\backends\DisplayBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\LogBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\mcuInfoBackend.cpp" />
+    <ClCompile Include="..\..\..\..\src\backends\SoundBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\SymbolBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\bintools\bintools.cpp" />
     <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp" />
@@ -232,6 +233,7 @@
     <ClInclude Include="..\..\..\..\src\backends\DisplayBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\LogBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\mcuInfoBackend.h" />
+    <ClInclude Include="..\..\..\..\src\backends\SoundBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\SymbolBackend.h" />
     <ClInclude Include="..\..\..\..\src\bintools\bintools.h" />
     <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h" />

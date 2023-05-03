@@ -6,17 +6,25 @@
 
 #include "raylib.h"
 #include "SystemUtils.h"
+#include "ringBuffer.h"
 
 namespace ABB {
     class SoundBackend {
     private:
         AudioStream stream;
-        std::vector<std::vector<uint8_t>> buffer;
+        std::vector<std::vector<uint8_t>> buffers;
+        std::vector<uint8_t> lastBuffer;
+        RingBuffer<uint32_t> numConsumed;
+
+        std::string winName;
+        bool* open;
     public:
-        SoundBackend();
+
+        SoundBackend(const char* winName, bool* open);
         ~SoundBackend();
 
         void makeSound(const std::vector<uint8_t>& wave);
+        void draw();
     };
 }
 

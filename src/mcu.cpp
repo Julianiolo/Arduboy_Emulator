@@ -99,13 +99,16 @@ std::vector<uint8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
 
 	std::vector<uint8_t> res(numSamples, 0);
 
-	size_t off = 0;
-	for(auto& sample : ARDUBOY->sound.buffer) {
-		size_t ind = std::round((sample.offset/(double)A32u4::CPU::ClockFreq)*samplesPerSec);
-		if(ind > res.size()) ind = res.size();
+	const auto& buffer = ARDUBOY->sound.buffer;
+	for (size_t i = 0; i < buffer.size(); i++) {
+		const auto& sample = buffer[i];
+		size_t from = std::round((sample.offset/(double)A32u4::CPU::ClockFreq)*samplesPerSec);
+		size_t to = i+1<buffer.size() ? std::round((buffer[i+1].offset / (double)A32u4::CPU::ClockFreq) * samplesPerSec) : buffer.size();
+		from = std::min(from, res.size());
+		to = std::min(to, res.size());
+		if (from > to) from = to;
 		uint8_t val = sample.on ? (sample.isLoud ? 0xFF:0x7F) : 0;
-		std::memset(&res[off], val, ind-val);
-		off = ind;
+		std::memset(&res[from], val, to-from);
 	}
 	ARDUBOY->sound.clearBuffer(ARDUBOY->mcu.cpu.getTotalCycles());
 	return res;

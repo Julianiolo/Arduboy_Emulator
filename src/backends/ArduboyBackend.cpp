@@ -24,6 +24,7 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	analyticsBackend(this,   (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
 	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
 	symbolBackend   (this,   (name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
+	soundBackend    (        (name + " - " ADD_ICON(ICON_FA_VOLUME_HIGH) "Sounds"   ).c_str(), &devToolsOpen),
 	id(id)
 {
 	try {
@@ -40,7 +41,7 @@ ABB::ArduboyBackend::ArduboyBackend(const ArduboyBackend& src):
 mcu(src.mcu),
 name(src.name), devWinName(src.devWinName),
 logBackend(src.logBackend), displayBackend(src.displayBackend), debuggerBackend(src.debuggerBackend),
-mcuInfoBackend(src.mcuInfoBackend), analyticsBackend(src.analyticsBackend), compilerBackend(src.compilerBackend), symbolBackend(src.symbolBackend),
+mcuInfoBackend(src.mcuInfoBackend), analyticsBackend(src.analyticsBackend), compilerBackend(src.compilerBackend), symbolBackend(src.symbolBackend), soundBackend(src.soundBackend),
 id(src.id), fullScreen(src.fullScreen),
 open(src.open), open_try(src.open_try), winFocused(src.winFocused),
 devToolsOpen(src.devToolsOpen), firstFrame(src.firstFrame)
@@ -111,6 +112,7 @@ void ABB::ArduboyBackend::update() {
 	//auto end = std::chrono::high_resolution_clock::now();
 	//printf("%fms\n", (double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
 	
+	soundBackend.makeSound(mcu.genSoundWave(44100));
 
 	displayBackend.update();
 	analyticsBackend.update();
@@ -134,6 +136,7 @@ void ABB::ArduboyBackend::draw() {
 		analyticsBackend.draw();
 		compilerBackend.draw();
 		symbolBackend.draw();
+		soundBackend.draw();
 	}
 
 	displayBackend.drawSetColorWin();

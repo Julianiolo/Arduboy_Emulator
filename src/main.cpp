@@ -126,6 +126,8 @@ void setup() {
         SetWindowResizeDrawCallback(draw);
         SetExitKey(0);
 
+        InitAudioDevice();
+
         auto end = std::chrono::high_resolution_clock::now();
 
         double ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/1000.0;
@@ -254,6 +256,7 @@ void draw() {
 void destroy() {
     rlImGuiShutdown();
     ArduEmu::destroy();
+    CloseAudioDevice();
     CloseWindow();
 }
 

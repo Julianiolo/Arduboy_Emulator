@@ -108,6 +108,9 @@
     <ClCompile Include="..\..\..\..\dependencies\EmuUtils\ElfReader.cpp">
       <Filter>Source Files\EmuUtils</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\backends\SoundBackend.cpp">
+      <Filter>Source Files\backends</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h">
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\dependencies\EmuUtils\ElfReader.h">
       <Filter>Source Files\EmuUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\backends\SoundBackend.h">
+      <Filter>Source Files\backends</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
