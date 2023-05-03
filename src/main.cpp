@@ -165,7 +165,8 @@ void setup() {
 #elif 0
     abb.ab.mcu.loadFromELFFile(ROOTDIR"resources/games/Arduboy3D/Arduboy3D.ino.elf");
 #elif 1
-    abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
+    //abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
+    abb.loadFile(ROOTDIR "resources/games/abSynth.hex");
 #elif 0
     abb.ab.loadFromHexFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.hex");
     abb.ab.mcu.symbolTable.loadFromDumpFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/symbs.asm");
