@@ -100,17 +100,24 @@ std::vector<uint8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
 	const auto getInd = [&](uint64_t offset) { return (size_t)std::round((offset/(double)A32u4::CPU::ClockFreq)*samplesPerSec/ARDUBOY->emulationSpeed); };
 
 	std::vector<uint8_t> res(numSamples, 0x7F);
+	if (res.size() == 0) return res;
 
+	//printf("A\n");
 	const auto& buffer = ARDUBOY->sound.buffer;
+	size_t last = 0;
 	for (size_t i = 0; i < buffer.size(); i++) {
 		const auto& sample = buffer[i];
 		size_t from = getInd(sample.offset);
-		size_t to = i+1<buffer.size() ? getInd(buffer[i+1].offset) : buffer.size();
-		from = std::min(from, res.size());
-		to = std::min(to, res.size());
+		size_t to = i+1<buffer.size() ? getInd(buffer[i+1].offset) : res.size()-1;
+		from = std::min(from, res.size()-1);
+		to = std::min(to, res.size()-1);
+		if (i > 0 && from == last) from++;
 		if (from > to) from = to;
+		if (from == to && to+1 < res.size()) to++;
+		//printf("[%u] %llu-%llu(%llu) [%llu]\n",(int)sample.on, from, to, (to - from), ((i + 1<buffer.size() ? buffer[i + 1].offset : (end - start)) - sample.offset));
 		uint8_t val = sample.on ? (sample.isLoud ? 0xFF:0) : 0x7F;
 		std::memset(&res[from], val, to-from);
+		last = from;
 	}
 	ARDUBOY->sound.clearBuffer(ARDUBOY->mcu.cpu.getTotalCycles());
 	return res;

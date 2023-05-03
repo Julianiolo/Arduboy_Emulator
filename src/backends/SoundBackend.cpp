@@ -3,10 +3,11 @@
 #include "imgui.h"
 
 ABB::SoundBackend::SoundBackend(const char* winName, bool* open) : buffer(samplesPerSec*10), numConsumed(120), winName(winName), open(open){
-    SetAudioStreamBufferSizeDefault(samplesPerSec/60+1);
+    SetAudioStreamBufferSizeDefault(samplesPerSec/60);
     stream = LoadAudioStream(samplesPerSec, 8, 1); // 44100Hz 8Bit
     PlayAudioStream(stream);
     //setEnabled(false);
+    SetAudioStreamVolume(stream, 0.025);
 }
 ABB::SoundBackend::~SoundBackend(){
     UnloadAudioStream(stream);
