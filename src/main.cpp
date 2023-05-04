@@ -5,6 +5,8 @@
 #include <string>
 #include <ctime>
 
+#define IMGUI_DEFINE_MATH_OPERATORS 1
+
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"

@@ -24,7 +24,7 @@ ABB::ArduboyBackend::ArduboyBackend(const char* n, size_t id) :
 	analyticsBackend(this,   (name + " - " ADD_ICON(ICON_FA_CHART_BAR)   "Analytics").c_str(), &devToolsOpen),
 	compilerBackend (this,   (name + " - " ADD_ICON(ICON_FA_HAMMER)      "Compile"  ).c_str(), &devToolsOpen),
 	symbolBackend   (this,   (name + " - " ADD_ICON(ICON_FA_LIST)        "Symbols"  ).c_str(), &devToolsOpen),
-	soundBackend    (        (name + " - " ADD_ICON(ICON_FA_VOLUME_HIGH) "Sounds"   ).c_str(), &devToolsOpen),
+	soundBackend    (        (name + " - " ADD_ICON(ICON_FA_VOLUME_HIGH) "Sound"    ).c_str(), &devToolsOpen),
 	id(id)
 {
 	try {
@@ -420,6 +420,7 @@ void ABB::ArduboyBackend::buildDefaultLayout() {
 
 	ImGui::DockBuilderDockWindow(   mcuInfoBackend.winName.c_str(), l2);
 	ImGui::DockBuilderDockWindow(    symbolBackend.winName.c_str(), l2);
+	ImGui::DockBuilderDockWindow(     soundBackend.winName.c_str(), l2);
 
 	ImGui::DockBuilderDockWindow( analyticsBackend.winName.c_str(), r2);
 	ImGui::DockBuilderDockWindow(  compilerBackend.winName.c_str(), r2);

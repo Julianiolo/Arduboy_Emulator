@@ -2,7 +2,6 @@
 
 #include "raylib.h"
 
-#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui_internal.h"
 
 #include "../Extensions/imguiExt.h"

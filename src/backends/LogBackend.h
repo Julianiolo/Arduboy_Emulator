@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <map>
+
+#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "StringUtils.h"
 #include "../utils/icons.h"

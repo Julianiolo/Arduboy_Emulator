@@ -16,9 +16,10 @@ namespace ABB {
         std::vector<uint8_t> lastBuffer;
         RingBuffer<uint32_t> numConsumed;
 
+        float volume = 0.025f;
+    public:
         std::string winName;
         bool* open;
-    public:
         static constexpr size_t samplesPerSec = 44100;
 
         SoundBackend(const char* winName, bool* open);

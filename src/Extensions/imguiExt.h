@@ -1,8 +1,8 @@
 #ifndef _IMGUI_EXT
 #define _IMGUI_EXT
 
-#include "imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS 1
+#include "imgui.h"
 #include "imgui_internal.h"
 #include "raylib.h"
 #include <string>

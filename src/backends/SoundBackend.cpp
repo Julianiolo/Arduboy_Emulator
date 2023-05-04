@@ -7,7 +7,7 @@ ABB::SoundBackend::SoundBackend(const char* winName, bool* open) : buffer(sample
     stream = LoadAudioStream(samplesPerSec, 8, 1); // 44100Hz 8Bit
     PlayAudioStream(stream);
     //setEnabled(false);
-    SetAudioStreamVolume(stream, 0.025);
+    SetAudioStreamVolume(stream, volume);
 }
 ABB::SoundBackend::~SoundBackend(){
     UnloadAudioStream(stream);
@@ -50,6 +50,17 @@ void ABB::SoundBackend::draw() {
             ImGui::Checkbox("Play Sound", &v);
             if(v != playing)
                 setEnabled(v);
+        }
+
+        ImGui::SameLine();
+
+        {
+            float v = volume;
+            ImGui::SliderFloat("Volume", &v, 0, 1);
+            if(v != volume){
+                volume = v;
+                SetAudioStreamVolume(stream, volume);
+            }
         }
 
         ImGui::PlotLines("Audio data",

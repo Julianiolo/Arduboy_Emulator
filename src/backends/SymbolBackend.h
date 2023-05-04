@@ -1,6 +1,7 @@
 #ifndef __ABB_SYMBOLBACKEND_H__
 #define __ABB_SYMBOLBACKEND_H__
 
+#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "ImGuiFD.h"
 #include "ImGuiFD_internal.h"
