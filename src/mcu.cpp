@@ -95,7 +95,7 @@ std::vector<uint8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
 	uint64_t start = ARDUBOY->sound.bufferStart;
 	uint64_t end = ARDUBOY->mcu.cpu.getTotalCycles();
 	const double dur = ((end-start)/(double)A32u4::CPU::ClockFreq)*ARDUBOY->emulationSpeed;
-	uint32_t numSamples = std::round(dur*samplesPerSec);
+	uint32_t numSamples = (uint32_t)std::round(dur*samplesPerSec);
 
 	const auto getInd = [&](uint64_t offset) { return (size_t)std::round((offset/(double)A32u4::CPU::ClockFreq)*samplesPerSec/ARDUBOY->emulationSpeed); };
 

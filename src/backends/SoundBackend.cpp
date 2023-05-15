@@ -24,9 +24,9 @@ void ABB::SoundBackend::makeSound(const std::vector<uint8_t>& wave){
         for(size_t i = 0; i< lastBuffer.size(); i++) {
             lastBuffer[i] = buffer.get(i);
         }
-        UpdateAudioStream(stream, &lastBuffer[0], lastBuffer.size());
+        UpdateAudioStream(stream, &lastBuffer[0], (int)lastBuffer.size());
         buffer.pop_front(lastBuffer.size());
-        cnt += lastBuffer.size();
+        cnt += (uint32_t)lastBuffer.size();
     }
     numConsumed.add(cnt);
 }

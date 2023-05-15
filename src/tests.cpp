@@ -95,7 +95,7 @@ void benchmark() {
 
     uint64_t id = std::time(0);
 
-    res += StringUtils::format("Arduboy benchmark:\nid=%llu\nsecs=%f\benchFiles=[\n", id, secs);
+    res += StringUtils::format("Arduboy benchmark:\nid=%llu\nsecs=%f\nbenchFiles=[\n", id, secs);
 
     for (size_t i = 0; i < benchFiles.size(); i++) {
         res += StringUtils::format("\t%u: %s,\n",i,benchFiles[i].c_str());
@@ -162,7 +162,7 @@ void benchmark() {
     printf("%s", r.c_str());
     res += r;
 
-    //StringUtils::writeStringToFile(res, (std::to_string(id) + "_benchmark.txt").c_str());
+    StringUtils::writeStringToFile(res, (std::to_string(id) + "_benchmark.txt").c_str());
 }
 
 bool serialisationTest() {
