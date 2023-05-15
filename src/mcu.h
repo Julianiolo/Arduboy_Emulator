@@ -67,7 +67,7 @@ namespace ABB {
 		pc_t getPC() const;
 		addrmcu_t getPCAddr() const;
 
-		std::vector<uint8_t> genSoundWave(uint32_t samplesPerSec);
+		std::vector<int8_t> genSoundWave(uint32_t samplesPerSec);
 
 		// CPU
 		static size_t getRegNum();

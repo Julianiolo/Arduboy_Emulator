@@ -64,7 +64,8 @@ public:
 		Action_Arduboy_Right,
 		Action_Arduboy_A,
 		Action_Arduboy_B,
-		Action_Add_State_Copy
+		Action_Add_State_Copy,
+		Action_Pause
 	};
 	static ActionManager actionManager;
 

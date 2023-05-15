@@ -12,11 +12,18 @@ namespace ABB {
     class SoundBackend {
     private:
         AudioStream stream;
-        RingBuffer<uint8_t> buffer;
-        std::vector<uint8_t> lastBuffer;
+        RingBuffer<int8_t> buffer;
+        std::vector<int8_t> lastBuffer;
+        std::vector<int8_t> lastBufferFiltered;
         RingBuffer<uint32_t> numConsumed;
 
         float volume = 0.025f;
+
+        bool filter = true;
+        float fpos = 0;
+        float fvel = 0;
+        float fdiv = 5;
+        float fdamp = 0.8;
     public:
         std::string winName;
         bool* open;
@@ -28,7 +35,7 @@ namespace ABB {
         bool isPlaying() const;
         void setEnabled(bool enabled);
 
-        void makeSound(const std::vector<uint8_t>& wave);
+        void makeSound(const std::vector<int8_t>& wave);
         void draw();
     };
 }
