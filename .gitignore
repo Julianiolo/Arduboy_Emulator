@@ -24,3 +24,4 @@ benchmark_res/*
 *.stackdump
 *.abs
 *.state
+*.sav

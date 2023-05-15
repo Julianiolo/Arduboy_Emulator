@@ -126,8 +126,18 @@ void ABB::ArduboyBackend::draw() {
 
 	update();
 
-	if(ArduEmu::actionManager.isActionActive(ArduEmu::Action_Add_State_Copy, ActionManager::ActivationState_Pressed))
-		mcuInfoBackend.addState({mcu,symbolTable});
+	if(isWinFocused()) {
+		if(ArduEmu::actionManager.isActionActive(ArduEmu::Action_Pause, ActionManager::ActivationState_Pressed)){
+			if(!mcu.debugger_isHalted()){
+				mcu.debugger_halt();
+			}else{
+				mcu.debugger_continue();
+			}
+		}
+		if(ArduEmu::actionManager.isActionActive(ArduEmu::Action_Add_State_Copy, ActionManager::ActivationState_Pressed))
+			mcuInfoBackend.addState({mcu,symbolTable});
+	}
+
 
 	if (devToolsOpen) {
 		debuggerBackend.draw();

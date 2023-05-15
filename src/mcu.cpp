@@ -91,7 +91,7 @@ ABB::MCU::addrmcu_t ABB::MCU::getPCAddr() const {
 	return ARDUBOY->mcu.cpu.getPCAddr();
 }
 
-std::vector<uint8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
+std::vector<int8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
 	uint64_t start = ARDUBOY->sound.bufferStart;
 	uint64_t end = ARDUBOY->mcu.cpu.getTotalCycles();
 	const double dur = ((end-start)/(double)A32u4::CPU::ClockFreq)*ARDUBOY->emulationSpeed;
@@ -99,7 +99,7 @@ std::vector<uint8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
 
 	const auto getInd = [&](uint64_t offset) { return (size_t)std::round((offset/(double)A32u4::CPU::ClockFreq)*samplesPerSec/ARDUBOY->emulationSpeed); };
 
-	std::vector<uint8_t> res(numSamples, 0x7F);
+	std::vector<int8_t> res(numSamples, 0);
 	if (res.size() == 0) return res;
 
 	//printf("A\n");
@@ -115,7 +115,7 @@ std::vector<uint8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
 		if (from > to) from = to;
 		if (from == to && to+1 < res.size()) to++;
 		//printf("[%u] %llu-%llu(%llu) [%llu]\n",(int)sample.on, from, to, (to - from), ((i + 1<buffer.size() ? buffer[i + 1].offset : (end - start)) - sample.offset));
-		uint8_t val = sample.on ? (sample.isLoud ? 0xFF:0) : 0x7F;
+		int8_t val = sample.on ? (sample.isLoud ? -128:127) : 0;
 		std::memset(&res[from], val, to-from);
 		last = from;
 	}
