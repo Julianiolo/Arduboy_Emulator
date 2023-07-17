@@ -5,7 +5,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "../Extensions/imguiExt.h"
+#include "imgui/imguiExt.h"
 
 #include "ImGuiFD.h"
 

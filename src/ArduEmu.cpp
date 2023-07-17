@@ -17,8 +17,8 @@
 #endif
 
 
-#include "imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS 1
+#include "imgui.h"
 #include "imgui_internal.h"
 
 #define GLFW_INCLUDE_NONE
@@ -26,8 +26,7 @@
 
 #include "ImGuiFD.h"
 
-#include "Extensions/imguiExt.h"
-#include "Extensions/imguiOperators.h"
+#include "imgui/imguiExt.h"
 
 #include "mcu.h"
 

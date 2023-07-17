@@ -7,7 +7,7 @@
 
 #include "../backends/SymbolBackend.h"
 
-#include "../Extensions/imguiExt.h"
+#include "imgui/imguiExt.h"
 #include "StringUtils.h"
 #include "DataUtilsSize.h"
 
@@ -626,9 +626,7 @@ void ABB::utils::HexViewer::drawSettings() {
 	ImGui::Indent();
 	{
 		const char* labels[] = { "LowerCase", "UpperCase" };
-		size_t val = settings.upperCaseHex;
-		ImGuiExt::SelectSwitch(labels, 2, &val);
-		settings.upperCaseHex = val;
+		settings.upperCaseHex = ImGuiExt::SelectSwitch("UpHex",labels, 2, settings.upperCaseHex);
 	}
 	ImGui::Unindent();
 

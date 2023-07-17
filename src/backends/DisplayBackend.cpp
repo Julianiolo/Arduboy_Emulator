@@ -4,12 +4,10 @@
 #include <cstring>
 #include <cmath>
 
-#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui_internal.h"
 
 #include "../rlImGui/rlImGui.h"
-#include "../Extensions/imguiExt.h"
-#include "../Extensions/imguiOperators.h"
+#include "imgui/imguiExt.h"
 
 #include "MathUtils.h"
 #include "DataUtils.h"
@@ -185,7 +183,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 		if (drawBorders) {
-			ImVec4 borderCol = (darkColor.toImGuiCol() + lightColor.toImGuiCol()) / 2;
+			ImVec4 borderCol = (darkColor.toImGuiCol() + lightColor.toImGuiCol()) * 0.5f;
 			ImVec2 pos2 = ImGui::GetItemRectMin();
 			{
 				float xStart = std::ceil(relPosReg.x);

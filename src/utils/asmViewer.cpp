@@ -13,7 +13,7 @@
 #include "../backends/LogBackend.h"
 #include "../backends/SymbolBackend.h"
 
-#include "../Extensions/imguiExt.h"
+#include "imgui/imguiExt.h"
 #include "StringUtils.h"
 #include "DataUtils.h"
 #include "MathUtils.h"

@@ -10,7 +10,7 @@
 
 #include "../ArduEmu.h"
 
-#include "../Extensions/imguiExt.h"
+#include "imgui/imguiExt.h"
 
 #define LU_MODULE "ArduboyBackend"
 #define LU_CONTEXT logBackend.getLogContext()
@@ -395,8 +395,9 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 					break;
 				}
 			}
-			if(ImGuiExt::SelectSwitch((const char**)speedLabels, DU_ARRAYSIZE(speeds), &currVal, {300,0})) {
-				mcu.setEmuSpeed(speeds[currVal]);
+			size_t newVal = ImGuiExt::SelectSwitch("SpeedSel",(const char**)speedLabels, DU_ARRAYSIZE(speeds), currVal, {300,0});
+			if(newVal != currVal) {
+				mcu.setEmuSpeed(speeds[newVal]);
 			}
 			ImGui::EndMenu();
 		}
