@@ -8,7 +8,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "StringUtils.h"
-#include "../utils/icons.h"
+#include "imgui/icons.h"
 
 #include "../mcu.h"
 

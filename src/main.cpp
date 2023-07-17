@@ -16,7 +16,7 @@
 #include "ArduEmu.h"
 #include "backends/LogBackend.h"
 
-#include "utils/icons.h"
+#include "imgui/icons.h"
 
 #if defined(PLATFORM_WEB)
     #include "emscripten.h"

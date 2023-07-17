@@ -36,7 +36,7 @@
 #include "utils/asmViewer.h"
 #include "StringUtils.h"
 
-#include "utils/icons.h"
+#include "imgui/icons.h"
 
 #define LU_MODULE "ArduEmu"
 #define SYS_LOG_MODULE "ArduEmu"

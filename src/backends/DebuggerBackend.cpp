@@ -13,7 +13,7 @@
 
 #include "extras/Disassembler.h"
 
-#include "../utils/icons.h"
+#include "imgui/icons.h"
 #include "StringUtils.h"
 #include "DataUtilsSize.h"
 
