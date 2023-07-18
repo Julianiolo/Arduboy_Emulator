@@ -37,7 +37,11 @@ void ABB::SoundBackend::makeSound(const std::vector<int8_t>& wave){
             lastBufferFiltered.resize(lastBuffer.size());
             for(size_t i = 0; i<lastBufferFiltered.size(); i++) {
                 int8_t v = lastBuffer[i];
-                fvel += ((float)v/2-fpos)/fdiv;
+                float add_raw = ((float)v / 2 - fpos) / fdiv;
+                float add = std::pow(std::abs(add_raw), fpower);
+                if (add_raw < 0) add = -add;
+                fvel += add;
+                fvel = MathUtils::clamp(fvel, -100.0f, 100.0f);
                 fvel *= fdamp;
                 fpos += fvel;
                 fpos = MathUtils::clamp(fpos, -128.0f, 127.0f);
@@ -106,7 +110,9 @@ void ABB::SoundBackend::draw() {
         if(!filter) ImGui::BeginDisabled();
 
         ImGui::DragFloat("Div", &fdiv, 0.01, 0.1, 1000);
-        ImGui::DragFloat("Damp", &fdamp, 0.01, 0, 1);
+        ImGui::DragFloat("Damp", &fdamp, 0.001, 0, 1);
+        ImGui::DragFloat("Pow", &fpower, 0.001, 0, 10);
+        ImGui::Text("pos: %f, vel: %f", fpos, fvel);
         ImGui::PlotLines("Audio data",
             [](void* data, int ind) {
                 auto* buf = (decltype(lastBufferFiltered)*)data;

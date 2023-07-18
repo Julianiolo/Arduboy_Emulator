@@ -209,7 +209,7 @@
     <ClCompile Include="..\..\..\..\src\backends\SoundBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\backends\SymbolBackend.cpp" />
     <ClCompile Include="..\..\..\..\src\bintools\bintools.cpp" />
-    <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp" />
+    <ClCompile Include="..\..\..\..\src\Extensions\imguiExtImpl.cpp" />
     <ClCompile Include="..\..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\..\src\mcu.cpp" />
     <ClCompile Include="..\..\..\..\src\tests.cpp" />
@@ -236,8 +236,6 @@
     <ClInclude Include="..\..\..\..\src\backends\SoundBackend.h" />
     <ClInclude Include="..\..\..\..\src\backends\SymbolBackend.h" />
     <ClInclude Include="..\..\..\..\src\bintools\bintools.h" />
-    <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h" />
-    <ClInclude Include="..\..\..\..\src\Extensions\imguiOperators.h" />
     <ClInclude Include="..\..\..\..\src\mcu.h" />
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h" />
     <ClInclude Include="..\..\..\..\src\utils\asmViewer.h" />

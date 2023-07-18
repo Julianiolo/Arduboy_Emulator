@@ -22,9 +22,6 @@
     <Filter Include="Source Files\backends">
       <UniqueIdentifier>{541c7a0c-1794-4388-95e9-95b1dbd972b5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Extensions">
-      <UniqueIdentifier>{62cbe482-fb41-4339-80ae-036965ab574b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\utils">
       <UniqueIdentifier>{40fb52c6-c594-4ccd-bad2-659ff645f3e0}</UniqueIdentifier>
     </Filter>
@@ -36,6 +33,9 @@
     </Filter>
     <Filter Include="Source Files\EmuUtils">
       <UniqueIdentifier>{4e5c5f09-1a27-4aa3-a1fe-affc28811db4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Extensions">
+      <UniqueIdentifier>{452bcaf5-f83e-431f-973e-2071080c06ac}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -50,9 +50,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\ArduEmu.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\src\Extensions\imguiExt.cpp">
-      <Filter>Source Files\Extensions</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\backends\LogBackend.cpp">
       <Filter>Source Files\backends</Filter>
@@ -111,6 +108,9 @@
     <ClCompile Include="..\..\..\..\src\backends\SoundBackend.cpp">
       <Filter>Source Files\backends</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\Extensions\imguiExtImpl.cpp">
+      <Filter>Source Files\Extensions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h">
@@ -124,9 +124,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\ArduEmu.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\Extensions\imguiExt.h">
-      <Filter>Source Files\Extensions</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\backends\LogBackend.h">
       <Filter>Source Files\backends</Filter>
@@ -154,9 +151,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\utils\icons.h">
       <Filter>Source Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\Extensions\imguiOperators.h">
-      <Filter>Source Files\Extensions</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\backends\CompilerBackend.h">
       <Filter>Source Files\backends</Filter>
