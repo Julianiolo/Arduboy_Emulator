@@ -17,7 +17,7 @@ namespace ABB {
         std::vector<int8_t> lastBufferFiltered;
         RingBuffer<uint32_t> numConsumed;
 
-        float volume = 0.025f;
+        float volume = 0;//0.025f;
 
         bool filter = true;
         float fpos = 0;

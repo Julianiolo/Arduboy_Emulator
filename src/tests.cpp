@@ -87,7 +87,6 @@ void benchmark() {
         ROOTDIR "resources/games/stairssweep/stairssweep.ino.hex",
         ROOTDIR "resources/games/Ardutosh.hex"
     };
-
     
     double secs = 60;
 

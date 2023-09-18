@@ -44,7 +44,7 @@ Vector2 mouseDelta = { 0,0 };
 int test(int argc, char** argv); // from tests.cpp
 
 int main(int argc, char** argv) {
-#if 1
+#if 0
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -160,15 +160,16 @@ void setup() {
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
 #if 0
 
-#elif 0
-    abb.ab.mcu.loadFromHexFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
+#elif 1
+    abb.loadFile(ROOTDIR"resources/games/CastleBoy/CastleBoy.ino.hex");
     abb.debuggerBackend.addSrcFile(ROOTDIR"resources/games/CastleBoy/srcMix.asm");
     //abb.symbolTable.loadFromDumpFile(ROOTDIR"resources/games/CastleBoy/symbs.asm");
 #elif 0
     abb.ab.mcu.loadFromELFFile(ROOTDIR"resources/games/Arduboy3D/Arduboy3D.ino.elf");
 #elif 1
     //abb.loadFromELFFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.elf");
-    abb.loadFile(ROOTDIR "resources/games/abSynth.hex");
+    //abb.loadFile(ROOTDIR "resources/games/abSynth.hex");
+    abb.loadFromELFFile(ROOTDIR "../../Arduboy/abSynth-FM/abSynth-FM.ino.elf");
 #elif 0
     abb.ab.loadFromHexFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/Arduboy3D.ino.hex");
     abb.ab.mcu.symbolTable.loadFromDumpFile("C:/Users/examp/Desktop/Dateien/ArduboyGames/Arduboy3D-master/symbs.asm");

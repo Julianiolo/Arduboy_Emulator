@@ -111,14 +111,14 @@ void ABB::AnalyticsBackend::reset() {
 
 
 float ABB::AnalyticsBackend::getStackSizeBuf(void* data, int ind){
-    RingBuffer<uint16_t>* stackSizeBufPtr = (RingBuffer<uint16_t>*)data;
+    RingBuffer<uint32_t>* stackSizeBufPtr = (decltype(ABB::AnalyticsBackend::StackSizeBuf)*)data;
     if((size_t)ind >= stackSizeBufPtr->size()){
         return 0;
     }
     return stackSizeBufPtr->get(ind);
 }
 float ABB::AnalyticsBackend::getSleepCycsBuf(void* data, int ind){
-    RingBuffer<uint64_t>* sleepCycsBufPtr = (RingBuffer<uint64_t>*)data;
+    RingBuffer<uint32_t>* sleepCycsBufPtr = (decltype(ABB::AnalyticsBackend::StackSizeBuf)*)data;
     if((size_t)ind >= sleepCycsBufPtr->size()){
         return 0;
     }
