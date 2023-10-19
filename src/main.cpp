@@ -44,7 +44,7 @@ Vector2 mouseDelta = { 0,0 };
 int test(int argc, char** argv); // from tests.cpp
 
 int main(int argc, char** argv) {
-#if 0
+#if 1
     setup();
 
 #if defined(PLATFORM_WEB)
@@ -125,7 +125,7 @@ void setup() {
         InitWindow(1200, 800, "ABemu");
 
 
-        SetWindowResizeDrawCallback(draw);
+        //SetWindowResizeDrawCallback(draw);
         SetExitKey(0);
 
         InitAudioDevice();
