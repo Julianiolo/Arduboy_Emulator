@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 #include <vector>
+
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS 1
+#endif
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "raylib.h"
