@@ -32,7 +32,7 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 	if (settings.showBreakpoints) {
-		auto linePC = lineAddr / 2;
+		MCU::pc_t linePC = lineAddr / 2;
 		if (linePC < mcu->programSize()) {
 			bool isAddr = DisasmFile::addrIsActualAddr(lineAddr);
 			bool hasBreakpoint = isAddr && mcu->debugger_getBreakpoint(linePC);
