@@ -14,7 +14,7 @@
 #include "ArduboyBackend.h"
 
 ABB::AnalyticsBackend::AnalyticsBackend(ArduboyBackend* abb, const char* winName, bool* open)
-: abb(abb), StackSizeBuf(100), sleepCycsBuf(100), instHeatOrder(MCU::numInsts), winName(winName), open(open)
+: abb(abb), StackSizeBuf(100), sleepCycsBuf(100), frameTimeBuf(100), instHeatOrder(MCU::numInsts), winName(winName), open(open)
 {
     StackSizeBuf.initTo(0);
     sleepCycsBuf.initTo(0);
@@ -57,6 +57,21 @@ void ABB::AnalyticsBackend::draw(){
             &getSleepCycsBuf, &sleepCycsBuf, (int)sleepCycsBuf.size(), 
             0, NULL, 0, (float)abb->mcu.cycsPerFrame(), {0,70}
         );
+
+        {
+            float max = 1000/60;
+            for(size_t i = 0; i<frameTimeBuf.size(); i++) {
+                float v = frameTimeBuf.get(i);
+                if(max < v) {
+                    max = v;
+                }
+            }
+            ImGui::PlotHistogram("Frame Time",
+                &getFrameTimeBuf, &frameTimeBuf, (int)frameTimeBuf.size(), 
+                0, NULL, 0, max, {0,70}
+            );
+        }
+
 
         if(ImGui::Button("reset PC heat")){
             abb->mcu.analytics_resetPCHeat();
@@ -107,6 +122,7 @@ const char* ABB::AnalyticsBackend::getWinName() const {
 void ABB::AnalyticsBackend::reset() {
     StackSizeBuf.clear();
     sleepCycsBuf.clear();
+    frameTimeBuf.clear();
 }
 
 
@@ -118,11 +134,18 @@ float ABB::AnalyticsBackend::getStackSizeBuf(void* data, int ind){
     return stackSizeBufPtr->get(ind);
 }
 float ABB::AnalyticsBackend::getSleepCycsBuf(void* data, int ind){
-    RingBuffer<uint32_t>* sleepCycsBufPtr = (decltype(ABB::AnalyticsBackend::StackSizeBuf)*)data;
+    RingBuffer<uint32_t>* sleepCycsBufPtr = (decltype(ABB::AnalyticsBackend::sleepCycsBuf)*)data;
     if((size_t)ind >= sleepCycsBufPtr->size()){
         return 0;
     }
     return (float)sleepCycsBufPtr->get(ind);
+}
+float ABB::AnalyticsBackend::getFrameTimeBuf(void* data, int ind){
+    const auto* frameTimeBuf = (decltype(ABB::AnalyticsBackend::frameTimeBuf)*)data;
+    if((size_t)ind >= frameTimeBuf->size()){
+        return 0;
+    }
+    return frameTimeBuf->get(ind);
 }
 
 bool ABB::AnalyticsBackend::isWinFocused() const {

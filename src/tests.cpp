@@ -53,11 +53,11 @@ constexpr std::array<const char*,8*2+7> testFiles = {
 uint64_t benchmark_step(double secs ,const char* gamePath, uint8_t flags) {
     Arduboy ab;
 
-
     if (!ab.mcu.loadFile(gamePath)) {
         printf("couldnt load file\n");
         abort();
     }
+    ab.mcu.setLogCallB([](uint8_t logLevel, const char* msg, const char* fileName , int lineNum, const char* module, void* userData){}, NULL);
     ab.mcu.powerOn();
     ab.updateButtons();
 

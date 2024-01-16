@@ -204,7 +204,7 @@ void ABB::MCU::debugger_clearBreakpoint(sizemcu_t ind) {
 void ABB::MCU::debugger_clearAllBreakpoints() {
 	ARDUBOY->mcu.debugger.clearAllBreakpoints();
 }
-std::set<pc_t> ABB::MCU::debugger_getBreakpointList() const {
+std::unordered_set<pc_t> ABB::MCU::debugger_getBreakpointList() const {
 	return ARDUBOY->mcu.debugger.getBreakpointList();
 }
 bool ABB::MCU::debugger_isHalted() const {

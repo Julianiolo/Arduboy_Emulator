@@ -107,9 +107,10 @@ void ABB::ArduboyBackend::update() {
 		mcu.setButtons(false, false, false, false, false, false);
 	}
 
-	//auto start = std::chrono::high_resolution_clock::now();
+	auto start = std::chrono::high_resolution_clock::now();
 	mcu.newFrame();
-	//auto end = std::chrono::high_resolution_clock::now();
+	auto end = std::chrono::high_resolution_clock::now();
+	analyticsBackend.frameTimeBuf.add((float)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
 	//printf("%fms\n", (double)std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()/1000);
 	
 	soundBackend.makeSound(mcu.genSoundWave(44100));

@@ -8,7 +8,7 @@
 #include <inttypes.h> // for printf
 
 #include <iostream>
-#include <set>
+#include <unordered_set>
 
 #include "../backends/LogBackend.h"
 #include "../backends/SymbolBackend.h"
@@ -432,7 +432,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 		ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator))
 	);
 
-	std::set<size_t> branchRootInds;
+	std::unordered_set<size_t> branchRootInds;
 	{
 		size_t from = file.passingBranchesInds[lineStart];
 		for (size_t c = from; c < file.passingBranchesVec.size(); c++) {

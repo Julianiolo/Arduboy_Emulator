@@ -5,7 +5,7 @@
 #include <string>
 #include <cstdint>
 #include <cinttypes>
-#include <set>
+#include <unordered_set>
 #include <functional>
 
 #include "raylib.h"
@@ -104,7 +104,7 @@ namespace ABB {
 		void debugger_setBreakpoint(sizemcu_t ind);
 		void debugger_clearBreakpoint(sizemcu_t ind);
 		void debugger_clearAllBreakpoints();
-		std::set<pc_t> debugger_getBreakpointList() const;
+		std::unordered_set<pc_t> debugger_getBreakpointList() const;
 
 		bool debugger_isHalted() const;
 		void debugger_halt();

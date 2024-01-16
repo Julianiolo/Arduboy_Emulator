@@ -17,6 +17,7 @@ namespace ABB{
         
         RingBuffer<uint32_t> StackSizeBuf;
         RingBuffer<uint32_t> sleepCycsBuf;
+        RingBuffer<float> frameTimeBuf;
 
         bool winFocused = false;
 
@@ -35,6 +36,7 @@ namespace ABB{
         void reset();
         static float getStackSizeBuf(void* data, int ind);
         static float getSleepCycsBuf(void* data, int ind);
+        static float getFrameTimeBuf(void* data, int ind);
 
         bool isWinFocused() const;
 

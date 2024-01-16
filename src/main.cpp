@@ -44,7 +44,7 @@ Vector2 mouseDelta = { 0,0 };
 int test(int argc, char** argv); // from tests.cpp
 
 int main(int argc, char** argv) {
-#if 1
+#if 0
     setup();
 
 #if defined(PLATFORM_WEB)
