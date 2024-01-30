@@ -109,9 +109,9 @@ void ABB::SoundBackend::draw() {
         ImGui::Checkbox("Filter", &filter);
         if(!filter) ImGui::BeginDisabled();
 
-        ImGui::DragFloat("Div", &fdiv, 0.01, 0.1, 1000);
-        ImGui::DragFloat("Damp", &fdamp, 0.001, 0, 1);
-        ImGui::DragFloat("Pow", &fpower, 0.001, 0, 10);
+        ImGui::DragFloat("Div", &fdiv, 0.01f, 0.1f, 1000);
+        ImGui::DragFloat("Damp", &fdamp, 0.001f, 0, 1);
+        ImGui::DragFloat("Pow", &fpower, 0.001f, 0, 10);
         ImGui::Text("pos: %f, vel: %f", fpos, fvel);
         ImGui::PlotLines("Audio data",
             [](void* data, int ind) {

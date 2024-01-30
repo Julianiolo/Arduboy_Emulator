@@ -24,7 +24,7 @@ namespace ABB {
         float fvel = 0;
 
         float fdiv = 5;
-        float fdamp = 0.8;
+        float fdamp = 0.8f;
         float fpower = 1;
     public:
         std::string winName;

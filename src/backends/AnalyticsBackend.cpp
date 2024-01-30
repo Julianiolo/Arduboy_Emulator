@@ -131,7 +131,7 @@ float ABB::AnalyticsBackend::getStackSizeBuf(void* data, int ind){
     if((size_t)ind >= stackSizeBufPtr->size()){
         return 0;
     }
-    return stackSizeBufPtr->get(ind);
+    return (float)stackSizeBufPtr->get(ind);
 }
 float ABB::AnalyticsBackend::getSleepCycsBuf(void* data, int ind){
     RingBuffer<uint32_t>* sleepCycsBufPtr = (decltype(ABB::AnalyticsBackend::sleepCycsBuf)*)data;

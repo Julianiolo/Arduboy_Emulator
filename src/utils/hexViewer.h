@@ -48,7 +48,6 @@ namespace ABB {
 
 			class EditBytes {
 			private:
-
 				const uint8_t* data;
 				size_t dataLen;
 
