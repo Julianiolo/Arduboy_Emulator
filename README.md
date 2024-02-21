@@ -5,8 +5,7 @@ a currently wip cross platform emulator of the [Arduboy](https://www.arduboy.com
 - Debugger
 - Disassembler
 - Analytics
-  - Sleep analysis
-  - Stack size
+  - Sleep, Stack size
 - Ram/Rom/Eeprom Hex Editor
   - Editable as different data types
 - Support for visualising data through symbols
@@ -20,7 +19,7 @@ Current dependencies are
     - [CPP_Utils](https://github.com/Julianiolo/CPP_Utils)
 - [raylib](https://www.raylib.com/) (Graphics Library)
 - [Dear ImGui](https://github.com/ocornut/imgui) (Gui Library)
-- [rlImGui](https://github.com/Julianiolo/rlImGui) (ImGui Backend for raylib)
+- [rlImGui](https://github.com/Julianiolo/rlImGui) (Dear ImGui Backend for raylib)
 - [ImGuiFD](https://github.com/Julianiolo/ImGuiFD) (File Dialog for Dear ImGui)
 
 ## Building
