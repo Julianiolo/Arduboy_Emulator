@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "../mcu.h"
-#include "StringTable.h"
+#include "comps/StringTable.h"
 
 #include "DisplayBackend.h"
 #include "DebuggerBackend.h"

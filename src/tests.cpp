@@ -236,21 +236,21 @@ bool fuzzTest() {
             ab.newFrame();
             if(ab.mcu.debugger.isHalted()) {
                 worked = false;
-                printf("### Failed on frame %" DU_PRIuSIZE "\n",f);
+                printf("### Failed on frame %" CU_PRIuSIZE "\n",f);
                 break;
             }
         }
         if(worked)
             numWorked++;
     }
-    printf("%" DU_PRIuSIZE "/%" DU_PRIuSIZE " worked\n", numWorked, testFiles.size());
+    printf("%" CU_PRIuSIZE "/%" CU_PRIuSIZE " worked\n", numWorked, testFiles.size());
     return numWorked == testFiles.size();
 }
 
 
 int test(int argc, char** argv) {
-    DU_UNUSED(argc);
-    DU_UNUSED(argv);
+    CU_UNUSED(argc);
+    CU_UNUSED(argv);
     bool worked = true;
     benchmark();
     //worked = serialisationTest() && worked;

@@ -14,11 +14,8 @@
 #include "ArduboyBackend.h"
 
 ABB::AnalyticsBackend::AnalyticsBackend(ArduboyBackend* abb, const char* winName, bool* open)
-: abb(abb), StackSizeBuf(100), sleepCycsBuf(100), frameTimeBuf(100), instHeatOrder(MCU::numInsts), winName(winName), open(open)
+: abb(abb), stackSizeBuf(100, 0), sleepCycsBuf(100, 0), frameTimeBuf(100), instHeatOrder(MCU::numInsts), winName(winName), open(open)
 {
-    StackSizeBuf.initTo(0);
-    sleepCycsBuf.initTo(0);
-
     for(size_t i = 0; i<instHeatOrder.size(); i++){
         instHeatOrder[i] = i;
     }
@@ -28,7 +25,7 @@ void ABB::AnalyticsBackend::update(){
     if(!(abb->mcu.debugger_isHalted() || !abb->mcu.flash_isProgramLoaded())){
         size_t SP = abb->mcu.analytics_getMaxSP();
         abb->mcu.analytics_resetMaxSP();
-        StackSizeBuf.add((uint32_t)(abb->mcu.dataspace_dataSize()-1-SP));
+        stackSizeBuf.add((uint32_t)(abb->mcu.dataspace_dataSize()-1-SP));
 
         sleepCycsBuf.add((uint32_t)abb->mcu.analytics_getSleepSum());
         abb->mcu.analytics_setSleepSum(0);
@@ -40,15 +37,15 @@ void ABB::AnalyticsBackend::draw(){
         winFocused = ImGui::IsWindowFocused();
 
         {
-            MCU::addrmcu_t used = StackSizeBuf.size() > 0 ? StackSizeBuf.last() : 0;
+            MCU::addrmcu_t used = stackSizeBuf.size() > 0 ? stackSizeBuf.last() : 0;
             MCU::addrmcu_t max = (MCU::addrmcu_t)(abb->mcu.dataspace_dataSize() - 1 - abb->symbolTable.getMaxRamAddrEnd());
             ImGui::Text("%.2f%% of suspected Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
-            uint64_t usedSum = std::accumulate(StackSizeBuf.begin(), StackSizeBuf.end(), (uint64_t)0);
-            float avg = StackSizeBuf.size() > 0 ? (float)usedSum / StackSizeBuf.size() : 0; // prevent div by 0
+            uint64_t usedSum = std::accumulate(stackSizeBuf.begin(), stackSizeBuf.end(), (uint64_t)0);
+            float avg = stackSizeBuf.size() > 0 ? (float)usedSum / stackSizeBuf.size() : 0; // prevent div by 0
             ImGui::Text("Average: %.2f%% of suspected Stack used (%.2f/%d)", (avg/(float)max)*100, avg,max);
 
             ImGui::PlotHistogram("Stack Size",
-                &getStackSizeBuf, &StackSizeBuf, (int)StackSizeBuf.size(), 
+                &getStackSizeBuf, &stackSizeBuf, (int)stackSizeBuf.size(), 
                 0, NULL, 0, (float)max, {0,70}
             );
         }
@@ -120,14 +117,14 @@ const char* ABB::AnalyticsBackend::getWinName() const {
 }
 
 void ABB::AnalyticsBackend::reset() {
-    StackSizeBuf.clear();
+    stackSizeBuf.clear();
     sleepCycsBuf.clear();
     frameTimeBuf.clear();
 }
 
 
 float ABB::AnalyticsBackend::getStackSizeBuf(void* data, int ind){
-    RingBuffer<uint32_t>* stackSizeBufPtr = (decltype(ABB::AnalyticsBackend::StackSizeBuf)*)data;
+    RingBuffer<uint32_t>* stackSizeBufPtr = (decltype(ABB::AnalyticsBackend::stackSizeBuf)*)data;
     if((size_t)ind >= stackSizeBufPtr->size()){
         return 0;
     }
@@ -157,7 +154,7 @@ size_t ABB::AnalyticsBackend::sizeBytes() const {
 
     sum += sizeof(abb);
 
-    sum += DataUtils::approxSizeOf(StackSizeBuf);
+    sum += DataUtils::approxSizeOf(stackSizeBuf);
     sum += DataUtils::approxSizeOf(sleepCycsBuf);
 
     sum += sizeof(winFocused);

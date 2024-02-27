@@ -30,7 +30,7 @@ ABB::SymbolBackend::SymbolBackend(ArduboyBackend* abb, const char* winName, bool
 }
 
 std::vector<std::string> ABB::SymbolBackend::demangeSymbols(std::vector<const char*> names, void* userData) {
-    DU_UNUSED(userData);
+    CU_UNUSED(userData);
 	
 	if (BinTools::canDemangle() && names.size() > 0) {
 		std::vector<std::string> demList = BinTools::demangleList(&names[0], names.size());

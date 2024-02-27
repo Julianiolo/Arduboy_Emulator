@@ -4,7 +4,7 @@
 #include "../mcu.h"
 #include "SymbolBackend.h"
 
-#include "ringBuffer.h"
+#include "comps/ringBuffer.h"
 
 namespace ABB{
     class ArduboyBackend;
@@ -15,7 +15,7 @@ namespace ABB{
 
         ArduboyBackend* abb = nullptr;
         
-        RingBuffer<uint32_t> StackSizeBuf;
+        RingBuffer<uint32_t> stackSizeBuf;
         RingBuffer<uint32_t> sleepCycsBuf;
         RingBuffer<float> frameTimeBuf;
 

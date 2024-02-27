@@ -97,7 +97,7 @@ void ABB::DebuggerBackend::drawControls(){
 void ABB::DebuggerBackend::drawDebugStack() {
 	if (ImGui::BeginChild("DebugStack", { 0,80 }, true)) {
 		size_t stackSize = abb->mcu.getStackPtr();
-		ImGui::Text("Stack Size: %" DU_PRIuSIZE, stackSize);
+		ImGui::Text("Stack Size: %" CU_PRIuSIZE, stackSize);
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
 			for (int32_t i = (int32_t)stackSize-1; i >= 0; i--) {
 				ImGui::TableNextRow();
@@ -289,7 +289,7 @@ void ABB::DebuggerBackend::draw() {
 			if(srcMixs.size() > 0){
 				if(srcMixs[selectedSrcMix].selfDisassembled){
 					ImGui::AlignTextToFramePadding();
-					ImGui::Text("Disassembled %" DU_PRIdSIZE " lines", srcMixs[selectedSrcMix].viewer.numOfDisasmLines());
+					ImGui::Text("Disassembled %" CU_PRIuSIZE " lines", srcMixs[selectedSrcMix].viewer.numOfDisasmLines());
 					ImGui::SameLine();
 					if(ImGui::Button("Update with analytics data")) {
 						std::string disasmed = disasmProg();

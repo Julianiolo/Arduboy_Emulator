@@ -490,7 +490,7 @@ void ABB::utils::HexViewer::EditBytes::drawTypeChoose(size_t maxByteLen) {
 		if (!enabled) {
 			ImGui::EndDisabled();
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Can't null-terminate the string, because only %" DU_PRIuSIZE " bytes can be written", maxByteLen);
+				ImGui::SetTooltip("Can't null-terminate the string, because only %" CU_PRIuSIZE " bytes can be written", maxByteLen);
 			}
 		}
 	}
@@ -556,7 +556,7 @@ void ABB::utils::HexViewer::EditBytes::draw() {
 		return;
 
 	if (ImGui::BeginPopup("hexViewEdit")) {
-		ImGui::Text("Edit Value at 0x%" DU_PRIxSIZE, editAddr);
+		ImGui::Text("Edit Value at 0x%" CU_PRIxSIZE, editAddr);
 		ImGui::Separator();
 
 		drawTypeChoose(dataLen-editAddr);

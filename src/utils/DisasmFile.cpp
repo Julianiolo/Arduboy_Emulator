@@ -171,7 +171,7 @@ void ABB::DisasmFile::processBranches() {
 		{
 			double ms = std::chrono::duration_cast<std::chrono::microseconds>(end1 - start1).count()/1000.0;
 			LU_LOGF_(LogUtils::LogLevel_DebugOutput, 
-				"branch comp took: %f ms; %" DU_PRIuSIZE "=>%" DU_PRIuSIZE " [%" DU_PRIuSIZE " bs,%" DU_PRIuSIZE " lines]", 
+				"branch comp took: %f ms; %" CU_PRIuSIZE "=>%" CU_PRIuSIZE " [%" CU_PRIuSIZE " bs,%" CU_PRIuSIZE " lines]", 
 				ms, 
 				passingBranches.size(), passingBranchesVec.size(),
 				branchRoots.size(), lines.size()
@@ -279,7 +279,7 @@ void ABB::DisasmFile::processBranches() {
 			maxBranchDisplayDepth = branchRoots[i].displayDepth;
 	}
 
-	LU_LOGF_(LogUtils::LogLevel_DebugOutput, "branch max Display Depth is %" DU_PRIuSIZE, maxBranchDisplayDepth);
+	LU_LOGF_(LogUtils::LogLevel_DebugOutput, "branch max Display Depth is %" CU_PRIuSIZE, maxBranchDisplayDepth);
 }
 #if 0
 const BitArray<256>& ABB::DisasmFile::processBranchesRecurse(size_t ind, size_t depth) {
@@ -557,7 +557,7 @@ size_t ABB::DisasmFile::sizeBytes() const {
 	sum += DataUtils::approxSizeOf(isLineProgram); // [linenumber] = true if line is part of the program, false if not (like data, empty...)
 	sum += DataUtils::approxSizeOf(labels); // [symbAddress] = linenumber
 
-	sum += DataUtils::approxSizeOf(branchRoots, [](const BranchRoot& v) { DU_UNUSED(v); return sizeof(BranchRoot); });
+	sum += DataUtils::approxSizeOf(branchRoots, [](const BranchRoot& v) { CU_UNUSED(v); return sizeof(BranchRoot); });
 	sum += DataUtils::approxSizeOf(branchRootInds); // [linenumber] = ind to branch root object of this line (-1 if line is not a branchroot)
 
 	sum += DataUtils::approxSizeOf(passingBranchesVec[0]);
