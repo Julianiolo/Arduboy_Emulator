@@ -766,6 +766,51 @@ void ArduEmu::drawKeybindSettings() {
 	}
 }
 
+static void drawAboutCredits() {
+	ImGui::SeparatorText("Credits");
+
+	ImGui::TextUnformatted("Included Librarys:");
+	ImGui::Dummy({0,0});
+
+	struct Entry {
+		const char* name;
+		const char* version;
+		const char* licence;
+		const char* link;
+	};
+	constexpr Entry entrys[] = {
+		{"Arduboy_Emulator_HL",               "-",    "?", "https://github.com/Julianiolo/Arduboy_Emulator_HL"},
+		{"> ATmega32u4_Emulator",             "-",    "?", "https://github.com/Julianiolo/ATmega32u4_Emulator"},
+		{"  > CPP_Utils",                     "-",    "?", "https://github.com/Julianiolo/CPP_Utils"},
+		{"Dear Imgui",              IMGUI_VERSION,  "MIT", "https://github.com/ocornut/imgui"},
+		{"raylib",                 RAYLIB_VERSION, "zlib", "https://www.raylib.com"},
+		{"ImGuiFD",               IMGUIFD_VERSION,  "MIT", "https://github.com/Julianiolo/ImGuiFD"}
+	};
+
+	if(ImGui::BeginTable("Creds", 4, ImGuiTableFlags_SizingFixedFit)) {
+		ImGui::TableSetupColumn("Name");
+		ImGui::TableSetupColumn("Version");
+		ImGui::TableSetupColumn("Licence");
+		ImGui::TableSetupColumn("Link");
+		ImGui::TableHeadersRow();
+
+		for(size_t i = 0; i<DU_ARRAYSIZE(entrys); i++) {
+			const Entry& entry = entrys[i];
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(entry.name);
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(entry.version);
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(entry.licence);
+			ImGui::TableNextColumn();
+			ImGuiExt::Link(entry.link);
+		}
+
+		ImGui::EndTable();
+	}
+}
+
 void ArduEmu::drawAbout(){
 	if(!showAbout) return;
 
@@ -778,6 +823,8 @@ void ArduEmu::drawAbout(){
 			ImGui::Text("Build date: %s %s", __DATE__, __TIME__);
 			ImGui::Text("Git commit: %s", GIT_COMMIT);
 		ImGui::Unindent();
+
+		drawAboutCredits();
 	}
 	ImGui::End();
 }
