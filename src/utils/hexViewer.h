@@ -11,7 +11,7 @@
 #include "imgui_internal.h"
 #include "raylib.h"
 
-#include "../mcu.h"
+#include "../Console.h"
 #include "SymbolTable.h"
 
 #include "DataUtils.h"
@@ -68,7 +68,7 @@ namespace ABB {
 
 			public:
 
-				void openEditPopup(const uint8_t* data, size_t dataLen, MCU::addrmcu_t addr);
+				void openEditPopup(const uint8_t* data, size_t dataLen, Console::addrmcu_t addr);
 				void setEditCallB(DataUtils::EditMemory::SetValueCallB callB, void* userData);
 
 				void draw();

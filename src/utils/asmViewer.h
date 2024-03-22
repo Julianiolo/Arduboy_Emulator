@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-#include "../mcu.h"
+#include "../Console.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
@@ -70,9 +70,9 @@ namespace ABB{
 
             void loadSrc(const char* str, const char* strEnd = NULL);
             void loadDisasmFile(const DisasmFile& file);
-            void drawFile(uint16_t PCAddr, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
+            void drawFile(uint16_t PCAddr, Console* mcu, const EmuUtils::SymbolTable* symbolTable);
             void scrollToLine(size_t line, bool select = false);
-            void scrollToAddr(MCU::addrmcu_t addr, bool select = false);
+            void scrollToAddr(Console::addrmcu_t addr, bool select = false);
 
             size_t numOfDisasmLines();
 
@@ -80,16 +80,16 @@ namespace ABB{
 
             static void drawSettings();
         private:
-            void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
-            void drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
-            void drawInstParams(const char* start, const char* end, const char* instStart, const char* instEnd, const char* addrStart, const char* addrEnd, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable);
+            void drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked, Console* mcu, const EmuUtils::SymbolTable* symbolTable);
+            void drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked, Console* mcu, const EmuUtils::SymbolTable* symbolTable);
+            void drawInstParams(const char* start, const char* end, const char* instStart, const char* instEnd, const char* addrStart, const char* addrEnd, bool* hasAlreadyClicked, Console* mcu, const EmuUtils::SymbolTable* symbolTable);
             void drawSymbolComment(const char* lineStart, const char* lineEnd, const char* symbolStartOff, const char* symbolEndOff, bool* hasAlreadyClicked, const EmuUtils::SymbolTable* symbolTable);
             void drawData(const char* lineStart, const char* lineEnd);
             void drawSymbolLabel(const char* lineStart, const char* lineEnd, const EmuUtils::SymbolTable* symbolTable);
 
             void drawBranchVis(size_t lineStart, size_t lineEnd, const ImVec2& winStartPos, const ImVec2& winSize, float lineXOff, float lineHeight, float firstLineY);
 
-            void decorateScrollBar(uint16_t PCAddr, MCU* mcu);
+            void decorateScrollBar(uint16_t PCAddr, Console* mcu);
 
             void pushFileStyle();
             void popFileStyle();

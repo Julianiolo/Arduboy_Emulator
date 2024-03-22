@@ -27,12 +27,12 @@ ABB::utils::AsmViewer::Settings ABB::utils::AsmViewer::settings;
 ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::syntaxColors;
 const ABB::utils::AsmViewer::SyntaxColors ABB::utils::AsmViewer::defSyntaxColors;
 
-void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable) {
+void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd, size_t line_no, size_t PCAddr, ImRect& lineRect, bool* hasAlreadyClicked, Console* mcu, const EmuUtils::SymbolTable* symbolTable) {
 	auto lineAddr = file.addrs[line_no];
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 	if (settings.showBreakpoints) {
-		MCU::pc_t linePC = lineAddr / 2;
+		Console::pc_t linePC = lineAddr / 2;
 		if (linePC < mcu->programSize()) {
 			bool isAddr = DisasmFile::addrIsActualAddr(lineAddr);
 			bool hasBreakpoint = isAddr && mcu->debugger_getBreakpoint(linePC);
@@ -125,7 +125,7 @@ void ABB::utils::AsmViewer::drawLine(const char* lineStart, const char* lineEnd,
 		selectedLine = line_no;
 	}
 }
-void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable) {
+void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd, bool* hasAlreadyClicked, Console* mcu, const EmuUtils::SymbolTable* symbolTable) {
 	constexpr size_t instBytesStart = DisasmFile::FileConsts::instBytesStart;
 	constexpr size_t instBytesEnd = DisasmFile::FileConsts::instBytesEnd;
 
@@ -148,7 +148,7 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 					(	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3+3, 2) << 8);
 		}
 		popFileStyle();
-		ImGui::SetTooltip("%s",MCU::disassembler_disassembleRaw(word, word2).c_str());
+		ImGui::SetTooltip("%s",Console::disassembler_disassembleRaw(word, word2).c_str());
 		pushFileStyle();
 	}
 	ImGui::SameLine();
@@ -195,7 +195,7 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 		}
 	}
 }
-void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end, const char* instStart, const char* instEnd, const char* addrStart, const char* addrEnd, bool* hasAlreadyClicked, MCU* mcu, const EmuUtils::SymbolTable* symbolTable) {
+void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end, const char* instStart, const char* instEnd, const char* addrStart, const char* addrEnd, bool* hasAlreadyClicked, Console* mcu, const EmuUtils::SymbolTable* symbolTable) {
 	float xOff = ImGui::GetCursorPosX();
 
 	size_t paramCnt = 1;
@@ -228,7 +228,7 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end, c
 
 				auto info = mcu->getParamInfo(param.c_str(), param.c_str() + param.size(), instStart, instEnd, addr);
 				switch (info.type) {
-					case MCU::ParamType_Register:
+					case Console::ParamType_Register:
 					{
 						ImGui::BeginTooltip();
 
@@ -238,17 +238,17 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end, c
 						break;
 					}
 
-					case MCU::ParamType_RamAddr: // fallthrough
-					case MCU::ParamType_RamAddrRegister:
-					case MCU::ParamType_RomAddr:
-					case MCU::ParamType_RomAddrRegister:
+					case Console::ParamType_RamAddr: // fallthrough
+					case Console::ParamType_RamAddrRegister:
+					case Console::ParamType_RomAddr:
+					case Console::ParamType_RomAddrRegister:
 					{
 						ImGui::BeginTooltip();
 
 						auto addr = info.val;
 						ImGui::Text("0x%04x => %u", addr, addr);
 
-						bool isRam = info.type == MCU::ParamType_RamAddr || info.type == MCU::ParamType_RamAddrRegister;
+						bool isRam = info.type == Console::ParamType_RamAddr || info.type == Console::ParamType_RamAddrRegister;
 
 						const EmuUtils::SymbolTable::Symbol* symbol = symbolTable->getSymbolByValue(addr, isRam ? symbolTable->getSymbolsRam() : symbolTable->getSymbolsRom());
 						if (symbol) {
@@ -260,7 +260,7 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end, c
 						break;
 					}
 
-					case MCU::ParamType_Literal:
+					case Console::ParamType_Literal:
 					{
 						ImGui::BeginTooltip();
 						ImGui::Text("%s => %u", param.c_str(), info.val);
@@ -277,7 +277,7 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end, c
 					
 					if (!*hasAlreadyClicked && ImGui::IsItemClicked()) {
 						*hasAlreadyClicked = true;
-						if (info.type == MCU::ParamType_RomAddr || info.type == MCU::ParamType_RomAddrRegister) {
+						if (info.type == Console::ParamType_RomAddr || info.type == Console::ParamType_RomAddrRegister) {
 							scrollToAddr(info.val, true);
 						}
 					}
@@ -359,12 +359,12 @@ void ABB::utils::AsmViewer::drawSymbolComment(const char* lineStart, const char*
 			const std::string symbolName = std::string(symbolNameStartOff, symbolNameEndOff);
 			const auto* symbol = symbolTable->getSymbolByName(symbolName);
 			if (symbol) {
-				auto res = file.labels.find((MCU::addrmcu_t)symbol->value);
+				auto res = file.labels.find((Console::addrmcu_t)symbol->value);
 				if (res != file.labels.end()) {
 					if (io.KeyShift && hasOffset) {
 						size_t off = (size_t)StringUtils::numStrToUInt<size_t>(symbolNameEndOff + 1, symbolEndOff - 1);
 						if (off != (size_t)-1)
-							selectedLine = file.getLineIndFromAddr((MCU::addrmcu_t)(symbol->value + off));
+							selectedLine = file.getLineIndFromAddr((Console::addrmcu_t)(symbol->value + off));
 						else
 							selectedLine = res->second;
 					}
@@ -552,7 +552,7 @@ void ABB::utils::AsmViewer::drawBranchVis(size_t lineStart, size_t lineEnd, cons
 			);
 	}
 }
-void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr, MCU* mcu, const EmuUtils::SymbolTable* symbolTable) {
+void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr, Console* mcu, const EmuUtils::SymbolTable* symbolTable) {
 	if(file.isEmpty())
 		return;
 
@@ -643,7 +643,7 @@ void ABB::utils::AsmViewer::drawFile(uint16_t PCAddr, MCU* mcu, const EmuUtils::
 	popFileStyle();
 }
 
-void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr, MCU* mcu) {
+void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr, Console* mcu) {
 	ImGuiWindow* win = ImGui::GetCurrentWindow();
 	if (win->ScrollbarY) {
 		ImGui::PushClipRect(win->OuterRectClipped.Min, win->OuterRectClipped.Max, false);
@@ -661,14 +661,14 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr, MCU* mcu) {
 				if(chunkEnd >= file.getNumLines())
 					chunkEnd = file.getNumLines()-1;
 
-				MCU::addrmcu_t startAddr = file.getNextActualAddr(lastChunkEnd);
-				MCU::addrmcu_t endAddr = file.getPrevActualAddr(chunkEnd);
+				Console::addrmcu_t startAddr = file.getNextActualAddr(lastChunkEnd);
+				Console::addrmcu_t endAddr = file.getPrevActualAddr(chunkEnd);
 
 				if (endAddr > mcu->flash_size())
-					endAddr = (MCU::addrmcu_t)mcu->flash_size();
+					endAddr = (Console::addrmcu_t)mcu->flash_size();
 				
 				uint64_t sum = 0;
-				for(MCU::pc_t j = startAddr/2; j<endAddr/2;j++){
+				for(Console::pc_t j = startAddr/2; j<endAddr/2;j++){
 					sum += mcu->analytics_getPCHeat(j);
 				}
 
@@ -717,7 +717,7 @@ void ABB::utils::AsmViewer::scrollToLine(size_t line, bool select) {
 	if (select)
 		selectedLine = line;
 }
-void ABB::utils::AsmViewer::scrollToAddr(MCU::addrmcu_t addr, bool select) {
+void ABB::utils::AsmViewer::scrollToAddr(Console::addrmcu_t addr, bool select) {
 	size_t line = file.getLineIndFromAddr(addr);
 
 	if (line != (size_t)-1) {

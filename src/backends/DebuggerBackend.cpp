@@ -356,7 +356,7 @@ std::string ABB::DebuggerBackend::disasmProg() {
 			while (ind < seeds.size() && i > seeds[ind])
 				ind++;
 
-			if (abb->mcu.analytics_getPCHeat((MCU::pc_t)(i/2)) && (ind >= seeds.size() || seeds[ind] != i)) {
+			if (abb->mcu.analytics_getPCHeat((Console::pc_t)(i/2)) && (ind >= seeds.size() || seeds[ind] != i)) {
 				seeds.insert(seeds.begin() + ind, (uint32_t)i);
 			}
 		}

@@ -68,7 +68,7 @@ void ABB::DisasmFile::addAddrToList(const char* start, const char* end, size_t l
 
 	if (addr == Addrs_symbolLabel) {
 		// should never be bigger than 2 bytes
-		MCU::addrmcu_t symbAddr = (MCU::addrmcu_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
+		Console::addrmcu_t symbAddr = (Console::addrmcu_t)StringUtils::hexStrToUIntLen<uint64_t>(start, 8);
 		labels[symbAddr] = lineInd-1;
 	}
 }
@@ -87,9 +87,9 @@ void ABB::DisasmFile::processBranches() {
 			if (!isLineProgram[i])
 				continue;
 
-			MCU::addrmcu_t addr = addrs[i];
+			Console::addrmcu_t addr = addrs[i];
 			if (addr != Addrs_notAnAddr && addr != Addrs_symbolLabel) {
-				MCU::addrmcu_t dest;
+				Console::addrmcu_t dest;
 				// get dest address
 				{
 					const char* lineStart = content.c_str() + lines[i];
@@ -103,8 +103,8 @@ void ABB::DisasmFile::processBranches() {
 							( StringUtils::hexStrToUIntLen<uint16_t>(lineStart+FileConsts::instBytesStart+3+3+3, 2) << 8);
 					}
 
-					MCU::pc_t destPC = MCU::disassembler_getJumpDests(word,word2,addr/2);
-					if (destPC == (MCU::pc_t)-1)
+					Console::pc_t destPC = Console::disassembler_getJumpDests(word,word2,addr/2);
+					if (destPC == (Console::pc_t)-1)
 						continue; // instruction doesn't jump anywhere
 					dest = destPC * 2;
 				}
@@ -414,24 +414,24 @@ void ABB::DisasmFile::processContent() {
 	processBranches();
 
 	for (size_t i = 0; i < lines.size(); i++) {
-		MCU::addrmcu_t addr = addrs[i];
+		Console::addrmcu_t addr = addrs[i];
 		if (addr != Addrs_notAnAddr && addr != Addrs_symbolLabel) {
 
 		}
 	}
 }
 
-bool ABB::DisasmFile::addrIsActualAddr(MCU::addrmcu_t addr) {
+bool ABB::DisasmFile::addrIsActualAddr(Console::addrmcu_t addr) {
 	return addr != Addrs_notAnAddr && addr != Addrs_symbolLabel;
 }
-bool ABB::DisasmFile::addrIsNotProgram(MCU::addrmcu_t addr) {
+bool ABB::DisasmFile::addrIsNotProgram(Console::addrmcu_t addr) {
 	return addr == Addrs_notAnAddr;
 }
-bool ABB::DisasmFile::addrIsSymbol(MCU::addrmcu_t addr) {
+bool ABB::DisasmFile::addrIsSymbol(Console::addrmcu_t addr) {
 	return addr == Addrs_symbolLabel;
 }
 
-size_t ABB::DisasmFile::getLineIndFromAddr(MCU::addrmcu_t Addr) const{
+size_t ABB::DisasmFile::getLineIndFromAddr(Console::addrmcu_t Addr) const{
 	if(isEmpty())
 		return -1;
 
@@ -509,7 +509,7 @@ size_t ABB::DisasmFile::getNumLines() const {
 
 
 
-ABB::MCU::addrmcu_t ABB::DisasmFile::getPrevActualAddr(size_t line) const {
+ABB::Console::addrmcu_t ABB::DisasmFile::getPrevActualAddr(size_t line) const {
 	if (addrs.size() == 0)
 		return 0;
 
@@ -526,7 +526,7 @@ ABB::MCU::addrmcu_t ABB::DisasmFile::getPrevActualAddr(size_t line) const {
 	}
 	return 0;
 }
-ABB::MCU::addrmcu_t ABB::DisasmFile::getNextActualAddr(size_t line) const {
+ABB::Console::addrmcu_t ABB::DisasmFile::getNextActualAddr(size_t line) const {
 	const size_t line_orig = line;
 	while (line < lines.size()) {
 		if (addrIsActualAddr(addrs[line]))

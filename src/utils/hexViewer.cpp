@@ -264,7 +264,7 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, const EmuU
 				}
 				else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
 					if (eb.canEdit()) {
-						eb.openEditPopup(data, dataLen, (MCU::addrmcu_t)addrOff);
+						eb.openEditPopup(data, dataLen, (Console::addrmcu_t)addrOff);
 					}
 				}
 
@@ -375,7 +375,7 @@ bool ABB::utils::HexViewer::EditBytes::canEdit() const {
 	return setValueCallB != nullptr;
 }
 
-void ABB::utils::HexViewer::EditBytes::openEditPopup(const uint8_t* data_, size_t dataLen_, MCU::addrmcu_t addr) {
+void ABB::utils::HexViewer::EditBytes::openEditPopup(const uint8_t* data_, size_t dataLen_, Console::addrmcu_t addr) {
 	ImGui::OpenPopup("hexViewEdit");
 
 	data = data_;

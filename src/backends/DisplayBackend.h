@@ -4,7 +4,7 @@
 #include "raylib.h"
 #define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
-#include "../mcu.h"
+#include "../Console.h"
 
 namespace ABB {
 	class DisplayBackend {
@@ -12,7 +12,7 @@ namespace ABB {
 		friend class ArduboyBackend;
 
 		std::string name;
-		MCU* mcu;
+		Console* mcu;
 
 		Texture2D displayTex;
 		Image displayImg;
@@ -39,7 +39,7 @@ namespace ABB {
 		bool setColorWinOpen = false;
 	public:
 
-		DisplayBackend(MCU* mcu, const char* name);
+		DisplayBackend(Console* mcu, const char* name);
 		~DisplayBackend();
 
 		void update();

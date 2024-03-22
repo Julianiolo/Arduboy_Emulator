@@ -1,4 +1,4 @@
-#include "mcu.h"
+#include "Console.h"
 
 #include "Arduboy.h"
 #include "extras/Disassembler.h"
@@ -9,58 +9,58 @@
 
 #define ARDUBOY ((Arduboy*)data)
 
-ABB::MCU::MCU() : data(new Arduboy()) {
+ABB::Console::Console() : data(new Arduboy()) {
 	ARDUBOY->mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	setDebugMode(true);
 }
-ABB::MCU::MCU(const MCU& src) : data(new Arduboy(*((Arduboy*)src.data))) {
+ABB::Console::Console(const Console& src) : data(new Arduboy(*((Arduboy*)src.data))) {
 	ARDUBOY->mcu.debugger.debugOutputMode = A32u4::Debugger::OutputMode_Passthrough;
 	setDebugMode(true);
 }
-ABB::MCU::~MCU() {
+ABB::Console::~Console() {
 	delete ARDUBOY;
 }
 
-ABB::MCU& ABB::MCU::operator=(const MCU& other){
+ABB::Console& ABB::Console::operator=(const Console& other){
 	(*ARDUBOY) = *((Arduboy*)other.data);
 	return *this;
 }
 
-void ABB::MCU::reset() {
+void ABB::Console::reset() {
 	ARDUBOY->reset();
 }
-void ABB::MCU::powerOn() {
+void ABB::Console::powerOn() {
 	ARDUBOY->mcu.powerOn();
 }
 
-uint64_t ABB::MCU::clockFreq() {
+uint64_t ABB::Console::clockFreq() {
 	return A32u4::CPU::ClockFreq;
 }
-uint64_t ABB::MCU::cycsPerFrame() const {
+uint64_t ABB::Console::cycsPerFrame() const {
 	return ARDUBOY->cycsPerFrame();
 }
 
-void ABB::MCU::execute(uint64_t amt){
+void ABB::Console::execute(uint64_t amt){
 	ARDUBOY->mcu.execute(amt, ARDUBOY->debug);
 }
 
-void ABB::MCU::newFrame() {
+void ABB::Console::newFrame() {
 	ARDUBOY->newFrame();
 }
 
-bool ABB::MCU::getDebugMode() const {
+bool ABB::Console::getDebugMode() const {
 	return ARDUBOY->debug;
 }
-void ABB::MCU::setDebugMode(bool on) {
+void ABB::Console::setDebugMode(bool on) {
 	ARDUBOY->debug = on;
 }
-float ABB::MCU::getEmuSpeed() const {
+float ABB::Console::getEmuSpeed() const {
 	return ARDUBOY->emulationSpeed;
 }
-void ABB::MCU::setEmuSpeed(float v) {
+void ABB::Console::setEmuSpeed(float v) {
 	ARDUBOY->emulationSpeed = v;
 }
-void ABB::MCU::setButtons(bool up, bool down, bool left, bool right, bool a, bool b) {
+void ABB::Console::setButtons(bool up, bool down, bool left, bool right, bool a, bool b) {
 	ARDUBOY->buttonState = 0;
 
 	ARDUBOY->buttonState |= up << Arduboy::Button_Up_Bit;
@@ -72,26 +72,26 @@ void ABB::MCU::setButtons(bool up, bool down, bool left, bool right, bool a, boo
 }
 
 
-Color ABB::MCU::display_getPixel(size_t x, size_t y) const {
+Color ABB::Console::display_getPixel(size_t x, size_t y) const {
 	return ARDUBOY->display.getPixel((uint8_t)x, (uint8_t)y) ? WHITE : BLACK;
 }
 
-void ABB::MCU::setLogCallB(LogUtils::LogCallB callB, void* userData) {
+void ABB::Console::setLogCallB(LogUtils::LogCallB callB, void* userData) {
 	ARDUBOY->mcu.setLogCallB(callB, userData);
 }
 
 
-uint64_t ABB::MCU::totalCycles() const {
+uint64_t ABB::Console::totalCycles() const {
 	return ARDUBOY->mcu.cpu.getTotalCycles();
 }
-ABB::MCU::pc_t ABB::MCU::getPC() const {
+ABB::Console::pc_t ABB::Console::getPC() const {
 	return ARDUBOY->mcu.cpu.getPC();
 }
-ABB::MCU::addrmcu_t ABB::MCU::getPCAddr() const {
+ABB::Console::addrmcu_t ABB::Console::getPCAddr() const {
 	return ARDUBOY->mcu.cpu.getPCAddr();
 }
 
-std::vector<int8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
+std::vector<int8_t> ABB::Console::genSoundWave(uint32_t samplesPerSec){
 	uint64_t start = ARDUBOY->sound.bufferStart;
 	uint64_t end = ARDUBOY->mcu.cpu.getTotalCycles();
 	const double dur = ((end-start)/(double)A32u4::CPU::ClockFreq)*ARDUBOY->emulationSpeed;
@@ -124,10 +124,10 @@ std::vector<int8_t> ABB::MCU::genSoundWave(uint32_t samplesPerSec){
 }
 
 
-size_t ABB::MCU::getRegNum() {
+size_t ABB::Console::getRegNum() {
 	return A32u4::DataSpace::Consts::GPRs_size;
 }
-std::pair<const char*, ABB::MCU::reg_t> ABB::MCU::getReg(size_t ind) const {
+std::pair<const char*, ABB::Console::reg_t> ABB::Console::getReg(size_t ind) const {
 	constexpr const char* names[] = {
 		 "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", 
 		 "R8", "R9","R10","R11","R12","R13","R14","R15",
@@ -138,41 +138,41 @@ std::pair<const char*, ABB::MCU::reg_t> ABB::MCU::getReg(size_t ind) const {
 	return {names[ind], ARDUBOY->mcu.dataspace.getGPReg((regind_t)ind)};
 }
 
-const char* ABB::MCU::getInstName(size_t ind) {
+const char* ABB::Console::getInstName(size_t ind) {
 	return A32u4::InstHandler::instList[ind].name;
 }
 
-const uint8_t* ABB::MCU::dataspace_getData() {
+const uint8_t* ABB::Console::dataspace_getData() {
 	return ARDUBOY->mcu.dataspace.getData();
 }
-size_t ABB::MCU::dataspace_dataSize() {
+size_t ABB::Console::dataspace_dataSize() {
 	return A32u4::DataSpace::Consts::data_size;
 }
 
 
-bool ABB::MCU::flash_loadFromMemory(const uint8_t* data_, size_t dataLen) {
+bool ABB::Console::flash_loadFromMemory(const uint8_t* data_, size_t dataLen) {
 	return ARDUBOY->mcu.flash.loadFromMemory(data_, dataLen);
 }
-const uint8_t* ABB::MCU::flash_getData() {
+const uint8_t* ABB::Console::flash_getData() {
 	return ARDUBOY->mcu.flash.getData();
 }
-size_t ABB::MCU::flash_size() const {
+size_t ABB::Console::flash_size() const {
 	return ARDUBOY->mcu.flash.size();
 }
-bool ABB::MCU::flash_isProgramLoaded() const {
+bool ABB::Console::flash_isProgramLoaded() const {
 	return ARDUBOY->mcu.flash.isProgramLoaded();
 }
-size_t ABB::MCU::programSize() const {
+size_t ABB::Console::programSize() const {
 	return ARDUBOY->mcu.flash.sizeWords();
 }
 
-ABB::MCU::pc_t ABB::MCU::disassembler_getJumpDests(uint16_t word, uint16_t word2, pc_t pc) {
+ABB::Console::pc_t ABB::Console::disassembler_getJumpDests(uint16_t word, uint16_t word2, pc_t pc) {
 	return A32u4::Disassembler::getJumpDests(word, word2, pc);
 }
-std::string ABB::MCU::disassembler_disassembleRaw(uint16_t word, uint16_t word2) {
+std::string ABB::Console::disassembler_disassembleRaw(uint16_t word, uint16_t word2) {
 	return A32u4::Disassembler::disassembleRaw(word, word2);
 }
-std::string ABB::MCU::disassembler_disassembleProg(
+std::string ABB::Console::disassembler_disassembleProg(
 	const std::vector<std::pair<uint32_t, std::string>>* srcLines,
 	const std::vector<std::pair<uint32_t, std::string>>* funcSymbs,
 	const std::vector<std::tuple<std::string, uint32_t, uint32_t>>* dataSymbs,
@@ -192,67 +192,67 @@ std::string ABB::MCU::disassembler_disassembleProg(
 }
 
 
-uint8_t ABB::MCU::debugger_getBreakpoint(sizemcu_t ind) const {
+uint8_t ABB::Console::debugger_getBreakpoint(sizemcu_t ind) const {
 	return ARDUBOY->mcu.debugger.getBreakpoints()[ind];
 }
-void ABB::MCU::debugger_setBreakpoint(sizemcu_t ind) {
+void ABB::Console::debugger_setBreakpoint(sizemcu_t ind) {
 	ARDUBOY->mcu.debugger.setBreakpoint(ind);
 }
-void ABB::MCU::debugger_clearBreakpoint(sizemcu_t ind) {
+void ABB::Console::debugger_clearBreakpoint(sizemcu_t ind) {
 	ARDUBOY->mcu.debugger.clearBreakpoint(ind);
 }
-void ABB::MCU::debugger_clearAllBreakpoints() {
+void ABB::Console::debugger_clearAllBreakpoints() {
 	ARDUBOY->mcu.debugger.clearAllBreakpoints();
 }
-std::unordered_set<pc_t> ABB::MCU::debugger_getBreakpointList() const {
+std::unordered_set<pc_t> ABB::Console::debugger_getBreakpointList() const {
 	return ARDUBOY->mcu.debugger.getBreakpointList();
 }
-bool ABB::MCU::debugger_isHalted() const {
+bool ABB::Console::debugger_isHalted() const {
 	return ARDUBOY->mcu.debugger.isHalted();
 }
-void ABB::MCU::debugger_halt() {
+void ABB::Console::debugger_halt() {
 	ARDUBOY->mcu.debugger.halt();
 }
-void ABB::MCU::debugger_step() {
+void ABB::Console::debugger_step() {
 	ARDUBOY->mcu.debugger.step();
 }
-void ABB::MCU::debugger_continue() {
+void ABB::Console::debugger_continue() {
 	ARDUBOY->mcu.debugger.continue_();
 }
 
-size_t ABB::MCU::getStackPtr() const {
+size_t ABB::Console::getStackPtr() const {
 	return ARDUBOY->mcu.debugger.getCallStackPointer();
 }
-pc_t ABB::MCU::getStackTo(size_t ind) const {
+pc_t ABB::Console::getStackTo(size_t ind) const {
 	return ARDUBOY->mcu.debugger.getStackPCAt((uint8_t)ind);
 }
-pc_t ABB::MCU::getStackFrom(size_t ind) const {
+pc_t ABB::Console::getStackFrom(size_t ind) const {
 	return ARDUBOY->mcu.debugger.getStackFromPCAt((uint8_t)ind);
 }
 
-sizemcu_t ABB::MCU::analytics_getMaxSP() const {
+sizemcu_t ABB::Console::analytics_getMaxSP() const {
 	return ARDUBOY->mcu.analytics.maxSP;
 }
-void ABB::MCU::analytics_resetMaxSP() {
+void ABB::Console::analytics_resetMaxSP() {
 	ARDUBOY->mcu.analytics.maxSP = 0xFFFF;
 }
-uint64_t ABB::MCU::analytics_getSleepSum() const {
+uint64_t ABB::Console::analytics_getSleepSum() const {
 	return ARDUBOY->mcu.analytics.sleepSum;
 }
-void ABB::MCU::analytics_setSleepSum(uint64_t val) {
+void ABB::Console::analytics_setSleepSum(uint64_t val) {
 	ARDUBOY->mcu.analytics.sleepSum = val;
 }
-void ABB::MCU::analytics_resetPCHeat() {
+void ABB::Console::analytics_resetPCHeat() {
 	ARDUBOY->mcu.analytics.resetPCCnt();
 }
-uint64_t ABB::MCU::analytics_getPCHeat(pc_t pc) const {
+uint64_t ABB::Console::analytics_getPCHeat(pc_t pc) const {
 	return ARDUBOY->mcu.analytics.getPCCntRaw()[pc];
 }
-uint64_t ABB::MCU::analytics_getInstHeat(size_t ind) const {
+uint64_t ABB::Console::analytics_getInstHeat(size_t ind) const {
 	return ARDUBOY->mcu.analytics.getInstHeat()[ind];
 }
 
-ABB::MCU::ParamInfo ABB::MCU::getParamInfo(const char* start, const char* end, const char* instStart, const char* instEnd, uint32_t pcAddr) const {
+ABB::Console::ParamInfo ABB::Console::getParamInfo(const char* start, const char* end, const char* instStart, const char* instEnd, uint32_t pcAddr) const {
 	size_t len = end - start;
 
 	switch (start[0]) {
@@ -347,7 +347,7 @@ ABB::MCU::ParamInfo ABB::MCU::getParamInfo(const char* start, const char* end, c
 
 	return { ParamType_None, 0 };
 }
-void ABB::MCU::draw_stateInfo() const {
+void ABB::Console::draw_stateInfo() const {
 	uint8_t sreg_val = ARDUBOY->mcu.dataspace.getDataByte(A32u4::DataSpace::Consts::SREG);
 	constexpr const char* bitNames[] = {"I","T","H","S","V","N","Z","C"};
 	ImGui::TextUnformatted("SREG");
@@ -371,10 +371,10 @@ dataspaceEEPROMHex(abb->ab.mcu.dataspace.getEEPROM(), A32u4::DataSpace::Consts::
 flashHex(abb->ab.mcu.flash.getData(), A32u4::Flash::sizeMax, &abb->ab.mcu, utils::HexViewer::DataType_Rom),
 */
 
-size_t ABB::MCU::numHexViewers() const {
+size_t ABB::Console::numHexViewers() const {
 	return 3;
 }
-ABB::MCU::Hex ABB::MCU::getHexViewer(size_t ind) const {
+ABB::Console::Hex ABB::Console::getHexViewer(size_t ind) const {
 	DU_ASSERT(ind < 3);
 
 	switch (ind) {
@@ -414,14 +414,14 @@ ABB::MCU::Hex ABB::MCU::getHexViewer(size_t ind) const {
 	abort();
 }
 
-void ABB::MCU::getState(std::ostream& output) const {
+void ABB::Console::getState(std::ostream& output) const {
 	ARDUBOY->getState(output);
 }
-void ABB::MCU::setState(std::istream& input) {
+void ABB::Console::setState(std::istream& input) {
 	ARDUBOY->setState(input);
 }
 
-size_t ABB::MCU::sizeBytes() const {
+size_t ABB::Console::sizeBytes() const {
 	return ARDUBOY->sizeBytes();
 }
 

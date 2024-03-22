@@ -28,7 +28,7 @@
 
 #include "imgui/imguiExt.h"
 
-#include "mcu.h"
+#include "Console.h"
 
 #include "backends/LogBackend.h"
 
@@ -285,7 +285,7 @@ void ArduEmu::drawBenchmark(){
 			ImGuiFD::OpenDialog("Load Benchmark Programm", ImGuiFDMode_LoadFile, ".");
 		}
 
-		uint64_t benchCycls = (ABB::MCU::clockFreq()/60)*1000;
+		uint64_t benchCycls = (ABB::Console::clockFreq()/60)*1000;
 		constexpr uint64_t min = 0;
 		ImGui::DragScalar("##cycs",ImGuiDataType_U64, &benchCycls, 1000, &min);
 		ImGui::SameLine();
@@ -303,7 +303,7 @@ void ArduEmu::drawBenchmark(){
 
 		static std::string res = "";
 		if(ImGui::Button("Do Benchmark")){
-			ABB::MCU mcu;
+			ABB::Console mcu;
 			try {
 				std::string content = StringUtils::loadFileIntoString(benchmarkProgPath.c_str());
 				auto data = StringUtils::parseHexFileStr(content.c_str(), content.c_str()+content.size());
@@ -335,7 +335,7 @@ void ArduEmu::drawBenchmark(){
 				uint64_t cycles = 0;
 				#endif
 				double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
-				double frames = (double)benchCycls/(ABB::MCU::clockFreq()/60);
+				double frames = (double)benchCycls/(ABB::Console::clockFreq()/60);
 				double fps = 1000/(ms/frames);
 				res = StringUtils::format("%" PRIu64 "/%" PRIu64 " cycles run in %.4f ms => %.2f frames => %.4ffps; %" PRIu64 " cycles\n", mcu.totalCycles(), benchCycls, ms, frames, fps, cycles) + res;
 			}

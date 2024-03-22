@@ -52,12 +52,12 @@ ABB::McuInfoBackend::McuInfoBackend(ArduboyBackend* abb, const char* winName, bo
 	winName(winName), open(open)
 {
 	for (size_t i = 0; i < abb->mcu.numHexViewers(); i++) {
-		MCU::Hex hex = abb->mcu.getHexViewer(i);
+		Console::Hex hex = abb->mcu.getHexViewer(i);
 
 		uint8_t dataType = utils::HexViewer::DataType_None;
 		switch (hex.type) {
-			case MCU::Hex::Type_Ram: dataType = utils::HexViewer::DataType_Ram; break;
-			case MCU::Hex::Type_Rom: dataType = utils::HexViewer::DataType_Rom; break;
+			case Console::Hex::Type_Ram: dataType = utils::HexViewer::DataType_Ram; break;
+			case Console::Hex::Type_Rom: dataType = utils::HexViewer::DataType_Rom; break;
 		}
 
 		hexViewers.push_back(utils::HexViewer(hex.dataLen, dataType));
@@ -118,13 +118,13 @@ void ABB::McuInfoBackend::draw() {
 
 					const EmuUtils::SymbolTable::SymbolList* list = nullptr;
 					switch (hex.type) {
-						case MCU::Hex::Type_Ram: list = &abb->symbolTable.getSymbolsRam(); break;
-						case MCU::Hex::Type_Rom: list = &abb->symbolTable.getSymbolsRom(); break;
+						case Console::Hex::Type_Ram: list = &abb->symbolTable.getSymbolsRam(); break;
+						case Console::Hex::Type_Rom: list = &abb->symbolTable.getSymbolsRom(); break;
 					}
 
 					if(hex.setData) {
 						hexViewers[i].setEditCallback([](size_t addr, uint8_t val, void* userData) {
-							((MCU::Hex*)userData)->setData((addrmcu_t)addr, val);
+							((Console::Hex*)userData)->setData((addrmcu_t)addr, val);
 						}, &hex);
 					}else{
 						hexViewers[i].setEditCallback(nullptr, nullptr);

@@ -19,7 +19,7 @@
 #define MCU_PRIxPC PRIx16
 
 namespace ABB {
-	class MCU {
+	class Console {
 	public:
 		typedef uint8_t regind_t;
 		typedef uint8_t reg_t;
@@ -37,11 +37,11 @@ namespace ABB {
 		void* data;
 	public:
 
-		MCU();
-		MCU(const MCU& src);
-		~MCU();
+		Console();
+		Console(const Console& src);
+		~Console();
 
-		MCU& operator=(const MCU& other);
+		Console& operator=(const Console& other);
 
 		void reset();
 		void powerOn();

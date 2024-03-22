@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-#include "../mcu.h"
+#include "../Console.h"
 #include "comps/StringTable.h"
 
 #include "DisplayBackend.h"
@@ -21,7 +21,7 @@ namespace ABB {
 	class ArduboyBackend {
 	public:
 
-		MCU mcu;
+		Console mcu;
 		EmuUtils::SymbolTable symbolTable;
 
 		std::unique_ptr<EmuUtils::ELF::ELFFile> elfFile = nullptr;

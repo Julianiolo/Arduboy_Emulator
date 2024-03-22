@@ -93,7 +93,7 @@
     <ClCompile Include="..\..\..\..\src\tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\src\mcu.cpp">
+    <ClCompile Include="..\..\..\..\src\Console.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\dependencies\EmuUtils\SymbolTable.cpp">
@@ -170,7 +170,7 @@
     <ClInclude Include="..\..\..\..\dependencies\rlImGui\rlImGuiColors.h">
       <Filter>Source Files\rlImGui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\src\mcu.h">
+    <ClInclude Include="..\..\..\..\src\Console.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\dependencies\EmuUtils\SymbolTable.h">

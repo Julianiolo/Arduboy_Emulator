@@ -10,7 +10,7 @@
 #include "StringUtils.h"
 #include "imgui/icons.h"
 
-#include "../mcu.h"
+#include "../Console.h"
 
 #define SYS_LOG(_level_,_msg_) ABB::LogBackend::_SystemLog(_level_, SYS_LOG_MODULE, __FILE__, __LINE__, _msg_)
 #define SYS_LOGF(_level_,_msg_,...) ABB::LogBackend::_SystemLogf(_level_, SYS_LOG_MODULE, __FILE__, __LINE__, _msg_, __VA_ARGS__)
@@ -63,14 +63,14 @@ namespace ABB {
         void redoCache();
         void updateCacheWithSystemLog();
 
-        MCU* mcu;
+        Console* mcu;
     public:
 
         std::string winName;
         bool* open;
         uint8_t filterLevel = LogLevel_None;
 
-        LogBackend(MCU* mcu, const char* winName, bool* open);
+        LogBackend(Console* mcu, const char* winName, bool* open);
 
         void draw();
         void clear();

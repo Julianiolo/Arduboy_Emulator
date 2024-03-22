@@ -21,10 +21,10 @@ ABB::DisplayBackend::Color3 ABB::DisplayBackend::Color3::fromImGuiCol(const ImVe
 	return Color3{ (uint8_t)(color.x*255), (uint8_t)(color.y*255), (uint8_t)(color.z*255) };
 }
 
-ABB::DisplayBackend::DisplayBackend(MCU* mcu, const char* name) : name(name), mcu(mcu) {
+ABB::DisplayBackend::DisplayBackend(Console* mcu, const char* name) : name(name), mcu(mcu) {
 	//                                       \/ padding
-	displayImg.width = MCU::DISPLAY_WIDTH   + 2;
-	displayImg.height = MCU::DISPLAY_HEIGHT + 2;
+	displayImg.width = Console::DISPLAY_WIDTH   + 2;
+	displayImg.height = Console::DISPLAY_HEIGHT + 2;
 	displayImg.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
 	displayImg.data = new uint8_t[displayImg.width * displayImg.height * 3];
 	displayImg.mipmaps = 1;
@@ -41,25 +41,25 @@ ABB::DisplayBackend::~DisplayBackend() {
 void ABB::DisplayBackend::update() {
 
 	// update main part of Image
-	for (size_t y = 0; y < MCU::DISPLAY_HEIGHT; y++) {
-		for (size_t x = 0; x < MCU::DISPLAY_WIDTH; x++) {
+	for (size_t y = 0; y < Console::DISPLAY_HEIGHT; y++) {
+		for (size_t x = 0; x < Console::DISPLAY_WIDTH; x++) {
 			((Color3*)displayImg.data)[(y+1) * displayImg.width + (x+1)] = mcu->display_getPixel(x, y).r ? lightColor : darkColor;
 		}
 	}
 
 	// update edges with duplicates
-	for (size_t x = 0; x < MCU::DISPLAY_WIDTH; x++) { // top edge
+	for (size_t x = 0; x < Console::DISPLAY_WIDTH; x++) { // top edge
 		((Color3*)displayImg.data)[x+1]                                            = mcu->display_getPixel(                 x,                     0).r ? lightColor : darkColor;
 	}
-	for (size_t x = 0; x < MCU::DISPLAY_WIDTH; x++) { // bottom edge
-		((Color3*)displayImg.data)[(displayImg.height-1) * displayImg.width + x+1] = mcu->display_getPixel(                 x, MCU::DISPLAY_HEIGHT-1).r ? lightColor : darkColor;
+	for (size_t x = 0; x < Console::DISPLAY_WIDTH; x++) { // bottom edge
+		((Color3*)displayImg.data)[(displayImg.height-1) * displayImg.width + x+1] = mcu->display_getPixel(                 x, Console::DISPLAY_HEIGHT-1).r ? lightColor : darkColor;
 	}
 
-	for (size_t y = 0; y < MCU::DISPLAY_HEIGHT; y++) { // left edge
+	for (size_t y = 0; y < Console::DISPLAY_HEIGHT; y++) { // left edge
 		((Color3*)displayImg.data)[(y+1)*displayImg.width]                         = mcu->display_getPixel(                   0,                     y).r ? lightColor : darkColor;
 	}
-	for (size_t y = 0; y < MCU::DISPLAY_HEIGHT; y++) { // right edge
-		((Color3*)displayImg.data)[(y+1)*displayImg.width + displayImg.width-1]    = mcu->display_getPixel(MCU::DISPLAY_WIDTH-1,                     y).r ? lightColor : darkColor;
+	for (size_t y = 0; y < Console::DISPLAY_HEIGHT; y++) { // right edge
+		((Color3*)displayImg.data)[(y+1)*displayImg.width + displayImg.width-1]    = mcu->display_getPixel(Console::DISPLAY_WIDTH-1,                     y).r ? lightColor : darkColor;
 	}
 
 	//set the four corners to dark color
@@ -76,7 +76,7 @@ Texture& ABB::DisplayBackend::getTex() {
 }
 
 Rectangle ABB::DisplayBackend::getTexSrcRect() {
-	return { 1,1,MCU::DISPLAY_WIDTH, MCU::DISPLAY_HEIGHT };
+	return { 1,1,Console::DISPLAY_WIDTH, Console::DISPLAY_HEIGHT };
 }
 
 bool ABB::DisplayBackend::getPixelOfImage(uint8_t x, uint8_t y) {
@@ -95,7 +95,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 	ImVec2 size;
 	ImVec2 texPos;
 	{
-		float ratio = (float)MCU::DISPLAY_WIDTH / (float)MCU::DISPLAY_HEIGHT;
+		float ratio = (float)Console::DISPLAY_WIDTH / (float)Console::DISPLAY_HEIGHT;
 		if (flipDims) ratio = 1 / ratio;
 
 		ImVec2 pos;
@@ -125,7 +125,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 		ImVec2 region = { 32, 16 };
 		ImVec2 regionAdj = region;
 		if (flipDims) std::swap(regionAdj.x, regionAdj.y);
-		ImVec2 texSize = { MCU::DISPLAY_WIDTH, MCU::DISPLAY_HEIGHT };
+		ImVec2 texSize = { Console::DISPLAY_WIDTH, Console::DISPLAY_HEIGHT };
 		ImVec2 texSizeAdj = texSize;
 		if (flipDims) std::swap(texSizeAdj.x, texSizeAdj.y);
 		const float zoom = 2;
@@ -138,8 +138,8 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 			relPos = {(relMousePos.x / size.x)*texSizeAdj.x , (relMousePos.y / size.y)*texSizeAdj.y};
 			relPosAdj = relPos;
 			if (flipDims) std::swap(relPosAdj.x, relPosAdj.y);
-			if (rotation == 1 || rotation == 2) relPosAdj.y = MCU::DISPLAY_HEIGHT - relPosAdj.y;
-			if (rotation == 2 || rotation == 3) relPosAdj.x = MCU::DISPLAY_WIDTH - relPosAdj.x;
+			if (rotation == 1 || rotation == 2) relPosAdj.y = Console::DISPLAY_HEIGHT - relPosAdj.y;
+			if (rotation == 2 || rotation == 3) relPosAdj.x = Console::DISPLAY_WIDTH - relPosAdj.x;
 
 			relPosReg = { relPosAdj.x - regionAdj.x / 2, relPosAdj.y - regionAdj.y / 2 };
 		}

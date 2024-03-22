@@ -11,7 +11,7 @@
 #include "ImGuiFD.h"
 #include "ImGuiFD_internal.h"
 
-#include "../mcu.h"
+#include "../Console.h"
 
 #include "SymbolBackend.h"
 
@@ -23,7 +23,7 @@ namespace ABB {
 	class McuInfoBackend {
 	public:
 		struct Save {
-			MCU mcu;
+			Console mcu;
 			EmuUtils::SymbolTable symbolTable;
 
 			size_t sizeBytes() const;

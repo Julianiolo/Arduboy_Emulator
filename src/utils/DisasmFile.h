@@ -9,7 +9,7 @@
 #include <functional>
 #include <memory>
 
-#include "../mcu.h"
+#include "../Console.h"
 
 namespace ABB {
 	class DisasmFile{
@@ -25,15 +25,15 @@ namespace ABB {
 
 		std::string content;
 		std::vector<size_t> lines; // [linenumber] = start index of line
-		std::vector<MCU::addrmcu_t> addrs; // [linenumber] = PC address
+		std::vector<Console::addrmcu_t> addrs; // [linenumber] = PC address
 		std::vector<bool> isLineProgram; // [linenumber] = true if line is part of the program, false if not (like data, empty...)
 		std::map<uint16_t, size_t> labels; // [symbAddress] = linenumber
 
 
 
 		struct BranchRoot {
-			MCU::addrmcu_t start;
-			MCU::addrmcu_t dest;
+			Console::addrmcu_t start;
+			Console::addrmcu_t dest;
 			size_t startLine;
 			size_t destLine;
 			size_t displayDepth;
@@ -59,12 +59,12 @@ namespace ABB {
 		
 	private:
 
-		static constexpr MCU::addrmcu_t Addrs_notAnAddr = -1;
-		static constexpr MCU::addrmcu_t Addrs_symbolLabel = -2;
+		static constexpr Console::addrmcu_t Addrs_notAnAddr = -1;
+		static constexpr Console::addrmcu_t Addrs_symbolLabel = -2;
 	public:
-		static bool addrIsActualAddr(MCU::addrmcu_t addr);
-		static bool addrIsNotProgram(MCU::addrmcu_t addr);
-		static bool addrIsSymbol(MCU::addrmcu_t addr);
+		static bool addrIsActualAddr(Console::addrmcu_t addr);
+		static bool addrIsNotProgram(Console::addrmcu_t addr);
+		static bool addrIsSymbol(Console::addrmcu_t addr);
 
 		
 	private:
@@ -84,12 +84,12 @@ namespace ABB {
 		void loadSrc(const char* str, const char* strEnd = NULL);
 
 		// helpers/utility
-		size_t getLineIndFromAddr(MCU::addrmcu_t Addr) const; // if addr not present, returns the index of the pos to insert at
+		size_t getLineIndFromAddr(Console::addrmcu_t Addr) const; // if addr not present, returns the index of the pos to insert at
 		bool isEmpty() const;
 		size_t getNumLines() const;
 
-		MCU::addrmcu_t getPrevActualAddr(size_t line) const;
-		MCU::addrmcu_t getNextActualAddr(size_t line) const;
+		Console::addrmcu_t getPrevActualAddr(size_t line) const;
+		Console::addrmcu_t getNextActualAddr(size_t line) const;
 
 		size_t sizeBytes() const;
 	};

@@ -87,7 +87,7 @@ void ABB::LogBackend::init() {
 }
 
 
-ABB::LogBackend::LogBackend(MCU* mcu, const char* winName, bool* open) : mcu(mcu), winName(winName), open(open) {
+ABB::LogBackend::LogBackend(Console* mcu, const char* winName, bool* open) : mcu(mcu), winName(winName), open(open) {
     activateLog();
     mcu->setLogCallB([](uint8_t logLevel, const char* msg, const char* fileName, int lineNum, const char* module, void* userData) {
         ((LogBackend*)userData)->addLog(logLevel, msg, fileName, lineNum, module);
@@ -302,7 +302,7 @@ void ABB::LogBackend::draw() {
                         ImGui::EndTooltip();
                     }
 #else
-                    ImGui::TextColored(col, "[%s]", MCU::logLevelStrs[entry.level]);
+                    ImGui::TextColored(col, "[%s]", Console::logLevelStrs[entry.level]);
 #endif
 
                     ImGui::TableNextColumn();
