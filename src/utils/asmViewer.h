@@ -68,9 +68,9 @@ namespace ABB{
             bool showLineHeat = true;
             size_t selectedLine = -1;
 
-            void loadSrc(const char* str, const char* strEnd = NULL);
+            void loadSrc(Console* cons, const char* str, const char* strEnd = NULL);
             void loadDisasmFile(const DisasmFile& file);
-            void drawFile(uint16_t PCAddr, Console* mcu, const EmuUtils::SymbolTable* symbolTable);
+            void drawFile(uint16_t PCAddr, Console* cons, const EmuUtils::SymbolTable* symbolTable);
             void scrollToLine(size_t line, bool select = false);
             void scrollToAddr(Console::addrmcu_t addr, bool select = false);
 

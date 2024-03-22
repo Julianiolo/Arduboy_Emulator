@@ -265,9 +265,9 @@ void ArduEmu::draw() {
 
 			SYS_LOGF(LogUtils::LogLevel_Output, "Loading dropped file: %s", path);
 
-			auto& abb = addEmulator(name);
+			auto& abb = addEmulator(name, ARDUBOY); // TODO
 			if (abb.loadFile(path))
-				abb.mcu.powerOn();
+				abb.mcu->powerOn();
 		}
 		UnloadDroppedFiles(files);
 	}
@@ -285,7 +285,7 @@ void ArduEmu::drawBenchmark(){
 			ImGuiFD::OpenDialog("Load Benchmark Programm", ImGuiFDMode_LoadFile, ".");
 		}
 
-		uint64_t benchCycls = (ABB::Console::clockFreq()/60)*1000;
+		uint64_t benchCycls = (16000000/60)*1000;
 		constexpr uint64_t min = 0;
 		ImGui::DragScalar("##cycs",ImGuiDataType_U64, &benchCycls, 1000, &min);
 		ImGui::SameLine();
@@ -303,25 +303,25 @@ void ArduEmu::drawBenchmark(){
 
 		static std::string res = "";
 		if(ImGui::Button("Do Benchmark")){
-			ABB::Console mcu;
+			std::unique_ptr<ABB::Console> mcu = genConsole(ARDUBOY); // TODO
 			try {
 				std::string content = StringUtils::loadFileIntoString(benchmarkProgPath.c_str());
 				auto data = StringUtils::parseHexFileStr(content.c_str(), content.c_str()+content.size());
-				mcu.flash_loadFromMemory(data.size()?&data[0]:nullptr, data.size());
+				mcu->flash_loadFromMemory(data.size()?&data[0]:nullptr, data.size());
 			}catch(const std::exception& e) {
 				res = StringUtils::format("Error loading file: %s", e.what()) + res;
 			}
 
-			if(mcu.flash_isProgramLoaded()) {
-				mcu.powerOn();
-				mcu.setButtons(false, false, false, false, false, false);
-				mcu.setDebugMode(debug);
+			if(mcu->flash_isProgramLoaded()) {
+				mcu->powerOn();
+				mcu->setButtons(false, false, false, false, false, false);
+				mcu->setDebugMode(debug);
 
 				auto start = std::chrono::high_resolution_clock::now();
 				#ifndef __EMSCRIPTEN__
 				uint64_t cpu_start = __rdtsc();
 				#endif
-				mcu.execute(benchCycls);
+				mcu->execute(benchCycls);
 				#ifndef __EMSCRIPTEN__
 				uint64_t cpu_end = __rdtsc();
 				#endif
@@ -335,9 +335,9 @@ void ArduEmu::drawBenchmark(){
 				uint64_t cycles = 0;
 				#endif
 				double ms = (double)(time/std::chrono::microseconds(1))/1000.0;
-				double frames = (double)benchCycls/(ABB::Console::clockFreq()/60);
+				double frames = (double)benchCycls/(mcu->consts.clockFreq/60);
 				double fps = 1000/(ms/frames);
-				res = StringUtils::format("%" PRIu64 "/%" PRIu64 " cycles run in %.4f ms => %.2f frames => %.4ffps; %" PRIu64 " cycles\n", mcu.totalCycles(), benchCycls, ms, frames, fps, cycles) + res;
+				res = StringUtils::format("%" PRIu64 "/%" PRIu64 " cycles run in %.4f ms => %.2f frames => %.4ffps; %" PRIu64 " cycles\n", mcu->totalCycles(), benchCycls, ms, frames, fps, cycles) + res;
 			}
 		}
 
@@ -393,10 +393,19 @@ bool ArduEmu::drawMenuContents(size_t activeInstanceInd) {
 
 
 
-ABB::ArduboyBackend& ArduEmu::addEmulator(const char* n) {
-	ABB::ArduboyBackend* ptr = new ABB::ArduboyBackend(n, idCounter++);
+ABB::ArduboyBackend& ArduEmu::addEmulator(const char* n, EmulatorType type) {
+	ABB::ArduboyBackend* ptr = new ABB::ArduboyBackend(n, idCounter++, genConsole(type));
 	instances.push_back(ptr);
 	return *ptr;
+}
+
+std::unique_ptr<ABB::Console> genEmu_ARDUBOY();  // Implemented by ArduboyConsole
+
+std::unique_ptr<ABB::Console> ArduEmu::genConsole(EmulatorType type) {
+	switch (type) {
+		case ARDUBOY: return genEmu_ARDUBOY();
+		default: DU_ASSERT(false);
+	}
 }
 
 ABB::ArduboyBackend* ArduEmu::getInstance(size_t ind) {
@@ -426,11 +435,11 @@ void ArduEmu::drawLoadProgramDialog() {
 				}
 
 				if (abb == nullptr) { // also a failsafe, if it couldnt find the given id, dunno if thats smart
-					abb = &addEmulator(name.c_str());
+					abb = &addEmulator(name.c_str(), ARDUBOY); // TODO
 				}
 
 				if(abb->loadFile(path.c_str()))
-					abb->mcu.powerOn();
+					abb->mcu->powerOn();
 			}
 			ImGuiFD::CloseCurrentDialog();
 		}

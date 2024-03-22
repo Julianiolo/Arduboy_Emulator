@@ -3,10 +3,12 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "comps/ActionManager.h"
 
 #include "backends/ArduboyBackend.h"
+#include "Console.h"
 
 #define AB_VERSION "1.0 Alpha"
 
@@ -79,11 +81,18 @@ public:
 	static void setupImGuiStyle(const ImVec4& accentColor, const ImVec4& frameColor);
 	static void setupActionManager();
 
-	static ABB::ArduboyBackend& addEmulator(const char* n);
+	enum EmulatorType : uint8_t {
+		ARDUBOY = 0
+	};
+
+	static ABB::ArduboyBackend& addEmulator(const char* n, EmulatorType type);
 	static ABB::ArduboyBackend* getInstance(size_t ind);
 	static ABB::ArduboyBackend* getInstanceById(size_t id);
 	static void openLoadProgramDialog(size_t ownId);
 	static std::string getActionKeyStr(const ActionManager::Action& action);
+
+	static std::unique_ptr<ABB::Console> genConsole(EmulatorType type);
+
 private:
 	static void drawBenchmark();
 	static bool drawMenuContents(size_t activeInstanceInd); // returns true if menu is active

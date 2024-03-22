@@ -155,7 +155,7 @@ void setup() {
     ArduEmu::init();
 
 #if 1
-    ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing");
+    ABB::ArduboyBackend& abb = ArduEmu::addEmulator("Thing", ArduEmu::ARDUBOY);
     //abb.ab.mcu.debugger.halt();
     //abb.ab.load("../../../../ressources/games/CastleBoy.hex");
 #if 0
@@ -227,7 +227,7 @@ void setup() {
     
     */
 
-    abb.mcu.powerOn();
+    abb.mcu->powerOn();
 #endif
     std::cout << "Completed Setup" << std::endl;
 }

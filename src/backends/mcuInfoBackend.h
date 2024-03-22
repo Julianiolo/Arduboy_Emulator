@@ -23,8 +23,15 @@ namespace ABB {
 	class McuInfoBackend {
 	public:
 		struct Save {
-			Console mcu;
+			std::unique_ptr<Console> mcu;
 			EmuUtils::SymbolTable symbolTable;
+
+			Save(std::unique_ptr<Console>&& mcu, EmuUtils::SymbolTable&& symbolTable);
+			Save(const Save& other);
+			Save(Save&& other) = default;
+
+			Save& operator=(const Save& other);
+			Save& operator=(Save&& other) = default;
 
 			size_t sizeBytes() const;
 		};
@@ -76,7 +83,7 @@ namespace ABB {
 		const char* getWinName() const;
 
 		bool isWinFocused() const;
-		void addState(const Save& save, const char* name = nullptr);
+		void addState(Save&& save, const char* name = nullptr);
 
 		size_t sizeBytes() const;
 	};

@@ -29,14 +29,14 @@ ABB::DebuggerBackend::DebuggerBackend(ArduboyBackend* abb, const char* winName, 
 void ABB::DebuggerBackend::drawControls(){
 	if (stepFrame) {
 		stepFrame = false;
-		abb->mcu.debugger_halt();
+		abb->mcu->debugger_halt();
 	}
 
-	bool isHalted = abb->mcu.debugger_isHalted(); // caching, but also so it cant change while something is disabled, not reenabling it as a result
+	bool isHalted = abb->mcu->debugger_isHalted(); // caching, but also so it cant change while something is disabled, not reenabling it as a result
 
 	if (!isHalted) ImGui::BeginDisabled();
 		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_FORWARD_STEP,"Step"))) {
-			abb->mcu.debugger_step();
+			abb->mcu->debugger_step();
 		}
 		if (USE_ICONS && ImGui::IsItemHovered())
 			ImGui::SetTooltip("Step");
@@ -44,14 +44,14 @@ void ABB::DebuggerBackend::drawControls(){
 		ImGui::SameLine();
 		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_FORWARD_FAST,"Step Frame"))) {
 			stepFrame = true;
-			abb->mcu.debugger_continue();
+			abb->mcu->debugger_continue();
 		}
 		if (USE_ICONS && ImGui::IsItemHovered())
 			ImGui::SetTooltip("Step Frame");
 
 		ImGui::SameLine();
 		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_PLAY,"Continue"))) {
-			abb->mcu.debugger_continue();
+			abb->mcu->debugger_continue();
 		}
 		if (USE_ICONS && ImGui::IsItemHovered())
 			ImGui::SetTooltip("Continue");
@@ -61,7 +61,7 @@ void ABB::DebuggerBackend::drawControls(){
 	ImGui::SameLine();
 	if (isHalted) ImGui::BeginDisabled();
 		if (ImGui::Button(ICON_OR_TEXT(ICON_FA_PAUSE,"Force Stop"))) {
-			abb->mcu.debugger_halt();
+			abb->mcu->debugger_halt();
 		}
 		if (USE_ICONS && ImGui::IsItemHovered())
 			ImGui::SetTooltip("Force Stop");
@@ -71,7 +71,7 @@ void ABB::DebuggerBackend::drawControls(){
 	if (ImGui::Button(ICON_OR_TEXT(ICON_FA_ROTATE_LEFT,"Reset"))) {
 		abb->resetMachine();
 		if(haltOnReset)
-			abb->mcu.debugger_halt();
+			abb->mcu->debugger_halt();
 	}
 	if (USE_ICONS && ImGui::IsItemHovered())
 		ImGui::SetTooltip("Reset");
@@ -82,28 +82,28 @@ void ABB::DebuggerBackend::drawControls(){
 
 	if(ImGui::Button("Jump to PC")) {
 		if(srcMixs.size() > 0 && !srcMixs[selectedSrcMix].viewer.file.isEmpty()) {
-			size_t line = srcMixs[selectedSrcMix].viewer.file.getLineIndFromAddr(abb->mcu.getPCAddr());
+			size_t line = srcMixs[selectedSrcMix].viewer.file.getLineIndFromAddr(abb->mcu->getPCAddr());
 			srcMixs[selectedSrcMix].viewer.scrollToLine(line);
 		}
 	}
 
 	ImGui::SameLine();
-	double totalSeconds = (double)abb->mcu.totalCycles() / abb->mcu.clockFreq();
+	const double totalSeconds = (double)abb->mcu->totalCycles() / abb->mcu->consts.clockFreq;
 	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s (%.6fs)", 
-		abb->mcu.getPC(), abb->mcu.getPCAddr(), 
-		StringUtils::addThousandsSeperator(std::to_string(abb->mcu.totalCycles()).c_str()).c_str(), totalSeconds);
+		abb->mcu->getPC(), abb->mcu->getPCAddr(), 
+		StringUtils::addThousandsSeperator(std::to_string(abb->mcu->totalCycles()).c_str()).c_str(), totalSeconds);
 }
 
 void ABB::DebuggerBackend::drawDebugStack() {
 	if (ImGui::BeginChild("DebugStack", { 0,80 }, true)) {
-		size_t stackSize = abb->mcu.getStackPtr();
+		size_t stackSize = abb->mcu->getStackPtr();
 		ImGui::Text("Stack Size: %" CU_PRIuSIZE, stackSize);
 		if (ImGui::BeginTable("DebugStackTable", 2)) {
 			for (int32_t i = (int32_t)stackSize-1; i >= 0; i--) {
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				
-				uint16_t addr = abb->mcu.getStackTo(i)*2;
+				uint16_t addr = abb->mcu->getStackTo(i)*2;
 				if(abb->symbolTable.hasSymbols()){
 					const EmuUtils::SymbolTable::Symbol* symbol = abb->symbolBackend.drawAddrWithSymbol(addr, abb->symbolTable.getSymbolsRom());
 
@@ -129,7 +129,7 @@ void ABB::DebuggerBackend::drawDebugStack() {
 				ImGui::TextUnformatted(": from ");
 				ImGui::SameLine();
 				
-				uint16_t fromAddr = abb->mcu.getStackFrom(i) * 2;
+				uint16_t fromAddr = abb->mcu->getStackFrom(i) * 2;
 
 				if(abb->symbolTable.hasSymbols()){
 					const EmuUtils::SymbolTable::Symbol* fromSymbol = abb->symbolBackend.drawAddrWithSymbol(fromAddr, abb->symbolTable.getSymbolsRom());
@@ -156,10 +156,10 @@ void ABB::DebuggerBackend::drawDebugStack() {
 }
 void ABB::DebuggerBackend::drawBreakpoints() {
 	if (ImGui::Button("Clear All Breakpoints")) {
-		abb->mcu.debugger_clearAllBreakpoints();
+		abb->mcu->debugger_clearAllBreakpoints();
 	}
 	if (ImGui::BeginChild("DebugStack", { 0,80 }, true)) {
-		for (auto& b : abb->mcu.debugger_getBreakpointList()) {
+		for (auto& b : abb->mcu->debugger_getBreakpointList()) {
 			ImGui::Text("Breakpoint at addr %04x => PC %04x", b*2,b);
 		}
 	}
@@ -168,15 +168,15 @@ void ABB::DebuggerBackend::drawBreakpoints() {
 void ABB::DebuggerBackend::drawRegisters(){
 	ImGui::Checkbox("Show GP-Registers", &showGPRegs);
 
-	abb->mcu.draw_stateInfo();
+	abb->mcu->draw_stateInfo();
 }
 void ABB::DebuggerBackend::drawGPRegisters() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4,4 });
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1,1 });
 	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 3);
 	if (ImGui::BeginChild("GPRegs", { ImGui::CalcTextSize("r99: ff").x+2*4+1, 0}, true)) {
-		for (uint8_t i = 0; i < abb->mcu.getRegNum(); i++) {
-			auto reg = abb->mcu.getReg(i);
+		for (uint8_t i = 0; i < abb->mcu->consts.numRegs; i++) {
+			auto reg = abb->mcu->getReg(i);
 			ImGui::Text("%3s: %02x", reg.first, reg.second);
 		}
 	}
@@ -209,7 +209,7 @@ bool ABB::DebuggerBackend::drawLoadGenerateButtons() {
 		}
 	}
 
-	bool programLoaded = abb->mcu.flash_isProgramLoaded();
+	bool programLoaded = abb->mcu->flash_isProgramLoaded();
 	if (!programLoaded)
 		ImGui::BeginDisabled();
 
@@ -293,10 +293,10 @@ void ABB::DebuggerBackend::draw() {
 					ImGui::SameLine();
 					if(ImGui::Button("Update with analytics data")) {
 						std::string disasmed = disasmProg();
-						srcMixs[selectedSrcMix].viewer.loadSrc(disasmed.c_str(), disasmed.c_str() + disasmed.size());
+						srcMixs[selectedSrcMix].viewer.loadSrc(abb->mcu.get(), disasmed.c_str(), disasmed.c_str() + disasmed.size());
 					}
 				}
-				srcMixs[selectedSrcMix].viewer.drawFile(abb->mcu.getPCAddr(), &abb->mcu,&abb->symbolTable);
+				srcMixs[selectedSrcMix].viewer.drawFile(abb->mcu->getPCAddr(), abb->mcu.get(), &abb->symbolTable);
 			}
 			else{
 				ImGui::TextUnformatted("Couldnt generate disassembly, load or generate?");
@@ -352,17 +352,17 @@ std::string ABB::DebuggerBackend::disasmProg() {
 	// merge in analytics seeds
 	{
 		size_t ind = 0;
-		for (size_t i = 0; i < abb->mcu.flash_size(); i+=2) {
+		for (size_t i = 0; i < abb->mcu->flash_size(); i+=2) {
 			while (ind < seeds.size() && i > seeds[ind])
 				ind++;
 
-			if (abb->mcu.analytics_getPCHeat((Console::pc_t)(i/2)) && (ind >= seeds.size() || seeds[ind] != i)) {
+			if (abb->mcu->analytics_getPCHeat((Console::pc_t)(i/2)) && (ind >= seeds.size() || seeds[ind] != i)) {
 				seeds.insert(seeds.begin() + ind, (uint32_t)i);
 			}
 		}
 	}
 
-	return abb->mcu.disassembler_disassembleProg(
+	return abb->mcu->disassembler_disassembleProg(
 		srcLines.size() ? &srcLines : nullptr,
 		&funcSymbs, &dataSymbs, &seeds
 	);
@@ -372,14 +372,14 @@ void ABB::DebuggerBackend::generateSrc() {
 	
 	srcMix.title = ADD_ICON(ICON_FA_FILE_CODE) "Generated";
 	std::string disasmed = disasmProg();
-	srcMix.loadSrc(disasmed.c_str(), disasmed.c_str() + disasmed.size());
+	srcMix.loadSrc(abb->mcu.get(), disasmed.c_str(), disasmed.c_str() + disasmed.size());
 }
 
 void ABB::DebuggerBackend::addSrc(const char* str, const char* title) {
 	utils::AsmViewer& srcMix = addSrcMix(false);
 
 	srcMix.title = title ? title : std::string(ADD_ICON(ICON_FA_FILE_CODE) "Loaded #") + std::to_string(loadedSrcFileInc++);
-	srcMix.loadSrc(str);
+	srcMix.loadSrc(abb->mcu.get(), str);
 }
 bool ABB::DebuggerBackend::addSrcFile(const char* path) {
 	std::string content;

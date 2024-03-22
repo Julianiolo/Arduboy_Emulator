@@ -148,7 +148,7 @@ void ABB::utils::AsmViewer::drawInst(const char* lineStart, const char* lineEnd,
 					(	StringUtils::hexStrToUIntLen<uint16_t>(lineStart+instBytesStart+3+3+3, 2) << 8);
 		}
 		popFileStyle();
-		ImGui::SetTooltip("%s",Console::disassembler_disassembleRaw(word, word2).c_str());
+		ImGui::SetTooltip("%s",mcu->disassembler_disassembleRaw(word, word2).c_str());
 		pushFileStyle();
 	}
 	ImGui::SameLine();
@@ -697,8 +697,8 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr, Console* mcu) {
 	}
 }
 
-void ABB::utils::AsmViewer::loadSrc(const char* str, const char* strEnd) {
-	file.loadSrc(str, strEnd);
+void ABB::utils::AsmViewer::loadSrc(Console* cons, const char* str, const char* strEnd) {
+	file.loadSrc(cons, str, strEnd);
 }
 void ABB::utils::AsmViewer::loadDisasmFile(const DisasmFile& file) {
 	abort();

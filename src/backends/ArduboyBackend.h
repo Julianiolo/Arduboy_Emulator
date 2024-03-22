@@ -21,7 +21,7 @@ namespace ABB {
 	class ArduboyBackend {
 	public:
 
-		Console mcu;
+		std::unique_ptr<Console> mcu;
 		EmuUtils::SymbolTable symbolTable;
 
 		std::unique_ptr<EmuUtils::ELF::ELFFile> elfFile = nullptr;
@@ -58,7 +58,7 @@ namespace ABB {
 		void setMcu();
 	public:
 
-		ArduboyBackend(const char* n, size_t id);
+		ArduboyBackend(const char* n, size_t id, std::unique_ptr<Console>&& mcu);
 		ArduboyBackend(const ArduboyBackend& src);
 		ArduboyBackend& operator=(const ArduboyBackend& src);
 

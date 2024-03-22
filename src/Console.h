@@ -28,103 +28,108 @@ namespace ABB {
 		typedef uint16_t sizemcu_t;
 		typedef uint16_t sizesymb_t;
 
-		static constexpr size_t addrmcu_t_MAX = 0xFFFF;
+		struct Consts {
+			size_t DISPLAY_WIDTH;
+			size_t DISPLAY_HEIGHT;
 
-		static constexpr size_t numInsts = 111;
-		static constexpr size_t DISPLAY_WIDTH = 128;
-		static constexpr size_t DISPLAY_HEIGHT = 64;
-	private:
-		void* data;
+			size_t numInsts;
+			size_t numRegs;
+			uint64_t clockFreq;
+
+			size_t dataspaceDataSize;
+
+			size_t addrmcu_t_MAX;
+		};
+
+		const Consts consts;
 	public:
 
-		Console();
-		Console(const Console& src);
-		~Console();
+		inline Console(const Consts& consts) : consts(consts) {}
+		virtual ~Console() = default;
 
-		Console& operator=(const Console& other);
+		virtual std::unique_ptr<Console> clone() const = 0;
+		virtual void assign(const Console* other) = 0;
 
-		void reset();
-		void powerOn();
+		virtual void reset() = 0;
+		virtual void powerOn() = 0;
 
-		static uint64_t clockFreq();
-		uint64_t cycsPerFrame() const;
+		virtual uint64_t cycsPerFrame() const = 0;
 		
-		void execute(uint64_t amt);
-		void newFrame();
+		virtual void execute(uint64_t amt) = 0;
+		virtual void newFrame() = 0;
 
-		bool getDebugMode() const;
-		void setDebugMode(bool on);
-		float getEmuSpeed() const;
-		void setEmuSpeed(float v);
-		void setButtons(bool up, bool down, bool left, bool right, bool a, bool b);
+		virtual bool getDebugMode() const = 0;
+		virtual void setDebugMode(bool on) = 0;
+		virtual float getEmuSpeed() const = 0;
+		virtual void setEmuSpeed(float v) = 0;
+		virtual void setButtons(bool up, bool down, bool left, bool right, bool a, bool b) = 0;
 
-		Color display_getPixel(size_t x, size_t y) const;
+		virtual Color display_getPixel(size_t x, size_t y) const = 0;
 		
-		void setLogCallB(LogUtils::LogCallB callB, void* userData);
+		virtual void setLogCallB(LogUtils::LogCallB callB, void* userData) = 0;
 
-		uint64_t totalCycles() const;
+		virtual uint64_t totalCycles() const = 0;
 
-		pc_t getPC() const;
-		addrmcu_t getPCAddr() const;
+		virtual pc_t getPC() const = 0;
+		virtual addrmcu_t getPCAddr() const = 0;
 
-		std::vector<int8_t> genSoundWave(uint32_t samplesPerSec);
+		virtual std::vector<int8_t> genSoundWave(uint32_t samplesPerSec) = 0;
 
 		// CPU
-		static size_t getRegNum();
-		std::pair<const char*, reg_t> getReg(size_t ind) const;
+		virtual std::pair<const char*, reg_t> getReg(size_t ind) const = 0;
 
-		static const char* getInstName(size_t ind);
+		virtual const char* getInstName(size_t ind) = 0;
 
 		// Dataspace
-		const uint8_t* dataspace_getData();
-		static size_t dataspace_dataSize();
+		virtual const uint8_t* dataspace_getData() = 0;
 
 		// Flash
-		bool flash_loadFromMemory(const uint8_t* data, size_t dataLen);
-		const uint8_t* flash_getData();
-		size_t flash_size() const;
-		bool flash_isProgramLoaded() const;
-		size_t programSize() const; // size of Program in PC steps
+		virtual bool flash_loadFromMemory(const uint8_t* data, size_t dataLen) = 0;
+		virtual const uint8_t* flash_getData() = 0;
+		virtual size_t flash_size() const = 0;
+		virtual bool flash_isProgramLoaded() const = 0;
+		virtual size_t programSize() const = 0; // size of Program in PC steps
 
 
 		// ### Extras ###
 
 		// Disassembler
-		static pc_t disassembler_getJumpDests(uint16_t word, uint16_t word2, pc_t pc);
-		static std::string disassembler_disassembleRaw(uint16_t word, uint16_t word2);
-		std::string disassembler_disassembleProg(
+		virtual pc_t disassembler_getJumpDests(uint16_t word, uint16_t word2, pc_t pc) = 0;
+		virtual std::string disassembler_disassembleRaw(uint16_t word, uint16_t word2) = 0;
+		virtual std::string disassembler_disassembleProg(
 			const std::vector<std::pair<uint32_t, std::string>>* srcLines = nullptr,
 			const std::vector<std::pair<uint32_t, std::string>>* funcSymbs = nullptr,
 			const std::vector<std::tuple<std::string, uint32_t, uint32_t>>* dataSymbs = nullptr,
 			const std::vector<uint32_t>* additionalDisasmSeeds = nullptr
-		) const;
+		) const = 0;
 
 		// Debugger
-		uint8_t debugger_getBreakpoint(sizemcu_t ind) const;
-		void debugger_setBreakpoint(sizemcu_t ind);
-		void debugger_clearBreakpoint(sizemcu_t ind);
-		void debugger_clearAllBreakpoints();
-		std::unordered_set<pc_t> debugger_getBreakpointList() const;
+		virtual uint8_t debugger_getBreakpoint(pc_t ind) const = 0;
+		virtual void debugger_setBreakpoint(pc_t ind) = 0;
+		virtual void debugger_clearBreakpoint(pc_t ind) = 0;
+		virtual void debugger_clearAllBreakpoints() = 0;
+		virtual std::unordered_set<pc_t> debugger_getBreakpointList() const = 0;
 
-		bool debugger_isHalted() const;
-		void debugger_halt();
-		void debugger_step();
-		void debugger_continue();
+		virtual bool debugger_isHalted() const = 0;
+		virtual void debugger_halt() = 0;
+		virtual void debugger_step() = 0;
+		virtual void debugger_continue() = 0;
 
-		size_t getStackPtr() const;
-		pc_t getStackTo(size_t ind) const;
-		pc_t getStackFrom(size_t ind) const;
+		virtual size_t getStackPtr() const = 0;
+		virtual pc_t getStackTo(size_t ind) const = 0;
+		virtual pc_t getStackFrom(size_t ind) const = 0;
 
 
 
 		// Analytics
-		sizemcu_t analytics_getMaxSP() const;
-		void analytics_resetMaxSP();
-		uint64_t analytics_getSleepSum() const;
-		void analytics_setSleepSum(uint64_t val);
-		void analytics_resetPCHeat();
-		uint64_t analytics_getPCHeat(pc_t pc) const;
-		uint64_t analytics_getInstHeat(size_t ind) const;
+		virtual sizemcu_t analytics_getMaxSP() const = 0;
+		virtual void analytics_resetMaxSP() = 0;
+		virtual uint64_t analytics_getSleepSum() const = 0;
+		virtual void analytics_setSleepSum(uint64_t val) = 0;
+		virtual void analytics_resetPCHeat() = 0;
+		virtual uint64_t analytics_getPCHeat(pc_t pc) const = 0;
+		virtual uint64_t analytics_getInstHeat(size_t ind) const = 0;
+
 
 		enum {
 			ParamType_None = 0,
@@ -140,9 +145,9 @@ namespace ABB {
 			uint8_t type;
 			uint32_t val;
 		};
-		ParamInfo getParamInfo(const char* start, const char* end, const char* instStart, const char* instEnd, uint32_t pcAddr) const;
+		virtual ParamInfo getParamInfo(const char* start, const char* end, const char* instStart, const char* instEnd, uint32_t pcAddr) const = 0;
 
-		void draw_stateInfo() const;
+		virtual void draw_stateInfo() = 0;
 
 		struct Hex {
 			const char* name;
@@ -163,13 +168,13 @@ namespace ABB {
 			const uint64_t* writeCnt = nullptr;
 			std::function<void()> resetRWAnalytics = nullptr;
 		};
-		size_t numHexViewers() const;
-		Hex getHexViewer(size_t ind) const;
+		virtual size_t numHexViewers() const = 0;
+		virtual Hex getHexViewer(size_t ind) = 0;
 
-		void getState(std::ostream& output) const;
-		void setState(std::istream& input);
+		virtual void getState(std::ostream& output) = 0;
+		virtual void setState(std::istream& input) = 0;
 
-		size_t sizeBytes() const;
+		virtual size_t sizeBytes() const = 0;
 	};
 }
 

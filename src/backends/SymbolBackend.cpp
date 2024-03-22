@@ -236,9 +236,9 @@ void ABB::SymbolBackend::draw() {
 							ImGui::BeginTooltip();
 							const uint8_t* data = nullptr;
 							if(symbol->section == ".bss" || symbol->section == ".data"){
-								data = abb->mcu.dataspace_getData();
+								data = abb->mcu->dataspace_getData();
 							} else if(symbol->section == ".text"){
-								data = abb->mcu.flash_getData();
+								data = abb->mcu->flash_getData();
 							}
 							drawSymbol(symbol, symbol->value, data);
 							ImGui::EndTooltip();

@@ -14,7 +14,7 @@
 #include "ArduboyBackend.h"
 
 ABB::AnalyticsBackend::AnalyticsBackend(ArduboyBackend* abb, const char* winName, bool* open)
-: abb(abb), stackSizeBuf(100, 0), sleepCycsBuf(100, 0), frameTimeBuf(100), instHeatOrder(Console::numInsts), winName(winName), open(open)
+: abb(abb), stackSizeBuf(100, 0), sleepCycsBuf(100, 0), frameTimeBuf(100), instHeatOrder(abb->mcu->consts.numInsts), winName(winName), open(open)
 {
     for(size_t i = 0; i<instHeatOrder.size(); i++){
         instHeatOrder[i] = i;
@@ -22,13 +22,13 @@ ABB::AnalyticsBackend::AnalyticsBackend(ArduboyBackend* abb, const char* winName
 }
 
 void ABB::AnalyticsBackend::update(){
-    if(!(abb->mcu.debugger_isHalted() || !abb->mcu.flash_isProgramLoaded())){
-        size_t SP = abb->mcu.analytics_getMaxSP();
-        abb->mcu.analytics_resetMaxSP();
-        stackSizeBuf.add((uint32_t)(abb->mcu.dataspace_dataSize()-1-SP));
+    if(!(abb->mcu->debugger_isHalted() || !abb->mcu->flash_isProgramLoaded())){
+        size_t SP = abb->mcu->analytics_getMaxSP();
+        abb->mcu->analytics_resetMaxSP();
+        stackSizeBuf.add((uint32_t)(abb->mcu->consts.dataspaceDataSize-1-SP));
 
-        sleepCycsBuf.add((uint32_t)abb->mcu.analytics_getSleepSum());
-        abb->mcu.analytics_setSleepSum(0);
+        sleepCycsBuf.add((uint32_t)abb->mcu->analytics_getSleepSum());
+        abb->mcu->analytics_setSleepSum(0);
     }
 }
 
@@ -38,7 +38,7 @@ void ABB::AnalyticsBackend::draw(){
 
         {
             Console::addrmcu_t used = stackSizeBuf.size() > 0 ? stackSizeBuf.last() : 0;
-            Console::addrmcu_t max = (Console::addrmcu_t)(abb->mcu.dataspace_dataSize() - 1 - abb->symbolTable.getMaxRamAddrEnd());
+            Console::addrmcu_t max = (Console::addrmcu_t)(abb->mcu->consts.dataspaceDataSize - 1 - abb->symbolTable.getMaxRamAddrEnd());
             ImGui::Text("%.2f%% of suspected Stack used (%d/%d)", ((float)used/(float)max)*100, used,max);
             uint64_t usedSum = std::accumulate(stackSizeBuf.begin(), stackSizeBuf.end(), (uint64_t)0);
             float avg = stackSizeBuf.size() > 0 ? (float)usedSum / stackSizeBuf.size() : 0; // prevent div by 0
@@ -52,7 +52,7 @@ void ABB::AnalyticsBackend::draw(){
 
         ImGui::PlotHistogram("Sleep Cycles",
             &getSleepCycsBuf, &sleepCycsBuf, (int)sleepCycsBuf.size(), 
-            0, NULL, 0, (float)abb->mcu.cycsPerFrame(), {0,70}
+            0, NULL, 0, (float)abb->mcu->cycsPerFrame(), {0,70}
         );
 
         {
@@ -71,12 +71,12 @@ void ABB::AnalyticsBackend::draw(){
 
 
         if(ImGui::Button("reset PC heat")){
-            abb->mcu.analytics_resetPCHeat();
+            abb->mcu->analytics_resetPCHeat();
         }
 
         if(ImGui::TreeNode("Inst heat")){
             std::stable_sort(instHeatOrder.begin(), instHeatOrder.end(), [&] (size_t a, size_t b) {
-                return abb->mcu.analytics_getInstHeat(a) > abb->mcu.analytics_getInstHeat(b);
+                return abb->mcu->analytics_getInstHeat(a) > abb->mcu->analytics_getInstHeat(b);
             });
 
             constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders;
@@ -86,15 +86,15 @@ void ABB::AnalyticsBackend::draw(){
                 ImGui::TableSetupColumn("# of executions");
                 ImGui::TableHeadersRow();
 
-                for(size_t i = 0; i< Console::numInsts; i++) {
+                for(size_t i = 0; i< abb->mcu->consts.numInsts; i++) {
                     size_t instInd = instHeatOrder[i];
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(Console::getInstName(instInd));
+                    ImGui::TextUnformatted(abb->mcu->getInstName(instInd));
 
                     ImGui::TableNextColumn();
                     {
-                        std::string s = StringUtils::addThousandsSeperator(std::to_string(abb->mcu.analytics_getInstHeat(instInd)).c_str());
+                        std::string s = StringUtils::addThousandsSeperator(std::to_string(abb->mcu->analytics_getInstHeat(instInd)).c_str());
                         ImVec2 size = ImGui::GetContentRegionAvail();
                         ImVec2 textSize = ImGui::CalcTextSize(s.c_str());
                         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+(size.x-textSize.x));

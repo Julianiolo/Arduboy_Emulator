@@ -37,6 +37,9 @@
     <Filter Include="Source Files\Extensions">
       <UniqueIdentifier>{452bcaf5-f83e-431f-973e-2071080c06ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\consoles">
+      <UniqueIdentifier>{3fb61168-72f3-4701-8da3-8a488a45d86b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\backends\ArduboyBackend.cpp">
@@ -93,9 +96,6 @@
     <ClCompile Include="..\..\..\..\src\tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\src\Console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\dependencies\EmuUtils\SymbolTable.cpp">
       <Filter>Source Files\EmuUtils</Filter>
     </ClCompile>
@@ -110,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\Extensions\imguiExtImpl.cpp">
       <Filter>Source Files\Extensions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\consoles\ArduboyConsole.cpp">
+      <Filter>Source Files\consoles</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\backends\SoundBackend.h">
       <Filter>Source Files\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\consoles\ArduboyConsole.h">
+      <Filter>Source Files\consoles</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

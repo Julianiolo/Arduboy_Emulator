@@ -69,7 +69,7 @@ void ABB::CompilerBackend::draw() {
         if(load) {
             if(abb->loadFromELFFile((std::string("./temp/")+StringUtils::getDirName(inoPath.c_str())+".ino.elf").c_str())) {
                 abb->resetMachine();
-                abb->mcu.powerOn();
+                abb->mcu->powerOn();
             }
         }
 

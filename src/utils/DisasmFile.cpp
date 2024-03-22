@@ -14,12 +14,12 @@ size_t ABB::DisasmFile::BranchRoot::addrDist() const {
 	return std::max(start,dest) - std::min(start,dest);
 }
 
-void ABB::DisasmFile::loadSrc(const char* str, const char* strEnd) {
+void ABB::DisasmFile::loadSrc(Console* cons, const char* str, const char* strEnd) {
 	if (strEnd == NULL)
 		strEnd = str + std::strlen(str);
 
 	content = std::string(str, strEnd);
-	processContent();
+	processContent(cons);
 }
 
 uint16_t ABB::DisasmFile::getAddrFromLine(const char* start, const char* end) {
@@ -73,7 +73,7 @@ void ABB::DisasmFile::addAddrToList(const char* start, const char* end, size_t l
 	}
 }
 
-void ABB::DisasmFile::processBranches() {
+void ABB::DisasmFile::processBranches(Console* cons) {
 	maxBranchDisplayDepth = 0;
 	branchRoots.clear();
 	branchRootInds.clear();
@@ -103,7 +103,7 @@ void ABB::DisasmFile::processBranches() {
 							( StringUtils::hexStrToUIntLen<uint16_t>(lineStart+FileConsts::instBytesStart+3+3+3, 2) << 8);
 					}
 
-					Console::pc_t destPC = Console::disassembler_getJumpDests(word,word2,addr/2);
+					Console::pc_t destPC = cons->disassembler_getJumpDests(word,word2,addr/2);
 					if (destPC == (Console::pc_t)-1)
 						continue; // instruction doesn't jump anywhere
 					dest = destPC * 2;
@@ -387,7 +387,7 @@ size_t ABB::DisasmFile::processBranchesRecurse(size_t ind, size_t depth) {
 }
 #endif
 
-void ABB::DisasmFile::processContent() {
+void ABB::DisasmFile::processContent(Console* cons) {
 	size_t lineInd = 1;
 	lines.clear();
 	lines.push_back(0);
@@ -411,7 +411,7 @@ void ABB::DisasmFile::processContent() {
 	lines.resize(lineInd);
 	addrs.resize(lineInd);
 
-	processBranches();
+	processBranches(cons);
 
 	for (size_t i = 0; i < lines.size(); i++) {
 		Console::addrmcu_t addr = addrs[i];

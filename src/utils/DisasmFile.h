@@ -75,13 +75,13 @@ namespace ABB {
 		static bool isValidHexAddr(const char* start, const char* end);
 		void addAddrToList(const char* start, const char* end, size_t lineInd);
 
-		void processBranches();
+		void processBranches(Console* cons);
 		size_t processBranchesRecurse(size_t i, size_t depth = 0); //const BitArray<256>&
-		void processContent();
+		void processContent(Console* cons);
 	public:
 
 
-		void loadSrc(const char* str, const char* strEnd = NULL);
+		void loadSrc(Console* cons, const char* str, const char* strEnd = NULL);
 
 		// helpers/utility
 		size_t getLineIndFromAddr(Console::addrmcu_t Addr) const; // if addr not present, returns the index of the pos to insert at

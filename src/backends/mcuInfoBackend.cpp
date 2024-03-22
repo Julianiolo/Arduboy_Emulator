@@ -25,10 +25,35 @@
 #define LU_MODULE "McuInfoBackend"
 #define LU_CONTEXT (abb->logBackend.getLogContext())
 
+ABB::McuInfoBackend::Save::Save(std::unique_ptr<Console>&& mcu, EmuUtils::SymbolTable&& symbolTable): mcu(std::move(mcu)), symbolTable(std::move(symbolTable)) {
+
+}
+ABB::McuInfoBackend::Save::Save(const Save& other): mcu(other.mcu->clone()), symbolTable(other.symbolTable) {
+
+}
+/*
+ABB::McuInfoBackend::Save::Save(Save&& other): mcu(std::move(other.mcu)), symbolTable(std::move(other.symbolTable)) {
+
+}
+*/
+
+ABB::McuInfoBackend::Save& ABB::McuInfoBackend::Save::operator=(const Save& other) {
+	mcu = other.mcu->clone();
+	symbolTable = other.symbolTable;
+	return *this;
+}
+/*
+ABB::McuInfoBackend::Save& ABB::McuInfoBackend::Save::operator=(Save&& other) {
+	mcu = std::move(other.mcu);
+	symbolTable = std::move(other.symbolTable);
+	return *this;
+}
+*/
+
 size_t ABB::McuInfoBackend::Save::sizeBytes() const {
 	size_t sum = 0;
 
-	sum += mcu.sizeBytes();
+	sum += mcu->sizeBytes();
 	sum += symbolTable.sizeBytes();
 
 	return sum;
@@ -51,8 +76,8 @@ ABB::McuInfoBackend::McuInfoBackend(ArduboyBackend* abb, const char* winName, bo
 	fdiState((std::string("State - ")+winName).c_str()), loadDatafdi((std::string("MIB Load - ") + winName).c_str()),
 	winName(winName), open(open)
 {
-	for (size_t i = 0; i < abb->mcu.numHexViewers(); i++) {
-		Console::Hex hex = abb->mcu.getHexViewer(i);
+	for (size_t i = 0; i < abb->mcu->numHexViewers(); i++) {
+		Console::Hex hex = abb->mcu->getHexViewer(i);
 
 		uint8_t dataType = utils::HexViewer::DataType_None;
 		switch (hex.type) {
@@ -80,8 +105,8 @@ void ABB::McuInfoBackend::draw() {
 
 		if (ImGui::TreeNode("CPU")) {
 			
-			ImGui::Text("PC: 0x%04x => PC Addr: 0x%04x", abb->mcu.getPC(), abb->mcu.getPCAddr());
-			ImGui::Text("Cycles: %" PRIu64, abb->mcu.totalCycles());
+			ImGui::Text("PC: 0x%04x => PC Addr: 0x%04x", abb->mcu->getPC(), abb->mcu->getPCAddr());
+			ImGui::Text("Cycles: %" PRIu64, abb->mcu->totalCycles());
 			/*
 			ImGui::Text("Is Sleeping: %d", abb->ab.mcu.cpu.isSleeping());
 			*/
@@ -89,8 +114,8 @@ void ABB::McuInfoBackend::draw() {
 		}
 
 		if (ImGui::TreeNode("Hex Viewers")) {
-			for (size_t i = 0; i < abb->mcu.numHexViewers(); i++) {
-				auto hex = abb->mcu.getHexViewer(i);
+			for (size_t i = 0; i < abb->mcu->numHexViewers(); i++) {
+				auto hex = abb->mcu->getHexViewer(i);
 
 				ImGui::PushID((int)i);
 
@@ -214,7 +239,7 @@ void ABB::McuInfoBackend::draw() {
 			if (ImGui::BeginTable("MemUsage", 2)) {
 				
 				if (func("Arduboy Backend", abb->sizeBytes(), true)) {
-					func("Arduboy", abb->mcu.sizeBytes());
+					func("Arduboy", abb->mcu->sizeBytes());
 
 					func("Log Backend",      abb->logBackend.sizeBytes());
 					func("Display Backend",  abb->displayBackend.sizeBytes());
@@ -327,7 +352,7 @@ void ABB::McuInfoBackend::drawStates() {
 
 					ImGui::TableNextColumn();
 					if(ImGui::Button("Load")){
-						abb->mcu = entry.second.mcu;
+						abb->mcu->assign(entry.second.mcu.get());
 						abb->symbolTable = entry.second.symbolTable;
 						LU_LOGF(LogUtils::LogLevel_DebugOutput, "Loaded State \"%s\"", entry.first.c_str());
 					}
@@ -363,7 +388,7 @@ void ABB::McuInfoBackend::drawStates() {
 			return;
 		}
 
-		((Save*)userData)->mcu.getState(file);
+		((Save*)userData)->mcu->getState(file);
 		((Save*)userData)->symbolTable.getState(file);
 	},states.size() > 0 ? &states[stateIndToSave].second : nullptr);
 
@@ -383,7 +408,7 @@ bool ABB::McuInfoBackend::loadHexData(const char* path, size_t ind) {
 		LU_LOGF_(LogUtils::LogLevel_Error, "Could not open file: \"%s\"", e.what());
 		return false;
 	}
-	abb->mcu.getHexViewer(ind).setDataAll(&data[0], data.size());
+	abb->mcu->getHexViewer(ind).setDataAll(&data[0], data.size());
 
 	LU_LOGF(LogUtils::LogLevel_Output, "Successfully loaded file for Hex: %s", path);
 	return true;
@@ -397,10 +422,10 @@ bool ABB::McuInfoBackend::loadState(const char* path, const char* name) {
 	}
 
 	try {
-		Save save;
-		save.mcu.setState(file);
+		Save save(abb->mcu->clone(), EmuUtils::SymbolTable());
+		save.mcu->setState(file);
 		save.symbolTable.setState(file);
-		addState(save, name);
+		addState(std::move(save), name);
 	}
 	catch (const std::runtime_error& e) {
 		LU_LOGF(LogUtils::LogLevel_Error, "Error while parsing state: %s", e.what());
@@ -411,7 +436,7 @@ bool ABB::McuInfoBackend::loadState(const char* path, const char* name) {
 	return true;
 }
 
-void ABB::McuInfoBackend::addState(const Save& ab, const char* name){
+void ABB::McuInfoBackend::addState(Save&& ab, const char* name){
 	std::string n;
 	if(name == nullptr) {
 		time_t t = std::time(0);
@@ -422,7 +447,7 @@ void ABB::McuInfoBackend::addState(const Save& ab, const char* name){
 	}else{
 		n = name;
 	}
-	states.push_back({n, ab});
+	states.push_back({n, std::move(ab)});
 
 	LU_LOGF(LogUtils::LogLevel_DebugOutput, "Added State: \"%s\"", n.c_str());
 }
