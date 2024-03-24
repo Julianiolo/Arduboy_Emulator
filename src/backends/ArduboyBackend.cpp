@@ -408,7 +408,7 @@ void ABB::ArduboyBackend::_drawMenuContents() {
 }
 
 void ABB::ArduboyBackend::resetMachine() {
-	mcu.reset();
+	mcu->reset();
 	analyticsBackend.reset();
 }
 

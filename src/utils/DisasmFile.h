@@ -99,6 +99,10 @@ namespace DataUtils {
 	inline size_t approxSizeOf(const ABB::DisasmFile::PassingBranchs& v) {
 		return v.sizeBytes();
 	}
+
+	inline size_t approxSizeOf(const ABB::DisasmFile::BranchRoot& v) {
+		return sizeof(ABB::DisasmFile::BranchRoot);
+	}
 }
 
 

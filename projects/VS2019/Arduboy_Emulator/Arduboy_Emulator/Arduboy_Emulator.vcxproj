@@ -238,6 +238,7 @@
     <ClInclude Include="..\..\..\..\src\bintools\bintools.h" />
     <ClInclude Include="..\..\..\..\src\Console.h" />
     <ClInclude Include="..\..\..\..\src\consoles\ArduboyConsole.h" />
+    <ClInclude Include="..\..\..\..\src\main_setup.h" />
     <ClInclude Include="..\..\..\..\src\oneHeaderLibs\VectorOperators.h" />
     <ClInclude Include="..\..\..\..\src\utils\asmViewer.h" />
     <ClInclude Include="..\..\..\..\src\utils\byteVisualiser.h" />

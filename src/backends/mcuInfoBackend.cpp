@@ -217,8 +217,6 @@ void ABB::McuInfoBackend::draw() {
 		drawStates();
 
 		if (ImGui::TreeNode("Mem Usage")) {
-			// TODO reduce std::string usage
-			
 			const auto func = [](const char* name, size_t sizeBytes, bool sub = false) {
 				bool ret = false;
 				ImGui::TableNextRow();
@@ -231,7 +229,9 @@ void ABB::McuInfoBackend::draw() {
 				}
 
 				ImGui::TableNextColumn();
-				ImGui::Text("%20s", StringUtils::addThousandsSeperator(std::to_string(sizeBytes).c_str()).c_str());
+				char buf[128];
+				StringUtils::addThousandsSeperatorBuf(buf, sizeof(buf), sizeBytes);
+				ImGui::Text("%20s", buf);
 
 				return ret;
 			};
@@ -247,14 +247,27 @@ void ABB::McuInfoBackend::draw() {
 						for (const auto& srcMixP : abb->debuggerBackend.srcMixs) {
 							if (func(srcMixP.viewer.title.c_str(), srcMixP.viewer.sizeBytes(), true)) {
 								if (func("File", srcMixP.viewer.file.sizeBytes(), true)) {
+									const auto& file = srcMixP.viewer.file;
 									func("Contents", 
-										DataUtils::approxSizeOf(srcMixP.viewer.file.content) + DataUtils::approxSizeOf(srcMixP.viewer.file.addrs) + 
-										DataUtils::approxSizeOf(srcMixP.viewer.file.lines) + DataUtils::approxSizeOf(srcMixP.viewer.file.isLineProgram) + DataUtils::approxSizeOf(srcMixP.viewer.file.labels)
+										DataUtils::approxSizeOf(file.content) + DataUtils::approxSizeOf(file.addrs) + 
+										DataUtils::approxSizeOf(file.lines) + DataUtils::approxSizeOf(file.isLineProgram) + DataUtils::approxSizeOf(file.labels)
 									);
-									//func("Branchs", 
-									//	DataUtils::approxSizeOf(srcMix.file.branchRoots, [](const A32u4::Disassembler::DisasmFile::BranchRoot& v) {return sizeof(A32u4::Disassembler::DisasmFile::BranchRoot); }) + DataUtils::approxSizeOf(srcMix.file.branchRootInds) +
-									//	DataUtils::approxSizeOf(srcMix.file.passingBranchesInds) + DataUtils::approxSizeOf(srcMix.file.passingBranchesVec)
-									//);
+
+									if (func("Branch Data",
+										DataUtils::approxSizeOf(file.branchRoots) + DataUtils::approxSizeOf(file.branchRootInds) +
+										DataUtils::approxSizeOf(file.passingBranchesInds) + DataUtils::approxSizeOf(file.passingBranchesVec),
+										true
+									)) {
+										func("Branch",
+											DataUtils::approxSizeOf(file.branchRoots) + DataUtils::approxSizeOf(file.branchRootInds)
+										);
+
+										func("Passing Branches",
+											DataUtils::approxSizeOf(file.passingBranchesInds) + DataUtils::approxSizeOf(file.passingBranchesVec)
+										);
+
+										ImGui::TreePop();
+									}
 
 									ImGui::TreePop();
 								}

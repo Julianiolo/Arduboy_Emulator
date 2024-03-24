@@ -191,5 +191,8 @@
     <ClInclude Include="..\..\..\..\src\consoles\ArduboyConsole.h">
       <Filter>Source Files\consoles</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\src\main_setup.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

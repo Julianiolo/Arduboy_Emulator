@@ -89,9 +89,11 @@ void ABB::DebuggerBackend::drawControls(){
 
 	ImGui::SameLine();
 	const double totalSeconds = (double)abb->mcu->totalCycles() / abb->mcu->consts.clockFreq;
+	char buf[64];
+	StringUtils::addThousandsSeperatorBuf(buf, sizeof(buf), abb->mcu->totalCycles());
 	ImGui::Text("PC: %04x => Addr: %04x, totalcycs: %s (%.6fs)", 
 		abb->mcu->getPC(), abb->mcu->getPCAddr(), 
-		StringUtils::addThousandsSeperator(std::to_string(abb->mcu->totalCycles()).c_str()).c_str(), totalSeconds);
+		buf, totalSeconds);
 }
 
 void ABB::DebuggerBackend::drawDebugStack() {
