@@ -45,6 +45,9 @@ int test(int argc, char** argv); // from tests.cpp
 
 int main(int argc, char** argv) {
 #if 1
+    CU_UNUSED(argc);
+    CU_UNUSED(argv);
+
     setup();
 
 #if defined(PLATFORM_WEB)
