@@ -69,7 +69,7 @@ std::vector<uint8_t> ArduEmu::simpleLoadDialogLoadedData;
 
 bool ArduEmu::showSettings = false;
 bool ArduEmu::showBenchmark = false;
-bool ArduEmu::showImGuiDemo = true;
+bool ArduEmu::showImGuiDemo = false;
 bool ArduEmu::showAbout = false;
 
 ActionManager ArduEmu::actionManager;

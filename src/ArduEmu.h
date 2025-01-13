@@ -17,7 +17,7 @@ public:
 	struct Info {
 		static constexpr const char* compileTime = __TIME__;
 		static constexpr const char* compileDate = __DATE__;
-		static int constexpr cplusplusStd = __cplusplus;
+		static constexpr int cplusplusStd = __cplusplus;
 	};
 
 private:
