@@ -8,6 +8,8 @@
 #include <functional>
 #include <memory>
 
+#include "CompilerUtils.h"
+
 #include "../Console.h"
 
 namespace ABB {
@@ -100,6 +102,7 @@ namespace DataUtils {
 	}
 
 	inline size_t approxSizeOf(const ABB::DisasmFile::BranchRoot& v) {
+		CU_UNUSED(v);
 		return sizeof(ABB::DisasmFile::BranchRoot);
 	}
 }

@@ -691,7 +691,7 @@ void ABB::utils::AsmViewer::decorateScrollBar(uint16_t PCAddr, Console* mcu) {
 		const ImRect& scrollRect = ImGuiExt::GetScrollBarHandleRect(win, ImGuiAxis_Y);
 		ImGui::GetWindowDrawList()->AddRectFilled(scrollRect.Min,scrollRect.Max,  ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrab)), ImGui::GetStyle().ScrollbarRounding);
 
-		ImGui::GetContentRegionMaxAbs();
+		//ImGui::GetContentRegionMaxAbs();
 
 		ImGui::PopClipRect();
 	}
