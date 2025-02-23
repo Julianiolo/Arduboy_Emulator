@@ -1,31 +1,20 @@
 #include <iostream>
-#include <fstream>
 #include <chrono>
 #include <vector>
 #include <string>
-#include <ctime>
 
-#define IMGUI_DEFINE_MATH_OPERATORS 1
 
 #include "raylib.h"
+#define IMGUI_DEFINE_MATH_OPERATORS 1
 #include "imgui.h"
 #include "rlImGui.h"
 #include "oneHeaderLibs/VectorOperators.h"
-#include "StreamUtils.h"
 
 #include "ArduEmu.h"
 #include "backends/LogBackend.h"
 
-#include "imgui/icons.h"
-
 #if defined(PLATFORM_WEB)
     #include "emscripten.h"
-#endif
-
-#if defined(_MSC_VER) || 1
-#define ROOTDIR "./"
-#else
-#define ROOTDIR "../../../../"
 #endif
 
 #define SYS_LOG_MODULE "raylib"

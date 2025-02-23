@@ -5,7 +5,6 @@
 #include "mcuInfoBackend.h"
 
 #include <cmath>
-#include <cctype>
 #include <fstream>
 
 #include "imgui/imguiExt.h"

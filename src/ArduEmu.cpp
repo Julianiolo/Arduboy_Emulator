@@ -404,7 +404,7 @@ std::unique_ptr<ABB::Console> genEmu_ARDUBOY();  // Implemented by ArduboyConsol
 std::unique_ptr<ABB::Console> ArduEmu::genConsole(EmulatorType type) {
 	switch (type) {
 		case ARDUBOY: return genEmu_ARDUBOY();
-		default: DU_ASSERT(false);
+		default: DU_ASSERT(false); return NULL;
 	}
 }
 
