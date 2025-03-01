@@ -704,9 +704,9 @@ void ArduEmu::drawKeybindSettings() {
 
 
 			{
-				for (ImGuiKey key = ImGuiKey_KeysData_OFFSET; key < ImGuiKey_MouseLeft; key = (ImGuiKey)(key + 1)) { 
-					if (!ImGui::IsKeyPressed(key) || (key < 512 && ImGui::GetIO().KeyMap[key] != -1)) continue; 
-					editAction.addKey(key);
+				for (ImGuiKey key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; key = (ImGuiKey)(key + 1)) { 
+					if (ImGui::IsKeyPressed(key)) 
+						editAction.addKey(key);
 				}
 			}
 			

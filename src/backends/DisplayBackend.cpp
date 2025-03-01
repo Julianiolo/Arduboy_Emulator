@@ -114,7 +114,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 	{
 		ImVec2 uvMin(1.0f / displayTex.width, 1.0f / displayTex.height), uvMax(1 - 1.0f / displayTex.width, 1 - 1.0f / displayTex.height);
 
-		ImGuiExt::ImageRot90(ImGui::GetID("mainTex"), &displayTex, size, rotation, uvMin, uvMax, {1,1,1,1}, {0,0,0,0}, pos, drawList);//ImVec2(!flipDims ? size.x : size.y, !flipDims ? size.y : size.x)
+		ImGuiExt::ImageRot90(ImGui::GetID("mainTex"), (ImTextureID)&displayTex, size, rotation, uvMin, uvMax, {1,1,1,1}, {0,0,0,0}, pos, drawList);//ImVec2(!flipDims ? size.x : size.y, !flipDims ? size.y : size.x)
 	}
 	
 
@@ -161,7 +161,7 @@ void ABB::DisplayBackend::draw(const ImVec2& contentSize, bool showToolTip, ImDr
 
 		ImVec2 texScl = {size.x / texSizeAdj.x, size.y / texSizeAdj.y};
 		
-		ImGuiExt::ImageRot90(ImGui::GetID("tex"), &displayTex,
+		ImGuiExt::ImageRot90(ImGui::GetID("tex"), (ImTextureID)&displayTex,
 			{ region.x * texScl.x * zoom, region.y * texScl.y * zoom }, rotation,
 			{(1+relPosReg.x)              /displayImg.width, (1+relPosReg.y)              /displayImg.height},
 			{(1+relPosReg.x + regionAdj.x)/displayImg.width, (1+relPosReg.y + regionAdj.y)/displayImg.height}
