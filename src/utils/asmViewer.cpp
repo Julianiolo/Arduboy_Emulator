@@ -287,8 +287,10 @@ void ABB::utils::AsmViewer::drawInstParams(const char* start, const char* end, c
 			}
 		}
 
-		ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), xOff + ImGui::CalcTextSize("AAA,").x + 5));
-		xOff = ImGui::GetCursorPosX();
+		if(i != paramCnt - 1) {
+			ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), xOff + ImGui::CalcTextSize("AAA,").x + 5));
+			xOff = ImGui::GetCursorPosX();
+		}
 
 		nextParamOff = comma+1;
 	}
