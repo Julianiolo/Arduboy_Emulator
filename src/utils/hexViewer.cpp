@@ -214,7 +214,7 @@ void ABB::utils::HexViewer::draw(const uint8_t* data, size_t dataLen, const EmuU
 						if(!settings.showRWViz)
 							drawList->AddRectFilled( min, max, ImColor(SymbolBackend::getSymbolColor(symbol->id)) );
 						else
-							drawList->AddRect( min, max, ImColor(SymbolBackend::getSymbolColor(symbol->id)), 0, 0, 2);
+							drawList->AddRect( min, max, ImColor(SymbolBackend::getSymbolColor(symbol->id)), 0, 2.0f, 0);
 					}
 				}
 

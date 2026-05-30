@@ -415,7 +415,7 @@ size_t ABB::DebuggerBackend::sizeBytes() const {
 	sum += sizeof(showGPRegs);
 
 	sum += sizeof(loadedSrcFileInc);
-	sum += loadSrcMix.sizeBytes();
+	//sum += loadSrcMix.sizeBytes();
 
 	sum += DataUtils::approxSizeOf(winName);
 	sum += sizeof(open);

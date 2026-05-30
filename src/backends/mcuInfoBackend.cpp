@@ -65,7 +65,7 @@ ABB::McuInfoBackend::SaveLoadFDIPair::SaveLoadFDIPair(const char* bothName):
 }
 
 size_t ABB::McuInfoBackend::SaveLoadFDIPair::sizeBytes() const {
-	return load.sizeBytes() + save.sizeBytes();
+	return 0;//load.sizeBytes() + save.sizeBytes();
 }
 
 std::vector<uint8_t> ABB::McuInfoBackend::saveData;
