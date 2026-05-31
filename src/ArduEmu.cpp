@@ -377,10 +377,14 @@ bool ArduEmu::drawMenuContents(size_t activeInstanceInd) {
 	if(ImGui::BeginMenu("Info")){
 		menuUsed = true;
 		ImGui::MenuItem("Benchmark", nullptr, &showBenchmark);
-		ImGui::MenuItem("Dear ImGui Demo Window", nullptr, &showImGuiDemo);
+		if(ImGui::BeginMenu("Debug")) {
+			ImGui::MenuItem("Dear ImGui Demo Window", nullptr, &showImGuiDemo);
+			ImGui::EndMenu();
+		}
 		ImGui::MenuItem("About", nullptr, &showAbout);
 		ImGui::EndMenu();
 	}
+	
 	if(activeInstanceInd != (size_t)-1 && ImGui::BeginMenu("Active")){
 		menuUsed = true;
 		ABB::ArduboyBackend* abb = instances[activeInstanceInd];
