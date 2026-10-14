@@ -76,6 +76,22 @@ static void drawClickDebug(int button) {
 
 
 void setup() {
+    std::set_terminate([]() {
+        try {
+            std::exception_ptr eptr{std::current_exception()};
+            if(eptr) {
+                std::rethrow_exception(eptr);
+            } else {
+                printf("Exiting without exception\n");
+            }
+        } catch (const std::exception& ex) {
+            printf("Uncaught exception: %s\n", ex.what());
+        } catch (...) {
+            printf("Unknown uncaught exception\n");
+        }
+        std::abort();
+    });
+
     ABB::LogBackend::init();
 
     {
